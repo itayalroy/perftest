@@ -24,9 +24,9 @@
 #include <cuda_runtime.h>
 #endif
 
-#define NUM_QPS 2
 #define QUEUE_DEPTH 256
 #define HANDSHAKE_PORT_OFFSET 30000
+#define MAX_QPS 32  /* Maximum number of QPs supported */
 
 struct qp_context {
     struct ibv_device *dev;
@@ -59,12 +59,13 @@ struct qp_context {
 };
 
 struct rdma_multi_qp_context {
-    struct qp_context qps[NUM_QPS];
+    struct qp_context *qps;
+    int num_qps;
     int is_server;
     uint16_t base_port;
     const char *server_addr;
-    int gpu_id;
-    pthread_mutex_t mutex[NUM_QPS];
+    int gpu_id;  /* Keep for backward compatibility */
+    pthread_mutex_t *mutex;
 };
 
 static int allocate_buffer(struct qp_context *qp, size_t size, int gpu_id)
@@ -379,7 +380,15 @@ int rdma_multi_qp_init(const struct rdma_multi_qp_config *config,
     rdma_multi_qp_context_t *ctx;
     int i;
     
-    if (!config || !ctx_out) return -1;
+    if (!config || !ctx_out || config->num_qps <= 0 || config->num_qps > MAX_QPS) {
+        fprintf(stderr, "Invalid config\n");
+        return -1;
+    }
+    
+    if (!config->nic_names || !config->gpu_id) {
+        fprintf(stderr, "nic_names and gpu_id arrays must be provided\n");
+        return -1;
+    }
     
     srand(time(NULL));
     
@@ -389,12 +398,23 @@ int rdma_multi_qp_init(const struct rdma_multi_qp_config *config,
         return -1;
     }
     
+    ctx->num_qps = config->num_qps;
+    ctx->qps = calloc(ctx->num_qps, sizeof(struct qp_context));
+    ctx->mutex = calloc(ctx->num_qps, sizeof(pthread_mutex_t));
+    if (!ctx->qps || !ctx->mutex) {
+        fprintf(stderr, "calloc failed\n");
+        free(ctx->qps);
+        free(ctx->mutex);
+        free(ctx);
+        return -1;
+    }
+    
     ctx->is_server = config->is_server;
     ctx->base_port = config->base_port;
     ctx->server_addr = config->server_addr;
     ctx->gpu_id = config->gpu_id[0];  /* Keep for backward compatibility */
     
-    for (i = 0; i < NUM_QPS; i++) {
+    for (i = 0; i < ctx->num_qps; i++) {
         pthread_mutex_init(&ctx->mutex[i], NULL);
         
         if (setup_device(&ctx->qps[i], config->nic_names[i]) != 0) {
@@ -417,7 +437,7 @@ int rdma_multi_qp_init(const struct rdma_multi_qp_config *config,
     return 0;
     
 error:
-    for (i = 0; i < NUM_QPS; i++) {
+    for (i = 0; i < ctx->num_qps; i++) {
         if (ctx->qps[i].buffer) free_buffer(&ctx->qps[i], config->gpu_id[i]);
         if (ctx->qps[i].mr) ibv_dereg_mr(ctx->qps[i].mr);
         if (ctx->qps[i].qp) ibv_destroy_qp(ctx->qps[i].qp);
@@ -426,6 +446,8 @@ error:
         if (ctx->qps[i].ctx) ibv_close_device(ctx->qps[i].ctx);
         pthread_mutex_destroy(&ctx->mutex[i]);
     }
+    free(ctx->qps);
+    free(ctx->mutex);
     free(ctx);
     return -1;
 }
@@ -433,13 +455,30 @@ error:
 int rdma_multi_qp_connect(rdma_multi_qp_context_t *ctx)
 {
     int i;
-    int listen_socks[NUM_QPS] = {-1, -1};
-    int client_socks[NUM_QPS] = {-1, -1};
+    int *listen_socks;
+    int *client_socks;
     struct sockaddr_in addr;
     int reuse = 1;
     
+    if (!ctx || ctx->num_qps <= 0) {
+        return -1;
+    }
+    
+    listen_socks = calloc(ctx->num_qps, sizeof(int));
+    client_socks = calloc(ctx->num_qps, sizeof(int));
+    if (!listen_socks || !client_socks) {
+        free(listen_socks);
+        free(client_socks);
+        return -1;
+    }
+    
+    for (i = 0; i < ctx->num_qps; i++) {
+        listen_socks[i] = -1;
+        client_socks[i] = -1;
+    }
+    
     /* Phase 1: Set up all listening sockets (server) or connect to all (client) */
-    for (i = 0; i < NUM_QPS; i++) {
+    for (i = 0; i < ctx->num_qps; i++) {
         int port = ctx->base_port + HANDSHAKE_PORT_OFFSET + i;
         int sockfd = socket(AF_INET, SOCK_STREAM, 0);
         if (sockfd < 0) {
@@ -487,7 +526,7 @@ int rdma_multi_qp_connect(rdma_multi_qp_context_t *ctx)
     }
     
     /* Phase 2: Accept connections (server) or use existing connections (client) */
-    for (i = 0; i < NUM_QPS; i++) {
+    for (i = 0; i < ctx->num_qps; i++) {
         int sockfd;
         if (ctx->is_server) {
             fprintf(stderr, "DEBUG [QP %d SERVER]: Accepting connection...\n", i);
@@ -521,14 +560,18 @@ int rdma_multi_qp_connect(rdma_multi_qp_context_t *ctx)
         ctx->qps[i].connected = 1;
     }
     
+    free(listen_socks);
+    free(client_socks);
     return 0;
     
 error:
     /* Cleanup */
-    for (i = 0; i < NUM_QPS; i++) {
-        if (listen_socks[i] >= 0) close(listen_socks[i]);
-        if (client_socks[i] >= 0) close(client_socks[i]);
+    for (i = 0; i < ctx->num_qps; i++) {
+        if (listen_socks && listen_socks[i] >= 0) close(listen_socks[i]);
+        if (client_socks && client_socks[i] >= 0) close(client_socks[i]);
     }
+    free(listen_socks);
+    free(client_socks);
     return -1;
 }
 
@@ -539,7 +582,7 @@ int rdma_write(rdma_multi_qp_context_t *ctx, int qp_index,
     struct ibv_sge sge;
     struct ibv_send_wr wr, *bad_wr;
     
-    if (!ctx || qp_index < 0 || qp_index >= NUM_QPS || !ctx->qps[qp_index].connected) {
+    if (!ctx || qp_index < 0 || qp_index >= ctx->num_qps || !ctx->qps[qp_index].connected) {
         return -1;
     }
     
@@ -574,7 +617,7 @@ int rdma_poll_completion(rdma_multi_qp_context_t *ctx, int qp_index, int timeout
     int ne;
     int polled = 0;
     
-    if (!ctx || qp_index < 0 || qp_index >= NUM_QPS) return -1;
+    if (!ctx || qp_index < 0 || qp_index >= ctx->num_qps) return -1;
     
     qp = &ctx->qps[qp_index];
     
@@ -594,7 +637,7 @@ int rdma_poll_completion(rdma_multi_qp_context_t *ctx, int qp_index, int timeout
 
 void *rdma_get_local_buffer(rdma_multi_qp_context_t *ctx, int qp_index)
 {
-    if (!ctx || qp_index < 0 || qp_index >= NUM_QPS) return NULL;
+    if (!ctx || qp_index < 0 || qp_index >= ctx->num_qps) return NULL;
     return ctx->qps[qp_index].buffer;
 }
 
@@ -604,22 +647,33 @@ size_t rdma_get_buffer_size(rdma_multi_qp_context_t *ctx)
     return ctx->qps[0].buffer_size;
 }
 
+int rdma_multi_qp_get_num_qps(rdma_multi_qp_context_t *ctx)
+{
+    if (!ctx) return 0;
+    return ctx->num_qps;
+}
+
 int rdma_multi_qp_cleanup(rdma_multi_qp_context_t *ctx)
 {
     int i;
     
     if (!ctx) return -1;
     
-    for (i = 0; i < NUM_QPS; i++) {
+    for (i = 0; i < ctx->num_qps; i++) {
         if (ctx->qps[i].qp) ibv_destroy_qp(ctx->qps[i].qp);
         if (ctx->qps[i].cq) ibv_destroy_cq(ctx->qps[i].cq);
         if (ctx->qps[i].mr) ibv_dereg_mr(ctx->qps[i].mr);
-        if (ctx->qps[i].buffer) free_buffer(&ctx->qps[i], ctx->gpu_id);
+        if (ctx->qps[i].buffer) {
+            int gpu_id = -1;  /* Default to host memory */
+            free_buffer(&ctx->qps[i], gpu_id);
+        }
         if (ctx->qps[i].pd) ibv_dealloc_pd(ctx->qps[i].pd);
         if (ctx->qps[i].ctx) ibv_close_device(ctx->qps[i].ctx);
         pthread_mutex_destroy(&ctx->mutex[i]);
     }
     
+    free(ctx->qps);
+    free(ctx->mutex);
     free(ctx);
     return 0;
 }

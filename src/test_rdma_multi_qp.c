@@ -3,7 +3,7 @@
  * Copyright 2024
  *
  * Test program for RDMA Multi-QP API
- * Tests bandwidth with 2 QPs and 2 threads
+ * Tests bandwidth with variable number of QPs and threads
  */
 
 #include "config.h"
@@ -20,16 +20,66 @@
 #define DEFAULT_BUFFER_SIZE (1024 * 1024 * 64)  /* 64 MB */
 #define DEFAULT_ITERATIONS 256
 #define WARMUP_ITERATIONS 256
+#define MAX_THREADS 32
 
 struct thread_args {
     rdma_multi_qp_context_t *ctx;
     int qp_index;
     int iterations;
     int is_server;         /* 1 if server (just wait), 0 if client (send) */
-    struct nvlink_context *nvlink_ctx;  /* NVLink context for thread 1 */
+    struct nvlink_context *nvlink_ctx;  /* NVLink context for threads > 0 */
+    int gpu0_id;           /* Source GPU ID for NVLink (GPU 0) */
     double *bandwidth;  /* Output: bandwidth in GB/s */
     int *status;        /* Output: 0 on success */
 };
+
+/* Parse comma-separated string into array */
+static int parse_comma_separated(const char *str, char **out, int max_count)
+{
+    char *str_copy = strdup(str);
+    char *token;
+    int count = 0;
+    
+    if (!str_copy) return -1;
+    
+    token = strtok(str_copy, ",");
+    while (token && count < max_count) {
+        /* Trim whitespace */
+        while (*token == ' ') token++;
+        char *end = token + strlen(token) - 1;
+        while (end > token && *end == ' ') *end-- = '\0';
+        
+        out[count++] = strdup(token);
+        token = strtok(NULL, ",");
+    }
+    
+    free(str_copy);
+    return count;
+}
+
+/* Parse comma-separated integers into array */
+static int parse_comma_separated_ints(const char *str, int *out, int max_count)
+{
+    char *str_copy = strdup(str);
+    char *token;
+    int count = 0;
+    
+    if (!str_copy) return -1;
+    
+    token = strtok(str_copy, ",");
+    while (token && count < max_count) {
+        /* Trim whitespace */
+        while (*token == ' ') token++;
+        char *end = token + strlen(token) - 1;
+        while (end > token && *end == ' ') *end-- = '\0';
+        
+        out[count++] = atoi(token);
+        token = strtok(NULL, ",");
+    }
+    
+    free(str_copy);
+    return count;
+}
 
 static void *write_thread(void *arg)
 {
@@ -45,7 +95,6 @@ static void *write_thread(void *arg)
     /* Server just waits - no sending */
     if (args->is_server) {
         printf("Server thread for QP %d: Waiting for client to complete...\n", qp_index);
-        /* Wait for a long time - client will finish first */
         sleep(300);  /* 5 minutes should be enough */
         *args->bandwidth = 0.0;
         *args->status = 0;
@@ -53,10 +102,10 @@ static void *write_thread(void *arg)
         return NULL;
     }
     
-    /* Thread 1 uses NVLink then RDMA if both GPUs are set */
-    if (qp_index == 1 && args->nvlink_ctx) {
+    /* Threads > 0 use NVLink then RDMA if NVLink context is set */
+    if (qp_index > 0 && args->nvlink_ctx) {
         void *src_buffer = rdma_get_local_buffer(ctx, 0);  /* Use QP 0's buffer as NVLink source */
-        void *nvlink_dst = rdma_get_local_buffer(ctx, 1);  /* Use QP 1's buffer as NVLink destination */
+        void *nvlink_dst = rdma_get_local_buffer(ctx, qp_index);  /* Use QP i's buffer as NVLink destination */
         
         /* Get CPU frequency */
         cpu_mhz = get_cpu_mhz(0);
@@ -66,8 +115,8 @@ static void *write_thread(void *arg)
             return NULL;
         }
         
-        printf("Thread 1: Starting NVLink warmup (GPU %d -> GPU %d)...\n",
-               args->nvlink_ctx->gpu0_id, args->nvlink_ctx->gpu1_id);
+        printf("Thread %d: Starting NVLink warmup (GPU %d -> GPU %d)...\n",
+               qp_index, args->gpu0_id, args->nvlink_ctx->gpu1_id);
         
         /* NVLink warmup */
         for (i = 0; i < WARMUP_ITERATIONS; i++) {
@@ -84,25 +133,25 @@ static void *write_thread(void *arg)
             return NULL;
         }
         
-        printf("Thread 1: NVLink warmup completed, starting RDMA warmup...\n");
+        printf("Thread %d: NVLink warmup completed, starting RDMA warmup...\n", qp_index);
         
-        /* RDMA warmup (using QP 1, which is on NIC 1) */
+        /* RDMA warmup */
         for (i = 0; i < WARMUP_ITERATIONS; i++) {
-            if (rdma_write(ctx, 1, 0, buffer_size, 0) != 0) {
-                fprintf(stderr, "QP 1: RDMA warmup write %d failed\n", i);
+            if (rdma_write(ctx, qp_index, 0, buffer_size, 0) != 0) {
+                fprintf(stderr, "QP %d: RDMA warmup write %d failed\n", qp_index, i);
                 *args->status = -1;
                 return NULL;
             }
         }
         for (i = 0; i < WARMUP_ITERATIONS; i++) {
-            if (rdma_poll_completion(ctx, 1, -1) != 0) {
-                fprintf(stderr, "QP 1: RDMA warmup completion %d failed\n", i);
+            if (rdma_poll_completion(ctx, qp_index, -1) != 0) {
+                fprintf(stderr, "QP %d: RDMA warmup completion %d failed\n", qp_index, i);
                 *args->status = -1;
                 return NULL;
             }
         }
         
-        printf("Thread 1: Warmup completed, starting measurements...\n");
+        printf("Thread %d: Warmup completed, starting measurements...\n", qp_index);
         
         /* Timed transfers: NVLink + RDMA */
         start_cycles = get_cycles();
@@ -123,10 +172,10 @@ static void *write_thread(void *arg)
             *args->status = -1;
             return NULL;
         }
-
+        
         for (i = 0; i < args->iterations; i++) {
-            /* Step 2: RDMA write via NIC 1 (QP 1) */
-            if (rdma_write(ctx, 1, 0, buffer_size, 0) != 0) {
+            /* Step 2: RDMA write */
+            if (rdma_write(ctx, qp_index, 0, buffer_size, 0) != 0) {
                 fprintf(stderr, "RDMA write %d failed\n", i);
                 *args->status = -1;
                 return NULL;
@@ -135,7 +184,7 @@ static void *write_thread(void *arg)
 
         /* Poll for all RDMA completions */
         for (i = 0; i < args->iterations; i++) {
-            if (rdma_poll_completion(ctx, 1, -1) != 0) {
+            if (rdma_poll_completion(ctx, qp_index, -1) != 0) {
                 fprintf(stderr, "RDMA completion %d failed\n", i);
                 *args->status = -1;
                 return NULL;
@@ -149,13 +198,13 @@ static void *write_thread(void *arg)
         *args->bandwidth = (buffer_size * args->iterations) / (total_time * 1e9);
         *args->status = 0;
         
-        printf("Thread 1: Completed %d iterations (NVLink + RDMA) in %.6f seconds\n",
-               args->iterations, total_time);
+        printf("Thread %d: Completed %d iterations (NVLink + RDMA) in %.6f seconds\n",
+               qp_index, args->iterations, total_time);
         
         return NULL;
     }
     
-    /* Thread 0 uses RDMA writes */
+    /* Thread 0 uses RDMA writes only */
     /* Get CPU frequency */
     cpu_mhz = get_cpu_mhz(0);
     if (cpu_mhz <= 0) {
@@ -207,10 +256,10 @@ static void *write_thread(void *arg)
     }
     
     end_cycles = get_cycles();
-    total_time = (double)(end_cycles - start_cycles) / (cpu_mhz * 1e6);  /* Convert cycles to seconds */
+    total_time = (double)(end_cycles - start_cycles) / (cpu_mhz * 1e6);
     
     /* Calculate bandwidth */
-    *args->bandwidth = (buffer_size * args->iterations) / (total_time * 1e9);  /* GB/s */
+    *args->bandwidth = (buffer_size * args->iterations) / (total_time * 1e9);
     *args->status = 0;
     
     printf("Thread for QP %d: Completed %d iterations in %.6f seconds\n",
@@ -223,64 +272,61 @@ static void print_usage(const char *prog_name)
 {
     printf("Usage: %s [OPTIONS]\n", prog_name);
     printf("Options:\n");
-    printf("  -n, --nic0 NAME       First NIC device name (e.g., mlx5_0)\n");
-    printf("  -N, --nic1 NAME       Second NIC device name (e.g., mlx5_1)\n");
+    printf("  -n, --nics LIST       Comma-separated NIC device names (e.g., mlx5_0,mlx5_1)\n");
     printf("  -s, --server          Run as server (default: client)\n");
     printf("  -a, --addr ADDR       Server IP address (default: 127.0.0.1)\n");
     printf("  -p, --port PORT       Base port (default: 18515)\n");
     printf("  -b, --buffer SIZE     Buffer size in bytes (default: 64MB)\n");
-    printf("  -i, --iterations NUM  Number of iterations (default: 100)\n");
-    printf("  -g, --gpu0 ID         GPU ID for QP 0 buffer (-1 for host, default: -1)\n");
-    printf("  -G, --gpu1 ID         GPU ID for QP 1 buffer (-1 for host, default: -1)\n");
+    printf("  -i, --iterations NUM  Number of iterations (default: 256)\n");
+    printf("  -g, --gpus LIST       Comma-separated GPU IDs (-1 for host, default: -1)\n");
     printf("  -h, --help            Show this help message\n");
     printf("\n");
     printf("Examples:\n");
-    printf("  Server: %s -s -n mlx5_0 -N mlx5_1\n", prog_name);
-    printf("  Client: %s -n mlx5_0 -N mlx5_1 -a 192.168.1.100\n", prog_name);
+    printf("  Server: %s -s -n mlx5_0,mlx5_1 -g 0,1\n", prog_name);
+    printf("  Client: %s -n mlx5_0,mlx5_1 -g 0,1 -a 192.168.1.100\n", prog_name);
 }
 
 int main(int argc, char *argv[])
 {
     struct rdma_multi_qp_config config = {0};
     rdma_multi_qp_context_t *ctx = NULL;
-    pthread_t threads[2];
-    struct thread_args args[2];
-    double bandwidths[2];
-    int statuses[2];
+    pthread_t *threads = NULL;
+    struct thread_args *args = NULL;
+    double *bandwidths = NULL;
+    int *statuses = NULL;
+    char **nic_names = NULL;
+    int *gpu_ids = NULL;
+    struct nvlink_context *nvlink_ctxs = NULL;
+    int num_qps = 0;
     int opt;
     int ret = 0;
     int i;
+    char *nics_str = NULL;
+    char *gpus_str = NULL;
     
     /* Defaults */
     config.base_port = 18515;
     config.buffer_size = DEFAULT_BUFFER_SIZE;
     config.is_server = 0;
-    config.gpu_id[0] = -1;
-    config.gpu_id[1] = -1;
     config.server_addr = NULL;
     
     /* Command line parsing */
     static struct option long_options[] = {
-        {"nic0", required_argument, 0, 'n'},
-        {"nic1", required_argument, 0, 'N'},
+        {"nics", required_argument, 0, 'n'},
         {"server", no_argument, 0, 's'},
         {"addr", required_argument, 0, 'a'},
         {"port", required_argument, 0, 'p'},
         {"buffer", required_argument, 0, 'b'},
         {"iterations", required_argument, 0, 'i'},
-        {"gpu0", required_argument, 0, 'g'},
-        {"gpu1", required_argument, 0, 'G'},
+        {"gpus", required_argument, 0, 'g'},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
     
-    while ((opt = getopt_long(argc, argv, "n:N:sa:p:b:i:g:G:h", long_options, NULL)) != -1) {
+    while ((opt = getopt_long(argc, argv, "n:sa:p:b:i:g:h", long_options, NULL)) != -1) {
         switch (opt) {
         case 'n':
-            config.nic_names[0] = optarg;
-            break;
-        case 'N':
-            config.nic_names[1] = optarg;
+            nics_str = optarg;
             break;
         case 's':
             config.is_server = 1;
@@ -298,10 +344,7 @@ int main(int argc, char *argv[])
             /* Will be set per thread */
             break;
         case 'g':
-            config.gpu_id[0] = atoi(optarg);
-            break;
-        case 'G':
-            config.gpu_id[1] = atoi(optarg);
+            gpus_str = optarg;
             break;
         case 'h':
             print_usage(argv[0]);
@@ -312,23 +355,68 @@ int main(int argc, char *argv[])
         }
     }
     
-    if (!config.nic_names[0] || !config.nic_names[1]) {
-        fprintf(stderr, "Error: Both NIC names must be specified\n");
+    if (!nics_str) {
+        fprintf(stderr, "Error: NIC names must be specified with -n\n");
         print_usage(argv[0]);
         return 1;
     }
+    
+    /* Parse NIC names */
+    nic_names = calloc(MAX_THREADS, sizeof(char *));
+    if (!nic_names) {
+        fprintf(stderr, "Failed to allocate memory\n");
+        return 1;
+    }
+    
+    num_qps = parse_comma_separated(nics_str, nic_names, MAX_THREADS);
+    if (num_qps <= 0) {
+        fprintf(stderr, "Error: Failed to parse NIC names\n");
+        free(nic_names);
+        return 1;
+    }
+    
+    /* Parse GPU IDs */
+    gpu_ids = calloc(num_qps, sizeof(int));
+    if (!gpu_ids) {
+        fprintf(stderr, "Failed to allocate memory\n");
+        for (i = 0; i < num_qps; i++) free(nic_names[i]);
+        free(nic_names);
+        return 1;
+    }
+    
+    if (gpus_str) {
+        int gpu_count = parse_comma_separated_ints(gpus_str, gpu_ids, num_qps);
+        if (gpu_count != num_qps) {
+            fprintf(stderr, "Error: Number of GPUs (%d) must match number of NICs (%d)\n", 
+                    gpu_count, num_qps);
+            for (i = 0; i < num_qps; i++) free(nic_names[i]);
+            free(nic_names);
+            free(gpu_ids);
+            return 1;
+        }
+    } else {
+        /* Default: all host memory */
+        for (i = 0; i < num_qps; i++) {
+            gpu_ids[i] = -1;
+        }
+    }
+    
+    /* Setup config */
+    config.nic_names = (const char **)nic_names;
+    config.gpu_id = gpu_ids;
+    config.num_qps = num_qps;
     
     printf("\n========================================\n");
     printf("RDMA Multi-QP Bandwidth Test\n");
     printf("========================================\n");
     printf("Mode: %s\n", config.is_server ? "Server" : "Client");
-    printf("NIC 0: %s\n", config.nic_names[0]);
-    printf("NIC 1: %s\n", config.nic_names[1]);
+    printf("Number of QPs: %d\n", num_qps);
+    for (i = 0; i < num_qps; i++) {
+        printf("NIC %d: %s, GPU %d: %d\n", i, nic_names[i], i, gpu_ids[i]);
+    }
     printf("Base port: %d\n", config.base_port);
     printf("Buffer size: %zu bytes (%.2f MB)\n", 
            config.buffer_size, config.buffer_size / (1024.0 * 1024.0));
-    printf("GPU ID QP 0: %d\n", config.gpu_id[0]);
-    printf("GPU ID QP 1: %d\n", config.gpu_id[1]);
     if (config.server_addr) {
         printf("Server address: %s\n", config.server_addr);
     }
@@ -339,7 +427,8 @@ int main(int argc, char *argv[])
     printf("Initializing RDMA context...\n");
     if (rdma_multi_qp_init(&config, &ctx) != 0) {
         fprintf(stderr, "Failed to initialize RDMA context\n");
-        return 1;
+        ret = 1;
+        goto cleanup;
     }
     printf("RDMA context initialized\n\n");
     
@@ -348,41 +437,57 @@ int main(int argc, char *argv[])
     if (rdma_multi_qp_connect(ctx) != 0) {
         fprintf(stderr, "Failed to connect QPs\n");
         rdma_multi_qp_cleanup(ctx);
-        return 1;
+        ret = 1;
+        goto cleanup;
     }
     printf("QPs connected\n\n");
     
-    /* Setup NVLink for thread 1 if both GPUs are set and different */
-    struct nvlink_context nvlink_ctx;
-    int nvlink_initialized = 0;
+    /* Allocate thread arrays */
+    threads = calloc(num_qps, sizeof(pthread_t));
+    args = calloc(num_qps, sizeof(struct thread_args));
+    bandwidths = calloc(num_qps, sizeof(double));
+    statuses = calloc(num_qps, sizeof(int));
+    nvlink_ctxs = calloc(num_qps, sizeof(struct nvlink_context));
     
-    if (!config.is_server && config.gpu_id[0] >= 0 && config.gpu_id[1] >= 0 && 
-        config.gpu_id[0] != config.gpu_id[1]) {
-        printf("Initializing NVLink (GPU %d -> GPU %d)...\n", config.gpu_id[0], config.gpu_id[1]);
-        if (nvlink_init_context(&nvlink_ctx, config.gpu_id[0], config.gpu_id[1]) != 0) {
-            fprintf(stderr, "Failed to initialize NVLink context\n");
-            rdma_multi_qp_cleanup(ctx);
-            return 1;
+    if (!threads || !args || !bandwidths || !statuses || !nvlink_ctxs) {
+        fprintf(stderr, "Failed to allocate memory\n");
+        ret = 1;
+        goto cleanup;
+    }
+    
+    /* Setup NVLink contexts for threads > 0 */
+    if (!config.is_server && gpu_ids[0] >= 0) {
+        for (i = 1; i < num_qps; i++) {
+            if (gpu_ids[i] >= 0 && gpu_ids[i] != gpu_ids[0]) {
+                printf("Initializing NVLink (GPU %d -> GPU %d) for thread %d...\n", 
+                       gpu_ids[0], gpu_ids[i], i);
+                if (nvlink_init_context(&nvlink_ctxs[i], gpu_ids[0], gpu_ids[i]) != 0) {
+                    fprintf(stderr, "Failed to initialize NVLink context for thread %d\n", i);
+                    ret = 1;
+                    goto cleanup;
+                }
+            }
         }
-        nvlink_initialized = 1;
-        printf("NVLink initialized\n\n");
+        printf("NVLink contexts initialized\n\n");
     }
     
     /* Setup thread arguments */
-    for (i = 0; i < 2; i++) {
+    for (i = 0; i < num_qps; i++) {
         args[i].ctx = ctx;
         args[i].qp_index = i;
         args[i].iterations = DEFAULT_ITERATIONS;
         args[i].is_server = config.is_server;
-        args[i].nvlink_ctx = (i == 1 && nvlink_initialized) ? &nvlink_ctx : NULL;
+        args[i].nvlink_ctx = (i > 0 && gpu_ids[0] >= 0 && gpu_ids[i] >= 0 && 
+                              gpu_ids[i] != gpu_ids[0]) ? &nvlink_ctxs[i] : NULL;
+        args[i].gpu0_id = gpu_ids[0];
         args[i].bandwidth = &bandwidths[i];
         args[i].status = &statuses[i];
         statuses[i] = -1;
     }
     
     /* Create threads */
-    printf("Creating threads...\n");
-    for (i = 0; i < 2; i++) {
+    printf("Creating %d threads...\n", num_qps);
+    for (i = 0; i < num_qps; i++) {
         if (pthread_create(&threads[i], NULL, write_thread, &args[i]) != 0) {
             fprintf(stderr, "Failed to create thread %d\n", i);
             ret = 1;
@@ -392,7 +497,7 @@ int main(int argc, char *argv[])
     
     /* Wait for threads */
     printf("Waiting for threads to complete...\n\n");
-    for (i = 0; i < 2; i++) {
+    for (i = 0; i < num_qps; i++) {
         pthread_join(threads[i], NULL);
         if (statuses[i] != 0) {
             fprintf(stderr, "Thread %d failed\n", i);
@@ -404,9 +509,9 @@ int main(int argc, char *argv[])
     printf("\n========================================\n");
     printf("Results:\n");
     printf("========================================\n");
-    for (i = 0; i < 2; i++) {
+    for (i = 0; i < num_qps; i++) {
         if (statuses[i] == 0) {
-            if (i == 1 && nvlink_initialized) {
+            if (i > 0 && args[i].nvlink_ctx) {
                 printf("Thread %d (NVLink + RDMA) bandwidth: %.2f GB/s\n", i, bandwidths[i]);
             } else {
                 printf("QP %d bandwidth: %.2f GB/s\n", i, bandwidths[i]);
@@ -415,19 +520,41 @@ int main(int argc, char *argv[])
             printf("QP %d: FAILED\n", i);
         }
     }
-    if (statuses[0] == 0 && statuses[1] == 0) {
-        printf("Total bandwidth: %.2f GB/s\n", bandwidths[0] + bandwidths[1]);
+    
+    double total_bw = 0.0;
+    for (i = 0; i < num_qps; i++) {
+        if (statuses[i] == 0) {
+            total_bw += bandwidths[i];
+        }
+    }
+    if (total_bw > 0.0) {
+        printf("Total bandwidth: %.2f GB/s\n", total_bw);
     }
     printf("========================================\n\n");
     
 cleanup:
     /* Cleanup */
     printf("Cleaning up...\n");
-    if (nvlink_initialized) {
-        nvlink_cleanup_context(&nvlink_ctx);
+    if (nvlink_ctxs) {
+        for (i = 1; i < num_qps; i++) {
+            if (args && args[i].nvlink_ctx) {
+                nvlink_cleanup_context(&nvlink_ctxs[i]);
+            }
+        }
     }
-    rdma_multi_qp_cleanup(ctx);
+    if (ctx) rdma_multi_qp_cleanup(ctx);
+    if (threads) free(threads);
+    if (args) free(args);
+    if (bandwidths) free(bandwidths);
+    if (statuses) free(statuses);
+    if (nvlink_ctxs) free(nvlink_ctxs);
+    if (nic_names) {
+        for (i = 0; i < num_qps; i++) {
+            if (nic_names[i]) free(nic_names[i]);
+        }
+        free(nic_names);
+    }
+    if (gpu_ids) free(gpu_ids);
     
     return ret;
 }
-

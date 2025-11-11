@@ -27,17 +27,18 @@ typedef struct rdma_multi_qp_context rdma_multi_qp_context_t;
  * Configuration for multi-QP setup
  */
 struct rdma_multi_qp_config {
-    const char *nic_names[2];    /* NIC device names (e.g., "mlx5_0", "mlx5_1") */
-    uint16_t base_port;          /* Base port (port 0 = base_port, port 1 = base_port+1) */
-    const char *server_addr;     /* Server IP (NULL for server mode) */
-    int is_server;               /* 1 for server, 0 for client */
-    size_t buffer_size;          /* Buffer size per QP */
-    int gpu_id[2];               /* GPU ID for buffer allocation per QP (-1 for host) */
+    const char **nic_names;    /* Array of NIC device names (e.g., "mlx5_0", "mlx5_1") */
+    int num_qps;               /* Number of QPs (must match length of nic_names and gpu_id arrays) */
+    uint16_t base_port;        /* Base port (port i = base_port + i) */
+    const char *server_addr;   /* Server IP (NULL for server mode) */
+    int is_server;             /* 1 for server, 0 for client */
+    size_t buffer_size;        /* Buffer size per QP */
+    int *gpu_id;               /* Array of GPU IDs for buffer allocation per QP (-1 for host) */
 };
 
 /**
  * Initialize multi-QP context
- * Creates 2 QPs (one per NIC)
+ * Creates num_qps QPs (one per NIC)
  *
  * @param config: Configuration structure
  * @param ctx: Output parameter - pointer to context handle
@@ -93,12 +94,12 @@ int rdma_poll_completion(rdma_multi_qp_context_t *ctx,
 void *rdma_get_local_buffer(rdma_multi_qp_context_t *ctx, int qp_index);
 
 /**
- * Get buffer size
+ * Get number of QPs in context
  *
  * @param ctx: Context handle
- * @return: Buffer size in bytes
+ * @return: Number of QPs, 0 on error
  */
-size_t rdma_get_buffer_size(rdma_multi_qp_context_t *ctx);
+int rdma_multi_qp_get_num_qps(rdma_multi_qp_context_t *ctx);
 
 /**
  * Cleanup and destroy multi-QP context
