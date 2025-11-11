@@ -120,7 +120,7 @@ static void *write_thread(void *arg)
         void *dst_part = (char *)nvlink_dst + offset;
         
         /* Get CPU frequency */
-        cpu_mhz = get_cpu_mhz(0);
+        cpu_mhz = get_cpu_mhz(1);  /* Suppress CPU frequency warnings */
         if (cpu_mhz <= 0) {
             fprintf(stderr, "Failed to get CPU frequency\n");
             *args->status = -1;
@@ -218,7 +218,7 @@ static void *write_thread(void *arg)
     
     /* Thread 0 uses RDMA writes only */
     /* Get CPU frequency */
-    cpu_mhz = get_cpu_mhz(0);
+    cpu_mhz = get_cpu_mhz(1);  /* Suppress CPU frequency warnings */
     if (cpu_mhz <= 0) {
         fprintf(stderr, "Failed to get CPU frequency\n");
         *args->status = -1;
@@ -546,7 +546,7 @@ int main(int argc, char *argv[])
     }
     
     /* Get CPU frequency for wall-clock time measurement */
-    double cpu_mhz = get_cpu_mhz(0);
+    double cpu_mhz = get_cpu_mhz(1);  /* Suppress CPU frequency warnings */
     if (cpu_mhz <= 0) {
         fprintf(stderr, "Failed to get CPU frequency\n");
         ret = 1;
