@@ -34,6 +34,8 @@ struct thread_args {
     struct nvlink_context *nvlink_ctx;  /* NVLink context for threads > 0 */
     int gpu0_id;           /* Source GPU ID for NVLink (GPU 0) */
     int num_qps;           /* Total number of QPs for buffer splitting */
+    pthread_barrier_t *start_barrier;  /* Barrier before starting work */
+    pthread_barrier_t *end_barrier;    /* Barrier after finishing work */
     double *bandwidth;  /* Output: bandwidth in GB/s */
     int *status;        /* Output: 0 on success */
 };
@@ -148,16 +150,7 @@ static void *write_thread(void *arg)
         
         /* RDMA warmup */
         for (i = 0; i < WARMUP_ITERATIONS; i++) {
-            char range_name[64];
-            snprintf(range_name, sizeof(range_name), "rdma_write_warmup_QP%d", qp_index);
-            #ifdef HAVE_CUDA
-            nvtxRangePushA(range_name);
-            #endif
-            int ret = rdma_write(ctx, qp_index, offset, part_size, offset);
-            #ifdef HAVE_CUDA
-            nvtxRangePop();
-            #endif
-            if (ret != 0) {
+            if (rdma_write(ctx, qp_index, offset, part_size, offset) != 0) {
                 fprintf(stderr, "QP %d: RDMA warmup write %d failed\n", qp_index, i);
                 *args->status = -1;
                 return NULL;
@@ -172,6 +165,11 @@ static void *write_thread(void *arg)
         }
         
         printf("Thread %d: Warmup completed, starting measurements...\n", qp_index);
+        
+        /* Wait at start barrier before beginning timed work */
+        if (args->start_barrier) {
+            pthread_barrier_wait(args->start_barrier);
+        }
         
         /* Timed transfers: NVLink + RDMA */
         start_cycles = get_cycles();
@@ -195,22 +193,11 @@ static void *write_thread(void *arg)
         
         for (i = 0; i < args->iterations; i++) {
             /* Step 2: RDMA write */
-            char range_name[64];
-            snprintf(range_name, sizeof(range_name), "rdma_write_QP%d_iter%d", qp_index, i);
-            #ifdef HAVE_CUDA
-            nvtxRangePushA(range_name);
-            #endif
             if (rdma_write(ctx, qp_index, offset, part_size, offset) != 0) {
-                #ifdef HAVE_CUDA
-                nvtxRangePop();
-                #endif
                 fprintf(stderr, "RDMA write %d failed\n", i);
                 *args->status = -1;
                 return NULL;
             }
-            #ifdef HAVE_CUDA
-            nvtxRangePop();
-            #endif
         }
 
         /* Poll for all RDMA completions */
@@ -222,6 +209,11 @@ static void *write_thread(void *arg)
             }
         }
         
+        /* Wait at end barrier after completing all work */
+        if (args->end_barrier) {
+            pthread_barrier_wait(args->end_barrier);
+        }
+
         end_cycles = get_cycles();
         total_time = (double)(end_cycles - start_cycles) / (cpu_mhz * 1e6);
         
@@ -249,16 +241,7 @@ static void *write_thread(void *arg)
     
     /* Warmup */
     for (i = 0; i < WARMUP_ITERATIONS; i++) {
-        char range_name[64];
-        snprintf(range_name, sizeof(range_name), "rdma_write_warmup_QP%d", qp_index);
-        #ifdef HAVE_CUDA
-        nvtxRangePushA(range_name);
-        #endif
-        int ret = rdma_write(ctx, qp_index, offset, part_size, offset);
-        #ifdef HAVE_CUDA
-        nvtxRangePop();
-        #endif
-        if (ret != 0) {
+        if (rdma_write(ctx, qp_index, offset, part_size, offset) != 0) {
             fprintf(stderr, "QP %d: Warmup write %d failed\n", qp_index, i);
             *args->status = -1;
             return NULL;
@@ -275,6 +258,11 @@ static void *write_thread(void *arg)
     }
     
     printf("Thread for QP %d: Warmup completed, starting measurements...\n", qp_index);
+    
+    /* Wait at start barrier before beginning timed work */
+    if (args->start_barrier) {
+        pthread_barrier_wait(args->start_barrier);
+    }
     
     /* Timed transfers */
     start_cycles = get_cycles();
@@ -307,6 +295,11 @@ static void *write_thread(void *arg)
         }
     }
     
+    /* Wait at end barrier after completing all work */
+    if (args->end_barrier) {
+        pthread_barrier_wait(args->end_barrier);
+    }
+
     end_cycles = get_cycles();
     total_time = (double)(end_cycles - start_cycles) / (cpu_mhz * 1e6);
     
@@ -523,6 +516,25 @@ int main(int argc, char *argv[])
         printf("NVLink contexts initialized\n\n");
     }
     
+    /* Initialize barriers for synchronizing thread start/end */
+    pthread_barrier_t start_barrier, end_barrier;
+    int barriers_initialized = 0;
+    if (!config.is_server) {
+        /* Barriers need num_qps + 1 (threads + main thread) */
+        if (pthread_barrier_init(&start_barrier, NULL, num_qps + 1) != 0) {
+            fprintf(stderr, "Failed to initialize start barrier\n");
+            ret = 1;
+            goto cleanup;
+        }
+        if (pthread_barrier_init(&end_barrier, NULL, num_qps + 1) != 0) {
+            fprintf(stderr, "Failed to initialize end barrier\n");
+            pthread_barrier_destroy(&start_barrier);
+            ret = 1;
+            goto cleanup;
+        }
+        barriers_initialized = 1;
+    }
+    
     /* Setup thread arguments */
     for (i = 0; i < num_qps; i++) {
         args[i].ctx = ctx;
@@ -533,6 +545,8 @@ int main(int argc, char *argv[])
                               gpu_ids[i] != gpu_ids[0]) ? &nvlink_ctxs[i] : NULL;
         args[i].gpu0_id = gpu_ids[0];
         args[i].num_qps = num_qps;
+        args[i].start_barrier = config.is_server ? NULL : &start_barrier;
+        args[i].end_barrier = config.is_server ? NULL : &end_barrier;
         args[i].bandwidth = &bandwidths[i];
         args[i].status = &statuses[i];
         statuses[i] = -1;
@@ -552,13 +566,24 @@ int main(int argc, char *argv[])
     
     /* Create threads */
     printf("Creating %d threads...\n", num_qps);
-    total_start_cycles = get_cycles();
     for (i = 0; i < num_qps; i++) {
         if (pthread_create(&threads[i], NULL, write_thread, &args[i]) != 0) {
             fprintf(stderr, "Failed to create thread %d\n", i);
             ret = 1;
             goto cleanup;
         }
+    }
+    
+    /* Wait for all threads to reach start barrier, then take start time */
+    if (!config.is_server) {
+        pthread_barrier_wait(&start_barrier);
+        total_start_cycles = get_cycles();
+    }
+    
+    /* Wait for all threads to reach end barrier, then take end time */
+    if (!config.is_server) {
+        pthread_barrier_wait(&end_barrier);
+        total_end_cycles = get_cycles();
     }
     
     /* Wait for threads */
@@ -570,7 +595,6 @@ int main(int argc, char *argv[])
             ret = 1;
         }
     }
-    total_end_cycles = get_cycles();
     
     /* Calculate total wall-clock time */
     double total_time = (double)(total_end_cycles - total_start_cycles) / (cpu_mhz * 1e6);
@@ -610,6 +634,10 @@ int main(int argc, char *argv[])
 cleanup:
     /* Cleanup */
     printf("Cleaning up...\n");
+    if (barriers_initialized) {
+        pthread_barrier_destroy(&start_barrier);
+        pthread_barrier_destroy(&end_barrier);
+    }
     if (nvlink_ctxs) {
         for (i = 1; i < num_qps; i++) {
             if (args && args[i].nvlink_ctx) {
