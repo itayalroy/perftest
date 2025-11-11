@@ -29,6 +29,7 @@ struct thread_args {
     int is_server;         /* 1 if server (just wait), 0 if client (send) */
     struct nvlink_context *nvlink_ctx;  /* NVLink context for threads > 0 */
     int gpu0_id;           /* Source GPU ID for NVLink (GPU 0) */
+    int num_qps;           /* Total number of QPs for buffer splitting */
     double *bandwidth;  /* Output: bandwidth in GB/s */
     int *status;        /* Output: 0 on success */
 };
@@ -107,6 +108,13 @@ static void *write_thread(void *arg)
         void *src_buffer = rdma_get_local_buffer(ctx, 0);  /* Use QP 0's buffer as NVLink source */
         void *nvlink_dst = rdma_get_local_buffer(ctx, qp_index);  /* Use QP i's buffer as NVLink destination */
         
+        /* Calculate buffer part size and offset for this GPU */
+        size_t buffer_size = rdma_get_buffer_size(ctx);
+        size_t part_size = buffer_size / args->num_qps;
+        size_t offset = qp_index * part_size;
+        void *src_part = (char *)src_buffer + offset;
+        void *dst_part = (char *)nvlink_dst + offset;
+        
         /* Get CPU frequency */
         cpu_mhz = get_cpu_mhz(0);
         if (cpu_mhz <= 0) {
@@ -115,13 +123,13 @@ static void *write_thread(void *arg)
             return NULL;
         }
         
-        printf("Thread %d: Starting NVLink warmup (GPU %d -> GPU %d)...\n",
-               qp_index, args->gpu0_id, args->nvlink_ctx->gpu1_id);
+        printf("Thread %d: Starting NVLink warmup (GPU %d -> GPU %d, part %zu bytes at offset %zu)...\n",
+               qp_index, args->gpu0_id, args->nvlink_ctx->gpu1_id, part_size, offset);
         
         /* NVLink warmup */
         for (i = 0; i < WARMUP_ITERATIONS; i++) {
-            if (nvlink_copy_gpu_to_gpu_async(args->nvlink_ctx, nvlink_dst, 
-                                              src_buffer, buffer_size) != 0) {
+            if (nvlink_copy_gpu_to_gpu_async(args->nvlink_ctx, dst_part, 
+                                              src_part, part_size) != 0) {
                 fprintf(stderr, "NVLink warmup copy %d failed\n", i);
                 *args->status = -1;
                 return NULL;
@@ -137,7 +145,7 @@ static void *write_thread(void *arg)
         
         /* RDMA warmup */
         for (i = 0; i < WARMUP_ITERATIONS; i++) {
-            if (rdma_write(ctx, qp_index, 0, buffer_size, 0) != 0) {
+            if (rdma_write(ctx, qp_index, offset, part_size, offset) != 0) {
                 fprintf(stderr, "QP %d: RDMA warmup write %d failed\n", qp_index, i);
                 *args->status = -1;
                 return NULL;
@@ -158,8 +166,8 @@ static void *write_thread(void *arg)
         
         for (i = 0; i < args->iterations; i++) {
             /* Step 1: NVLink transfer */
-            if (nvlink_copy_gpu_to_gpu_async(args->nvlink_ctx, nvlink_dst,
-                                              src_buffer, buffer_size) != 0) {
+            if (nvlink_copy_gpu_to_gpu_async(args->nvlink_ctx, dst_part,
+                                              src_part, part_size) != 0) {
                 fprintf(stderr, "NVLink copy %d failed\n", i);
                 *args->status = -1;
                 return NULL;
@@ -175,7 +183,7 @@ static void *write_thread(void *arg)
         
         for (i = 0; i < args->iterations; i++) {
             /* Step 2: RDMA write */
-            if (rdma_write(ctx, qp_index, 0, buffer_size, 0) != 0) {
+            if (rdma_write(ctx, qp_index, offset, part_size, offset) != 0) {
                 fprintf(stderr, "RDMA write %d failed\n", i);
                 *args->status = -1;
                 return NULL;
@@ -194,8 +202,8 @@ static void *write_thread(void *arg)
         end_cycles = get_cycles();
         total_time = (double)(end_cycles - start_cycles) / (cpu_mhz * 1e6);
         
-        /* Calculate bandwidth (total data transferred: buffer_size * iterations) */
-        *args->bandwidth = (buffer_size * args->iterations) / (total_time * 1e9);
+        /* Calculate bandwidth (total data transferred: part_size * iterations) */
+        *args->bandwidth = (part_size * args->iterations) / (total_time * 1e9);
         *args->status = 0;
         
         printf("Thread %d: Completed %d iterations (NVLink + RDMA) in %.6f seconds\n",
@@ -480,6 +488,7 @@ int main(int argc, char *argv[])
         args[i].nvlink_ctx = (i > 0 && gpu_ids[0] >= 0 && gpu_ids[i] >= 0 && 
                               gpu_ids[i] != gpu_ids[0]) ? &nvlink_ctxs[i] : NULL;
         args[i].gpu0_id = gpu_ids[0];
+        args[i].num_qps = num_qps;
         args[i].bandwidth = &bandwidths[i];
         args[i].status = &statuses[i];
         statuses[i] = -1;

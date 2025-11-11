@@ -94,6 +94,14 @@ int rdma_poll_completion(rdma_multi_qp_context_t *ctx,
 void *rdma_get_local_buffer(rdma_multi_qp_context_t *ctx, int qp_index);
 
 /**
+ * Get buffer size
+ *
+ * @param ctx: Context handle
+ * @return: Buffer size in bytes, 0 on error
+ */
+size_t rdma_get_buffer_size(rdma_multi_qp_context_t *ctx);
+
+/**
  * Get number of QPs in context
  *
  * @param ctx: Context handle
