@@ -163,7 +163,7 @@ endif
 test_rdma_multi_qp_SOURCES = src/test_rdma_multi_qp.c src/rdma_multi_qp.c
 test_rdma_multi_qp_LDADD = libperftest.a $(LIBMATH) $(LIBMLX4) $(LIBMLX5) $(LIBEFA) $(LIBHNS)
 if CUDA
-test_rdma_multi_qp_LDADD += -lcudart
+test_rdma_multi_qp_LDADD += -lcudart -lnvToolsExt
 test_rdma_multi_qp_CPPFLAGS = $(AM_CPPFLAGS) -I/usr/local/cuda/include
 endif
 
