@@ -34,6 +34,7 @@ struct rdma_multi_qp_config {
     int is_server;             /* 1 for server, 0 for client */
     size_t buffer_size;        /* Buffer size per QP */
     int *gpu_id;               /* Array of GPU IDs for buffer allocation per QP (-1 for host) */
+    bool nics_only;            /* Whether to only use NICs for buffer allocation */
 };
 
 /**
@@ -45,7 +46,7 @@ struct rdma_multi_qp_config {
  * @return: 0 on success, non-zero on error
  */
 int rdma_multi_qp_init(const struct rdma_multi_qp_config *config,
-                       rdma_multi_qp_context_t **ctx);
+                       rdma_multi_qp_context_t **ctx, bool nics_only);
 
 /**
  * Connect QPs to remote peer

@@ -38,6 +38,7 @@ struct thread_args {
     pthread_barrier_t *end_barrier;    /* Barrier after finishing work */
     double *bandwidth;  /* Output: bandwidth in GB/s */
     int *status;        /* Output: 0 on success */
+    bool nics_only;     /* Whether to only use NICs for buffer allocation */
 };
 
 /* Parse comma-separated string into array */
@@ -112,7 +113,7 @@ static void *write_thread(void *arg)
     }
     
     /* Threads > 0 use NVLink then RDMA if NVLink context is set */
-    if (qp_index > 0 && args->nvlink_ctx) {
+    if (qp_index > 0 && args->nvlink_ctx && !args->nics_only) {
         void *src_buffer = rdma_get_local_buffer(ctx, 0);  /* Use QP 0's buffer as NVLink source */
         void *nvlink_dst = rdma_get_local_buffer(ctx, qp_index);  /* Use QP i's buffer as NVLink destination */
         
@@ -365,6 +366,7 @@ int main(int argc, char *argv[])
         {"iterations", required_argument, 0, 'i'},
         {"gpus", required_argument, 0, 'g'},
         {"help", no_argument, 0, 'h'},
+        {"nics-only", no_argument, 0, 'c'},
         {0, 0, 0, 0}
     };
     
@@ -378,6 +380,9 @@ int main(int argc, char *argv[])
             break;
         case 'a':
             config.server_addr = optarg;
+            break;
+        case 'c':
+            config.nics_only = 1;
             break;
         case 'p':
             config.base_port = atoi(optarg);
@@ -470,7 +475,7 @@ int main(int argc, char *argv[])
     
     /* Initialize RDMA context */
     printf("Initializing RDMA context...\n");
-    if (rdma_multi_qp_init(&config, &ctx) != 0) {
+    if (rdma_multi_qp_init(&config, &ctx, config.nics_only) != 0) {
         fprintf(stderr, "Failed to initialize RDMA context\n");
         ret = 1;
         goto cleanup;
@@ -549,6 +554,7 @@ int main(int argc, char *argv[])
         args[i].end_barrier = config.is_server ? NULL : &end_barrier;
         args[i].bandwidth = &bandwidths[i];
         args[i].status = &statuses[i];
+        args[i].nics_only = config.nics_only;
         statuses[i] = -1;
     }
     

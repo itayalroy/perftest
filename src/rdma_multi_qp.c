@@ -375,7 +375,7 @@ static int modify_qp_to_rts(struct qp_context *qp)
 }
 
 int rdma_multi_qp_init(const struct rdma_multi_qp_config *config,
-                       rdma_multi_qp_context_t **ctx_out)
+                       rdma_multi_qp_context_t **ctx_out, bool nics_only)
 {
     rdma_multi_qp_context_t *ctx;
     int i;
@@ -422,10 +422,11 @@ int rdma_multi_qp_init(const struct rdma_multi_qp_config *config,
             goto error;
         }
         
-        if (allocate_buffer(&ctx->qps[i], config->buffer_size, config->gpu_id[i]) != 0) {
+        if (allocate_buffer(&ctx->qps[i], config->buffer_size, nics_only ? config->gpu_id[0] : config->gpu_id[i]) != 0) {
             fprintf(stderr, "Failed to allocate buffer %d\n", i);
             goto error;
         }
+
         
         if (register_mr(&ctx->qps[i], config->gpu_id[i]) != 0) {
             fprintf(stderr, "Failed to register MR %d\n", i);
