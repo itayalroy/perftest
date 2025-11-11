@@ -25,7 +25,7 @@
 #endif
 
 #define NUM_QPS 2
-#define QUEUE_DEPTH 32
+#define QUEUE_DEPTH 256
 #define HANDSHAKE_PORT_OFFSET 30000
 
 struct qp_context {
@@ -273,6 +273,9 @@ static int handshake(rdma_multi_qp_context_t *ctx, int qp_idx)
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
     
+    fprintf(stderr, "DEBUG [QP %d %s]: Using handshake port %d\n", 
+            qp_idx, ctx->is_server ? "SERVER" : "CLIENT", port);
+    
     if (ctx->is_server) {
         addr.sin_addr.s_addr = INADDR_ANY;
         if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
@@ -280,6 +283,7 @@ static int handshake(rdma_multi_qp_context_t *ctx, int qp_idx)
             close(sockfd);
             return -1;
         }
+        fprintf(stderr, "DEBUG [QP %d SERVER]: Bound to port %d, listening...\n", qp_idx, port);
         if (listen(sockfd, 1) < 0) {
             fprintf(stderr, "listen failed\n");
             close(sockfd);
@@ -288,14 +292,18 @@ static int handshake(rdma_multi_qp_context_t *ctx, int qp_idx)
         int client_fd = accept(sockfd, NULL, NULL);
         close(sockfd);
         sockfd = client_fd;
+        fprintf(stderr, "DEBUG [QP %d SERVER]: Accepted connection\n", qp_idx);
     } else {
         addr.sin_addr.s_addr = ctx->server_addr ? 
             inet_addr(ctx->server_addr) : inet_addr("127.0.0.1");
+        fprintf(stderr, "DEBUG [QP %d CLIENT]: Connecting to %s:%d...\n", 
+                qp_idx, ctx->server_addr ? ctx->server_addr : "127.0.0.1", port);
         if (connect(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
             fprintf(stderr, "connect failed: %s\n", strerror(errno));
             close(sockfd);
             return -1;
         }
+        fprintf(stderr, "DEBUG [QP %d CLIENT]: Connected\n", qp_idx);
     }
     
     /* Format message: QPN VADDR LID PSN RKEY GID[16 bytes as hex] */
@@ -406,7 +414,7 @@ static int modify_qp_to_rts(struct qp_context *qp)
     memset(&attr, 0, sizeof(attr));
     attr.qp_state = IBV_QPS_RTS;
     attr.timeout = 0x12;
-    attr.retry_cnt = 7;
+    attr.retry_cnt = 14;  /* Increased from 7 to handle packet loss better */
     attr.rnr_retry = 7;
     attr.sq_psn = qp->local_psn;
     attr.max_rd_atomic = 16;
@@ -552,12 +560,6 @@ int rdma_poll_completion(rdma_multi_qp_context_t *ctx, int qp_index, int timeout
                 return -1;
             }
             return 0;
-        }
-        if (timeout_ms >= 0) {
-            usleep(1000);
-            polled++;
-        } else {
-            usleep(1000);
         }
     }
     

@@ -8,32 +8,26 @@
 
 #include "config.h"
 #include "rdma_multi_qp.h"
+#include "get_clock.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
-#include <sys/time.h>
 #include <pthread.h>
 
-#define DEFAULT_BUFFER_SIZE (64 * 1024 * 1024)  /* 64 MB */
-#define DEFAULT_ITERATIONS 100
-#define WARMUP_ITERATIONS 10
+#define DEFAULT_BUFFER_SIZE (1024 * 1024 * 64)  /* 64 MB */
+#define DEFAULT_ITERATIONS 256
+#define WARMUP_ITERATIONS 256
 
 struct thread_args {
     rdma_multi_qp_context_t *ctx;
     int qp_index;
     int iterations;
+    int is_server;         /* 1 if server (just wait), 0 if client (send) */
     double *bandwidth;  /* Output: bandwidth in GB/s */
     int *status;        /* Output: 0 on success */
 };
-
-static double get_time_usec(void)
-{
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return tv.tv_sec * 1000000.0 + tv.tv_usec;
-}
 
 static void *write_thread(void *arg)
 {
@@ -41,9 +35,30 @@ static void *write_thread(void *arg)
     rdma_multi_qp_context_t *ctx = args->ctx;
     int qp_index = args->qp_index;
     size_t buffer_size = rdma_get_buffer_size(ctx);
-    double start_time, end_time;
+    cycles_t start_cycles, end_cycles;
     double total_time;
+    double cpu_mhz;
     int i;
+    
+    /* Server just waits - no sending */
+    if (args->is_server) {
+        printf("Server thread for QP %d: Waiting for client to complete...\n", qp_index);
+        /* Wait for a long time - client will finish first */
+        sleep(300);  /* 5 minutes should be enough */
+        *args->bandwidth = 0.0;
+        *args->status = 0;
+        printf("Server thread for QP %d: Done waiting\n", qp_index);
+        return NULL;
+    }
+    
+    /* Client sends RDMA writes */
+    /* Get CPU frequency */
+    cpu_mhz = get_cpu_mhz(0);
+    if (cpu_mhz <= 0) {
+        fprintf(stderr, "Failed to get CPU frequency\n");
+        *args->status = -1;
+        return NULL;
+    }
     
     printf("Thread for QP %d: Starting warmup...\n", qp_index);
     
@@ -54,6 +69,10 @@ static void *write_thread(void *arg)
             *args->status = -1;
             return NULL;
         }
+    }
+
+    /* Poll for all warmup completions */
+    for (i = 0; i < WARMUP_ITERATIONS; i++) {
         if (rdma_poll_completion(ctx, qp_index, -1) != 0) {
             fprintf(stderr, "QP %d: Warmup completion %d failed\n", qp_index, i);
             *args->status = -1;
@@ -64,7 +83,7 @@ static void *write_thread(void *arg)
     printf("Thread for QP %d: Warmup completed, starting measurements...\n", qp_index);
     
     /* Timed transfers */
-    start_time = get_time_usec();
+    start_cycles = get_cycles();
     
     for (i = 0; i < args->iterations; i++) {
         if (rdma_write(ctx, qp_index, 0, buffer_size, 0) != 0) {
@@ -72,6 +91,10 @@ static void *write_thread(void *arg)
             *args->status = -1;
             return NULL;
         }
+    }
+
+    /* Poll for all timed test completions */
+    for (i = 0; i < args->iterations; i++) {
         if (rdma_poll_completion(ctx, qp_index, -1) != 0) {
             fprintf(stderr, "QP %d: Completion %d failed\n", qp_index, i);
             *args->status = -1;
@@ -79,8 +102,8 @@ static void *write_thread(void *arg)
         }
     }
     
-    end_time = get_time_usec();
-    total_time = (end_time - start_time) / 1000000.0;  /* Convert to seconds */
+    end_cycles = get_cycles();
+    total_time = (double)(end_cycles - start_cycles) / (cpu_mhz * 1e6);  /* Convert cycles to seconds */
     
     /* Calculate bandwidth */
     *args->bandwidth = (buffer_size * args->iterations) / (total_time * 1e9);  /* GB/s */
@@ -223,6 +246,7 @@ int main(int argc, char *argv[])
         args[i].ctx = ctx;
         args[i].qp_index = i;
         args[i].iterations = DEFAULT_ITERATIONS;
+        args[i].is_server = config.is_server;
         args[i].bandwidth = &bandwidths[i];
         args[i].status = &statuses[i];
         statuses[i] = -1;
