@@ -35,10 +35,10 @@ AUTOMAKE_OPTIONS= subdir-objects
 
 noinst_LIBRARIES = libperftest.a
 libperftest_a_SOURCES = src/get_clock.c src/perftest_communication.c src/perftest_parameters.c src/perftest_resources.c src/perftest_counters.c src/host_memory.c src/mmap_memory.c
-noinst_HEADERS = src/get_clock.h src/perftest_communication.h src/perftest_parameters.h src/perftest_resources.h src/perftest_counters.h src/memory.h src/host_memory.h src/mmap_memory.h src/cuda_memory.h src/rocm_memory.h src/neuron_memory.h src/hl_memory.h src/mlu_memory.h
+noinst_HEADERS = src/get_clock.h src/perftest_communication.h src/perftest_parameters.h src/perftest_resources.h src/perftest_counters.h src/memory.h src/host_memory.h src/mmap_memory.h src/cuda_memory.h src/rocm_memory.h src/neuron_memory.h src/hl_memory.h src/mlu_memory.h src/nvlink_transfer.h src/rdma_multi_qp.h
 
 if CUDA
-libperftest_a_SOURCES += src/cuda_memory.c src/cuda_loader.h src/cuda_loader.c
+libperftest_a_SOURCES += src/cuda_memory.c src/cuda_loader.h src/cuda_loader.c src/nvlink_transfer.c src/nvlink_transfer.h
 endif
 
 if ROCM
@@ -62,6 +62,12 @@ libperftest_a_SOURCES += src/opencl_memory.c
 endif
 
 bin_PROGRAMS = ib_send_bw ib_send_lat ib_write_lat ib_write_bw ib_read_lat ib_read_bw ib_atomic_lat ib_atomic_bw
+
+if CUDA
+bin_PROGRAMS += test_nvlink_bw
+endif
+
+bin_PROGRAMS += test_rdma_multi_qp
 bin_SCRIPTS = run_perftest_loopback run_perftest_multi_devices
 
 # Non-source man pages:
@@ -145,6 +151,21 @@ ib_atomic_lat_LDADD = libperftest.a $(LIBMATH) $(LIBMLX4) $(LIBMLX5) $(LIBEFA) $
 
 ib_atomic_bw_SOURCES = src/atomic_bw.c
 ib_atomic_bw_LDADD = libperftest.a $(LIBMATH) $(LIBMLX4) $(LIBMLX5) $(LIBEFA) $(LIBHNS)
+
+if CUDA
+test_nvlink_bw_SOURCES = src/test_nvlink_bw.c
+test_nvlink_bw_LDADD = libperftest.a $(LIBMATH) -lcudart
+# Add CUDA include directory to find cuda_runtime.h
+# Standard CUDA installation path - adjust if CUDA is installed elsewhere
+test_nvlink_bw_CPPFLAGS = $(AM_CPPFLAGS) -I/usr/local/cuda/include
+endif
+
+test_rdma_multi_qp_SOURCES = src/test_rdma_multi_qp.c src/rdma_multi_qp.c
+test_rdma_multi_qp_LDADD = libperftest.a $(LIBMATH) $(LIBMLX4) $(LIBMLX5) $(LIBEFA) $(LIBHNS)
+if CUDA
+test_rdma_multi_qp_LDADD += -lcudart
+test_rdma_multi_qp_CPPFLAGS = $(AM_CPPFLAGS) -I/usr/local/cuda/include
+endif
 
 if HAVE_RAW_ETH
 raw_ethernet_bw_SOURCES = src/raw_ethernet_send_bw.c

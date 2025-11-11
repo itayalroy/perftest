@@ -1,0 +1,115 @@
+/* SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause */
+/*
+ * Copyright 2024
+ *
+ * Minimal RDMA Multi-QP API
+ * Supports multiple NICs with one QP per NIC
+ */
+
+#ifndef RDMA_MULTI_QP_H
+#define RDMA_MULTI_QP_H
+
+#include "config.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <infiniband/verbs.h>
+#include <rdma/rdma_cma.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Opaque handle for multi-QP context */
+typedef struct rdma_multi_qp_context rdma_multi_qp_context_t;
+
+/**
+ * Configuration for multi-QP setup
+ */
+struct rdma_multi_qp_config {
+    const char *nic_names[2];    /* NIC device names (e.g., "mlx5_0", "mlx5_1") */
+    uint16_t base_port;          /* Base port (port 0 = base_port, port 1 = base_port+1) */
+    const char *server_addr;     /* Server IP (NULL for server mode) */
+    int is_server;               /* 1 for server, 0 for client */
+    size_t buffer_size;          /* Buffer size per QP */
+    int gpu_id;                  /* GPU ID for buffer allocation (-1 for host) */
+};
+
+/**
+ * Initialize multi-QP context
+ * Creates 2 QPs (one per NIC)
+ *
+ * @param config: Configuration structure
+ * @param ctx: Output parameter - pointer to context handle
+ * @return: 0 on success, non-zero on error
+ */
+int rdma_multi_qp_init(const struct rdma_multi_qp_config *config,
+                       rdma_multi_qp_context_t **ctx);
+
+/**
+ * Connect QPs to remote peer
+ * QP 0 connects to remote QP 0, QP 1 connects to remote QP 1
+ *
+ * @param ctx: Context handle
+ * @return: 0 on success, non-zero on error
+ */
+int rdma_multi_qp_connect(rdma_multi_qp_context_t *ctx);
+
+/**
+ * Perform RDMA Write on a specific QP
+ *
+ * @param ctx: Context handle
+ * @param qp_index: QP index (0 or 1)
+ * @param local_offset: Offset in local buffer
+ * @param size: Size to write
+ * @param remote_offset: Offset in remote buffer
+ * @return: 0 on success, non-zero on error
+ */
+int rdma_write(rdma_multi_qp_context_t *ctx,
+               int qp_index,
+               uint64_t local_offset,
+               uint64_t size,
+               uint64_t remote_offset);
+
+/**
+ * Poll for completion on a specific QP
+ *
+ * @param ctx: Context handle
+ * @param qp_index: QP index (0 or 1)
+ * @param timeout_ms: Timeout in milliseconds (-1 for infinite)
+ * @return: 0 on success (completion found), 1 on timeout, negative on error
+ */
+int rdma_poll_completion(rdma_multi_qp_context_t *ctx,
+                         int qp_index,
+                         int timeout_ms);
+
+/**
+ * Get local buffer pointer for a QP
+ *
+ * @param ctx: Context handle
+ * @param qp_index: QP index (0 or 1)
+ * @return: Buffer pointer, NULL on error
+ */
+void *rdma_get_local_buffer(rdma_multi_qp_context_t *ctx, int qp_index);
+
+/**
+ * Get buffer size
+ *
+ * @param ctx: Context handle
+ * @return: Buffer size in bytes
+ */
+size_t rdma_get_buffer_size(rdma_multi_qp_context_t *ctx);
+
+/**
+ * Cleanup and destroy multi-QP context
+ *
+ * @param ctx: Context handle to destroy
+ * @return: 0 on success, non-zero on error
+ */
+int rdma_multi_qp_cleanup(rdma_multi_qp_context_t *ctx);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* RDMA_MULTI_QP_H */
+
