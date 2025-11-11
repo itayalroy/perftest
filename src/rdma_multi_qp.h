@@ -32,7 +32,7 @@ struct rdma_multi_qp_config {
     const char *server_addr;     /* Server IP (NULL for server mode) */
     int is_server;               /* 1 for server, 0 for client */
     size_t buffer_size;          /* Buffer size per QP */
-    int gpu_id;                  /* GPU ID for buffer allocation (-1 for host) */
+    int gpu_id[2];               /* GPU ID for buffer allocation per QP (-1 for host) */
 };
 
 /**

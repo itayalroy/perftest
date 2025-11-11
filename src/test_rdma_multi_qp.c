@@ -26,9 +26,7 @@ struct thread_args {
     int qp_index;
     int iterations;
     int is_server;         /* 1 if server (just wait), 0 if client (send) */
-    int nvlink_gpu_id;     /* NVLink destination GPU ID (-1 if not using NVLink) */
     struct nvlink_context *nvlink_ctx;  /* NVLink context for thread 1 */
-    void *nvlink_dst_buffer;  /* Destination buffer for NVLink (thread 1 only) */
     double *bandwidth;  /* Output: bandwidth in GB/s */
     int *status;        /* Output: 0 on success */
 };
@@ -55,9 +53,10 @@ static void *write_thread(void *arg)
         return NULL;
     }
     
-    /* Thread 1 uses NVLink if nvlink_gpu_id is set */
-    if (qp_index == 1 && args->nvlink_gpu_id >= 0 && args->nvlink_ctx) {
-        void *src_buffer = rdma_get_local_buffer(ctx, 0);  /* Use QP 0's buffer as source */
+    /* Thread 1 uses NVLink then RDMA if both GPUs are set */
+    if (qp_index == 1 && args->nvlink_ctx) {
+        void *src_buffer = rdma_get_local_buffer(ctx, 0);  /* Use QP 0's buffer as NVLink source */
+        void *nvlink_dst = rdma_get_local_buffer(ctx, 1);  /* Use QP 1's buffer as NVLink destination */
         
         /* Get CPU frequency */
         cpu_mhz = get_cpu_mhz(0);
@@ -70,9 +69,9 @@ static void *write_thread(void *arg)
         printf("Thread 1: Starting NVLink warmup (GPU %d -> GPU %d)...\n",
                args->nvlink_ctx->gpu0_id, args->nvlink_ctx->gpu1_id);
         
-        /* Warmup */
+        /* NVLink warmup */
         for (i = 0; i < WARMUP_ITERATIONS; i++) {
-            if (nvlink_copy_gpu_to_gpu_async(args->nvlink_ctx, args->nvlink_dst_buffer, 
+            if (nvlink_copy_gpu_to_gpu_async(args->nvlink_ctx, nvlink_dst, 
                                               src_buffer, buffer_size) != 0) {
                 fprintf(stderr, "NVLink warmup copy %d failed\n", i);
                 *args->status = -1;
@@ -85,34 +84,70 @@ static void *write_thread(void *arg)
             return NULL;
         }
         
-        printf("Thread 1: NVLink warmup completed, starting measurements...\n");
+        printf("Thread 1: NVLink warmup completed, starting RDMA warmup...\n");
         
-        /* Timed transfers */
-        start_cycles = get_cycles();
-        
-        for (i = 0; i < args->iterations; i++) {
-            if (nvlink_copy_gpu_to_gpu_async(args->nvlink_ctx, args->nvlink_dst_buffer,
-                                              src_buffer, buffer_size) != 0) {
-                fprintf(stderr, "NVLink copy %d failed\n", i);
+        /* RDMA warmup (using QP 1, which is on NIC 1) */
+        for (i = 0; i < WARMUP_ITERATIONS; i++) {
+            if (rdma_write(ctx, 1, 0, buffer_size, 0) != 0) {
+                fprintf(stderr, "QP 1: RDMA warmup write %d failed\n", i);
+                *args->status = -1;
+                return NULL;
+            }
+        }
+        for (i = 0; i < WARMUP_ITERATIONS; i++) {
+            if (rdma_poll_completion(ctx, 1, -1) != 0) {
+                fprintf(stderr, "QP 1: RDMA warmup completion %d failed\n", i);
                 *args->status = -1;
                 return NULL;
             }
         }
         
+        printf("Thread 1: Warmup completed, starting measurements...\n");
+        
+        /* Timed transfers: NVLink + RDMA */
+        start_cycles = get_cycles();
+        
+        for (i = 0; i < args->iterations; i++) {
+            /* Step 1: NVLink transfer */
+            if (nvlink_copy_gpu_to_gpu_async(args->nvlink_ctx, nvlink_dst,
+                                              src_buffer, buffer_size) != 0) {
+                fprintf(stderr, "NVLink copy %d failed\n", i);
+                *args->status = -1;
+                return NULL;
+            }
+            
+            /* Step 2: RDMA write via NIC 1 (QP 1) */
+            if (rdma_write(ctx, 1, 0, buffer_size, 0) != 0) {
+                fprintf(stderr, "RDMA write %d failed\n", i);
+                *args->status = -1;
+                return NULL;
+            }
+        }
+        
+        /* Wait for NVLink to complete */
         if (nvlink_synchronize(args->nvlink_ctx) != 0) {
             fprintf(stderr, "NVLink sync failed\n");
             *args->status = -1;
             return NULL;
         }
         
+        /* Poll for all RDMA completions */
+        for (i = 0; i < args->iterations; i++) {
+            if (rdma_poll_completion(ctx, 1, -1) != 0) {
+                fprintf(stderr, "RDMA completion %d failed\n", i);
+                *args->status = -1;
+                return NULL;
+            }
+        }
+        
         end_cycles = get_cycles();
         total_time = (double)(end_cycles - start_cycles) / (cpu_mhz * 1e6);
         
-        /* Calculate bandwidth */
+        /* Calculate bandwidth (total data transferred: buffer_size * iterations) */
         *args->bandwidth = (buffer_size * args->iterations) / (total_time * 1e9);
         *args->status = 0;
         
-        printf("Thread 1: Completed %d NVLink iterations in %.6f seconds\n",
+        printf("Thread 1: Completed %d iterations (NVLink + RDMA) in %.6f seconds\n",
                args->iterations, total_time);
         
         return NULL;
@@ -193,8 +228,8 @@ static void print_usage(const char *prog_name)
     printf("  -p, --port PORT       Base port (default: 18515)\n");
     printf("  -b, --buffer SIZE     Buffer size in bytes (default: 64MB)\n");
     printf("  -i, --iterations NUM  Number of iterations (default: 100)\n");
-    printf("  -g, --gpu ID          GPU ID for buffer allocation (-1 for host, default: -1)\n");
-    printf("  -l, --nvlink-gpu-id ID NVLink destination GPU ID (for thread 1, -1 to disable)\n");
+    printf("  -g, --gpu0 ID         GPU ID for QP 0 buffer (-1 for host, default: -1)\n");
+    printf("  -G, --gpu1 ID         GPU ID for QP 1 buffer (-1 for host, default: -1)\n");
     printf("  -h, --help            Show this help message\n");
     printf("\n");
     printf("Examples:\n");
@@ -218,9 +253,9 @@ int main(int argc, char *argv[])
     config.base_port = 18515;
     config.buffer_size = DEFAULT_BUFFER_SIZE;
     config.is_server = 0;
-    config.gpu_id = -1;
+    config.gpu_id[0] = -1;
+    config.gpu_id[1] = -1;
     config.server_addr = NULL;
-    int nvlink_gpu_id = -1;
     
     /* Command line parsing */
     static struct option long_options[] = {
@@ -231,13 +266,13 @@ int main(int argc, char *argv[])
         {"port", required_argument, 0, 'p'},
         {"buffer", required_argument, 0, 'b'},
         {"iterations", required_argument, 0, 'i'},
-        {"gpu", required_argument, 0, 'g'},
-        {"nvlink-gpu-id", required_argument, 0, 'l'},
+        {"gpu0", required_argument, 0, 'g'},
+        {"gpu1", required_argument, 0, 'G'},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
     
-    while ((opt = getopt_long(argc, argv, "n:N:sa:p:b:i:g:l:h", long_options, NULL)) != -1) {
+    while ((opt = getopt_long(argc, argv, "n:N:sa:p:b:i:g:G:h", long_options, NULL)) != -1) {
         switch (opt) {
         case 'n':
             config.nic_names[0] = optarg;
@@ -261,10 +296,10 @@ int main(int argc, char *argv[])
             /* Will be set per thread */
             break;
         case 'g':
-            config.gpu_id = atoi(optarg);
+            config.gpu_id[0] = atoi(optarg);
             break;
-        case 'l':
-            nvlink_gpu_id = atoi(optarg);
+        case 'G':
+            config.gpu_id[1] = atoi(optarg);
             break;
         case 'h':
             print_usage(argv[0]);
@@ -290,10 +325,8 @@ int main(int argc, char *argv[])
     printf("Base port: %d\n", config.base_port);
     printf("Buffer size: %zu bytes (%.2f MB)\n", 
            config.buffer_size, config.buffer_size / (1024.0 * 1024.0));
-    printf("GPU ID: %d\n", config.gpu_id);
-    if (nvlink_gpu_id >= 0) {
-        printf("NVLink GPU ID: %d\n", nvlink_gpu_id);
-    }
+    printf("GPU ID QP 0: %d\n", config.gpu_id[0]);
+    printf("GPU ID QP 1: %d\n", config.gpu_id[1]);
     if (config.server_addr) {
         printf("Server address: %s\n", config.server_addr);
     }
@@ -317,44 +350,20 @@ int main(int argc, char *argv[])
     }
     printf("QPs connected\n\n");
     
-    /* Setup NVLink for thread 1 if requested */
+    /* Setup NVLink for thread 1 if both GPUs are set and different */
     struct nvlink_context nvlink_ctx;
-    void *nvlink_dst_buffer = NULL;
     int nvlink_initialized = 0;
     
-    if (!config.is_server && nvlink_gpu_id >= 0 && config.gpu_id >= 0) {
-        printf("Initializing NVLink (GPU %d -> GPU %d)...\n", config.gpu_id, nvlink_gpu_id);
-        if (nvlink_init_context(&nvlink_ctx, config.gpu_id, nvlink_gpu_id) != 0) {
+    if (!config.is_server && config.gpu_id[0] >= 0 && config.gpu_id[1] >= 0 && 
+        config.gpu_id[0] != config.gpu_id[1]) {
+        printf("Initializing NVLink (GPU %d -> GPU %d)...\n", config.gpu_id[0], config.gpu_id[1]);
+        if (nvlink_init_context(&nvlink_ctx, config.gpu_id[0], config.gpu_id[1]) != 0) {
             fprintf(stderr, "Failed to initialize NVLink context\n");
-            rdma_multi_qp_cleanup(ctx);
-            return 1;
-        }
-        
-        /* Allocate destination buffer on nvlink_gpu_id */
-#ifdef HAVE_CUDA
-        cudaError_t err = cudaSetDevice(nvlink_gpu_id);
-        if (err != cudaSuccess) {
-            fprintf(stderr, "Failed to set CUDA device %d: %s\n", nvlink_gpu_id, cudaGetErrorString(err));
-            nvlink_cleanup_context(&nvlink_ctx);
-            rdma_multi_qp_cleanup(ctx);
-            return 1;
-        }
-        err = cudaMalloc(&nvlink_dst_buffer, config.buffer_size);
-        if (err != cudaSuccess) {
-            fprintf(stderr, "Failed to allocate CUDA buffer on GPU %d: %s\n", 
-                    nvlink_gpu_id, cudaGetErrorString(err));
-            nvlink_cleanup_context(&nvlink_ctx);
             rdma_multi_qp_cleanup(ctx);
             return 1;
         }
         nvlink_initialized = 1;
         printf("NVLink initialized\n\n");
-#else
-        fprintf(stderr, "CUDA not available\n");
-        nvlink_cleanup_context(&nvlink_ctx);
-        rdma_multi_qp_cleanup(ctx);
-        return 1;
-#endif
     }
     
     /* Setup thread arguments */
@@ -363,9 +372,7 @@ int main(int argc, char *argv[])
         args[i].qp_index = i;
         args[i].iterations = DEFAULT_ITERATIONS;
         args[i].is_server = config.is_server;
-        args[i].nvlink_gpu_id = nvlink_gpu_id;
-        args[i].nvlink_ctx = nvlink_initialized ? &nvlink_ctx : NULL;
-        args[i].nvlink_dst_buffer = nvlink_dst_buffer;
+        args[i].nvlink_ctx = (i == 1 && nvlink_initialized) ? &nvlink_ctx : NULL;
         args[i].bandwidth = &bandwidths[i];
         args[i].status = &statuses[i];
         statuses[i] = -1;
@@ -397,8 +404,8 @@ int main(int argc, char *argv[])
     printf("========================================\n");
     for (i = 0; i < 2; i++) {
         if (statuses[i] == 0) {
-            if (i == 1 && nvlink_gpu_id >= 0) {
-                printf("Thread %d (NVLink) bandwidth: %.2f GB/s\n", i, bandwidths[i]);
+            if (i == 1 && nvlink_initialized) {
+                printf("Thread %d (NVLink + RDMA) bandwidth: %.2f GB/s\n", i, bandwidths[i]);
             } else {
                 printf("QP %d bandwidth: %.2f GB/s\n", i, bandwidths[i]);
             }
@@ -416,11 +423,6 @@ cleanup:
     printf("Cleaning up...\n");
     if (nvlink_initialized) {
         nvlink_cleanup_context(&nvlink_ctx);
-#ifdef HAVE_CUDA
-        if (nvlink_dst_buffer) {
-            cudaFree(nvlink_dst_buffer);
-        }
-#endif
     }
     rdma_multi_qp_cleanup(ctx);
     

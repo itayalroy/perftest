@@ -246,6 +246,59 @@ static int register_mr(struct qp_context *qp, int gpu_id)
     return 0;
 }
 
+static int exchange_qp_info(rdma_multi_qp_context_t *ctx, int qp_idx, int sockfd)
+{
+    struct qp_context *qp = &ctx->qps[qp_idx];
+    char local_msg[512], remote_msg[512];
+    int i;
+    
+    /* Format message: QPN VADDR LID PSN RKEY GID[16 bytes as hex] */
+    char gid_str[33];
+    for (i = 0; i < 16; i++) {
+        sprintf(&gid_str[i*2], "%02x", qp->local_gid.raw[i]);
+    }
+    gid_str[32] = '\0';
+    
+    snprintf(local_msg, sizeof(local_msg), "%u %lu %hu %u %u %s",
+             qp->local_qpn, qp->vaddr, qp->local_lid, qp->local_psn, qp->rkey, gid_str);
+    
+    fprintf(stderr, "DEBUG [QP %d %s]: Sending - QPN=%u, VADDR=%lu, LID=%u, PSN=%u, RKEY=%u, GID=%s\n",
+            qp_idx, ctx->is_server ? "SERVER" : "CLIENT",
+            qp->local_qpn, qp->vaddr, qp->local_lid, qp->local_psn, qp->rkey, gid_str);
+    
+    if (ctx->is_server) {
+        send(sockfd, local_msg, sizeof(local_msg), 0);
+        recv(sockfd, remote_msg, sizeof(remote_msg), 0);
+    } else {
+        recv(sockfd, remote_msg, sizeof(remote_msg), 0);
+        send(sockfd, local_msg, sizeof(local_msg), 0);
+    }
+    
+    fprintf(stderr, "DEBUG [QP %d %s]: Received raw: %s\n",
+            qp_idx, ctx->is_server ? "SERVER" : "CLIENT", remote_msg);
+    
+    char remote_gid_str[33];
+    int parsed = sscanf(remote_msg, "%u %lu %hu %u %u %32s",
+                        &qp->remote_qpn, &qp->remote_vaddr, &qp->remote_lid,
+                        &qp->remote_psn, &qp->remote_rkey, remote_gid_str);
+    
+    /* Parse GID from hex string */
+    if (parsed >= 6) {
+        for (i = 0; i < 16; i++) {
+            unsigned int val;
+            sscanf(&remote_gid_str[i*2], "%02x", &val);
+            qp->remote_gid.raw[i] = (uint8_t)val;
+        }
+    }
+    
+    fprintf(stderr, "DEBUG [QP %d %s]: Parsed %d values - Remote QPN=%u, VADDR=%lu, LID=%u, PSN=%u, RKEY=%u, GID=%s\n",
+            qp_idx, ctx->is_server ? "SERVER" : "CLIENT", parsed,
+            qp->remote_qpn, qp->remote_vaddr, qp->remote_lid,
+            qp->remote_psn, qp->remote_rkey, remote_gid_str);
+    
+    return 0;
+}
+
 static int handshake(rdma_multi_qp_context_t *ctx, int qp_idx)
 {
     struct qp_context *qp = &ctx->qps[qp_idx];
@@ -447,7 +500,7 @@ int rdma_multi_qp_init(const struct rdma_multi_qp_config *config,
     ctx->is_server = config->is_server;
     ctx->base_port = config->base_port;
     ctx->server_addr = config->server_addr;
-    ctx->gpu_id = config->gpu_id;
+    ctx->gpu_id = config->gpu_id[0];  /* Keep for backward compatibility */
     
     for (i = 0; i < NUM_QPS; i++) {
         pthread_mutex_init(&ctx->mutex[i], NULL);
@@ -457,12 +510,12 @@ int rdma_multi_qp_init(const struct rdma_multi_qp_config *config,
             goto error;
         }
         
-        if (allocate_buffer(&ctx->qps[i], config->buffer_size, config->gpu_id) != 0) {
+        if (allocate_buffer(&ctx->qps[i], config->buffer_size, config->gpu_id[i]) != 0) {
             fprintf(stderr, "Failed to allocate buffer %d\n", i);
             goto error;
         }
         
-        if (register_mr(&ctx->qps[i], config->gpu_id) != 0) {
+        if (register_mr(&ctx->qps[i], config->gpu_id[i]) != 0) {
             fprintf(stderr, "Failed to register MR %d\n", i);
             goto error;
         }
@@ -473,7 +526,7 @@ int rdma_multi_qp_init(const struct rdma_multi_qp_config *config,
     
 error:
     for (i = 0; i < NUM_QPS; i++) {
-        if (ctx->qps[i].buffer) free_buffer(&ctx->qps[i], config->gpu_id);
+        if (ctx->qps[i].buffer) free_buffer(&ctx->qps[i], config->gpu_id[i]);
         if (ctx->qps[i].mr) ibv_dereg_mr(ctx->qps[i].mr);
         if (ctx->qps[i].qp) ibv_destroy_qp(ctx->qps[i].qp);
         if (ctx->qps[i].cq) ibv_destroy_cq(ctx->qps[i].cq);
@@ -488,22 +541,103 @@ error:
 int rdma_multi_qp_connect(rdma_multi_qp_context_t *ctx)
 {
     int i;
+    int listen_socks[NUM_QPS] = {-1, -1};
+    int client_socks[NUM_QPS] = {-1, -1};
+    struct sockaddr_in addr;
+    int reuse = 1;
     
+    /* Phase 1: Set up all listening sockets (server) or connect to all (client) */
     for (i = 0; i < NUM_QPS; i++) {
-        if (handshake(ctx, i) != 0) {
-            fprintf(stderr, "Handshake failed for QP %d\n", i);
-            return -1;
+        int port = ctx->base_port + HANDSHAKE_PORT_OFFSET + i;
+        int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+        if (sockfd < 0) {
+            fprintf(stderr, "socket failed for QP %d\n", i);
+            goto error;
         }
         
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
+            fprintf(stderr, "setsockopt SO_REUSEADDR failed for QP %d: %s\n", i, strerror(errno));
+            close(sockfd);
+            goto error;
+        }
+        
+        memset(&addr, 0, sizeof(addr));
+        addr.sin_family = AF_INET;
+        addr.sin_port = htons(port);
+        
+        if (ctx->is_server) {
+            addr.sin_addr.s_addr = INADDR_ANY;
+            if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+                fprintf(stderr, "bind failed for QP %d: %s\n", i, strerror(errno));
+                close(sockfd);
+                goto error;
+            }
+            if (listen(sockfd, 1) < 0) {
+                fprintf(stderr, "listen failed for QP %d\n", i);
+                close(sockfd);
+                goto error;
+            }
+            listen_socks[i] = sockfd;
+            fprintf(stderr, "DEBUG [QP %d SERVER]: Listening on port %d\n", i, port);
+        } else {
+            addr.sin_addr.s_addr = ctx->server_addr ? 
+                inet_addr(ctx->server_addr) : inet_addr("127.0.0.1");
+            fprintf(stderr, "DEBUG [QP %d CLIENT]: Connecting to %s:%d...\n", 
+                    i, ctx->server_addr ? ctx->server_addr : "127.0.0.1", port);
+            if (connect(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+                fprintf(stderr, "connect failed for QP %d: %s\n", i, strerror(errno));
+                close(sockfd);
+                goto error;
+            }
+            client_socks[i] = sockfd;
+            fprintf(stderr, "DEBUG [QP %d CLIENT]: Connected\n", i);
+        }
+    }
+    
+    /* Phase 2: Accept connections (server) or use existing connections (client) */
+    for (i = 0; i < NUM_QPS; i++) {
+        int sockfd;
+        if (ctx->is_server) {
+            fprintf(stderr, "DEBUG [QP %d SERVER]: Accepting connection...\n", i);
+            sockfd = accept(listen_socks[i], NULL, NULL);
+            close(listen_socks[i]);
+            listen_socks[i] = -1;
+            if (sockfd < 0) {
+                fprintf(stderr, "accept failed for QP %d\n", i);
+                goto error;
+            }
+            fprintf(stderr, "DEBUG [QP %d SERVER]: Accepted connection\n", i);
+        } else {
+            sockfd = client_socks[i];
+        }
+        
+        /* Exchange QP information */
+        if (exchange_qp_info(ctx, i, sockfd) != 0) {
+            fprintf(stderr, "Failed to exchange QP info for QP %d\n", i);
+            close(sockfd);
+            goto error;
+        }
+        
+        close(sockfd);
+        
+        /* Modify QP to RTS */
         if (modify_qp_to_rts(&ctx->qps[i]) != 0) {
             fprintf(stderr, "Failed to modify QP %d to RTS\n", i);
-            return -1;
+            goto error;
         }
         
         ctx->qps[i].connected = 1;
     }
     
     return 0;
+    
+error:
+    /* Cleanup */
+    for (i = 0; i < NUM_QPS; i++) {
+        if (listen_socks[i] >= 0) close(listen_socks[i]);
+        if (client_socks[i] >= 0) close(client_socks[i]);
+    }
+    return -1;
 }
 
 int rdma_write(rdma_multi_qp_context_t *ctx, int qp_index,
