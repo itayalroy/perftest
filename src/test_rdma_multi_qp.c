@@ -17,6 +17,10 @@
 #include <getopt.h>
 #include <pthread.h>
 
+#ifdef HAVE_CUDA
+#include <nvToolsExt.h>
+#endif
+
 #define DEFAULT_BUFFER_SIZE (1024 * 1024 * 64)  /* 64 MB */
 #define DEFAULT_ITERATIONS 256
 #define WARMUP_ITERATIONS 256
@@ -144,7 +148,16 @@ static void *write_thread(void *arg)
         
         /* RDMA warmup */
         for (i = 0; i < WARMUP_ITERATIONS; i++) {
-            if (rdma_write(ctx, qp_index, offset, part_size, offset) != 0) {
+            char range_name[64];
+            snprintf(range_name, sizeof(range_name), "rdma_write_warmup_QP%d", qp_index);
+            #ifdef HAVE_CUDA
+            nvtxRangePushA(range_name);
+            #endif
+            int ret = rdma_write(ctx, qp_index, offset, part_size, offset);
+            #ifdef HAVE_CUDA
+            nvtxRangePop();
+            #endif
+            if (ret != 0) {
                 fprintf(stderr, "QP %d: RDMA warmup write %d failed\n", qp_index, i);
                 *args->status = -1;
                 return NULL;
@@ -182,11 +195,22 @@ static void *write_thread(void *arg)
         
         for (i = 0; i < args->iterations; i++) {
             /* Step 2: RDMA write */
+            char range_name[64];
+            snprintf(range_name, sizeof(range_name), "rdma_write_QP%d_iter%d", qp_index, i);
+            #ifdef HAVE_CUDA
+            nvtxRangePushA(range_name);
+            #endif
             if (rdma_write(ctx, qp_index, offset, part_size, offset) != 0) {
+                #ifdef HAVE_CUDA
+                nvtxRangePop();
+                #endif
                 fprintf(stderr, "RDMA write %d failed\n", i);
                 *args->status = -1;
                 return NULL;
             }
+            #ifdef HAVE_CUDA
+            nvtxRangePop();
+            #endif
         }
 
         /* Poll for all RDMA completions */
@@ -225,7 +249,16 @@ static void *write_thread(void *arg)
     
     /* Warmup */
     for (i = 0; i < WARMUP_ITERATIONS; i++) {
-        if (rdma_write(ctx, qp_index, offset, part_size, offset) != 0) {
+        char range_name[64];
+        snprintf(range_name, sizeof(range_name), "rdma_write_warmup_QP%d", qp_index);
+        #ifdef HAVE_CUDA
+        nvtxRangePushA(range_name);
+        #endif
+        int ret = rdma_write(ctx, qp_index, offset, part_size, offset);
+        #ifdef HAVE_CUDA
+        nvtxRangePop();
+        #endif
+        if (ret != 0) {
             fprintf(stderr, "QP %d: Warmup write %d failed\n", qp_index, i);
             *args->status = -1;
             return NULL;
@@ -247,11 +280,22 @@ static void *write_thread(void *arg)
     start_cycles = get_cycles();
     
     for (i = 0; i < args->iterations; i++) {
+        char range_name[64];
+        snprintf(range_name, sizeof(range_name), "rdma_write_QP%d_iter%d", qp_index, i);
+        #ifdef HAVE_CUDA
+        nvtxRangePushA(range_name);
+        #endif
         if (rdma_write(ctx, qp_index, offset, part_size, offset) != 0) {
+            #ifdef HAVE_CUDA
+            nvtxRangePop();
+            #endif
             fprintf(stderr, "QP %d: Write %d failed\n", qp_index, i);
             *args->status = -1;
             return NULL;
         }
+        #ifdef HAVE_CUDA
+        nvtxRangePop();
+        #endif
     }
 
     /* Poll for all timed test completions */
