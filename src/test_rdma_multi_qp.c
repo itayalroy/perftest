@@ -88,6 +88,8 @@ static void *write_thread(void *arg)
     rdma_multi_qp_context_t *ctx = args->ctx;
     int qp_index = args->qp_index;
     size_t buffer_size = rdma_get_buffer_size(ctx);
+    size_t part_size = buffer_size / args->num_qps;
+    size_t offset = qp_index * part_size;
     cycles_t start_cycles, end_cycles;
     double total_time;
     double cpu_mhz;
@@ -108,10 +110,7 @@ static void *write_thread(void *arg)
         void *src_buffer = rdma_get_local_buffer(ctx, 0);  /* Use QP 0's buffer as NVLink source */
         void *nvlink_dst = rdma_get_local_buffer(ctx, qp_index);  /* Use QP i's buffer as NVLink destination */
         
-        /* Calculate buffer part size and offset for this GPU */
-        size_t buffer_size = rdma_get_buffer_size(ctx);
-        size_t part_size = buffer_size / args->num_qps;
-        size_t offset = qp_index * part_size;
+        /* Calculate buffer part pointers for this GPU */
         void *src_part = (char *)src_buffer + offset;
         void *dst_part = (char *)nvlink_dst + offset;
         
@@ -221,11 +220,12 @@ static void *write_thread(void *arg)
         return NULL;
     }
     
-    printf("Thread for QP %d: Starting warmup...\n", qp_index);
+    printf("Thread for QP %d: Starting warmup (part %zu bytes at offset %zu)...\n", 
+           qp_index, part_size, offset);
     
     /* Warmup */
     for (i = 0; i < WARMUP_ITERATIONS; i++) {
-        if (rdma_write(ctx, qp_index, 0, buffer_size, 0) != 0) {
+        if (rdma_write(ctx, qp_index, offset, part_size, offset) != 0) {
             fprintf(stderr, "QP %d: Warmup write %d failed\n", qp_index, i);
             *args->status = -1;
             return NULL;
@@ -247,7 +247,7 @@ static void *write_thread(void *arg)
     start_cycles = get_cycles();
     
     for (i = 0; i < args->iterations; i++) {
-        if (rdma_write(ctx, qp_index, 0, buffer_size, 0) != 0) {
+        if (rdma_write(ctx, qp_index, offset, part_size, offset) != 0) {
             fprintf(stderr, "QP %d: Write %d failed\n", qp_index, i);
             *args->status = -1;
             return NULL;
@@ -266,8 +266,8 @@ static void *write_thread(void *arg)
     end_cycles = get_cycles();
     total_time = (double)(end_cycles - start_cycles) / (cpu_mhz * 1e6);
     
-    /* Calculate bandwidth */
-    *args->bandwidth = (buffer_size * args->iterations) / (total_time * 1e9);
+    /* Calculate bandwidth (total data transferred: part_size * iterations) */
+    *args->bandwidth = (part_size * args->iterations) / (total_time * 1e9);
     *args->status = 0;
     
     printf("Thread for QP %d: Completed %d iterations in %.6f seconds\n",
