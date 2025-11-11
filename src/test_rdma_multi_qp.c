@@ -18,12 +18,12 @@
 #include <pthread.h>
 
 #ifdef HAVE_CUDA
-#include <nvToolsExt.h>
+#include <nvtx3/nvToolsExt.h>
 #endif
 
-#define DEFAULT_BUFFER_SIZE (1024 * 1024 * 64)  /* 64 MB */
-#define DEFAULT_ITERATIONS 256
-#define WARMUP_ITERATIONS 256
+#define DEFAULT_BUFFER_SIZE (1024 * 1024 * 1024)  /* 1 GB */
+#define DEFAULT_ITERATIONS 1
+#define WARMUP_ITERATIONS 0
 #define MAX_THREADS 32
 
 struct thread_args {
