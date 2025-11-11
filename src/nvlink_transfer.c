@@ -115,11 +115,11 @@ int nvlink_init_context(struct nvlink_context *ctx, int gpu0_id, int gpu1_id)
 		ctx->peer_access_enabled = 0;
 	}
 
-	/* Create CUDA stream for asynchronous transfers */
-	err = cudaSetDevice(gpu0_id);
+	/* Create CUDA stream for asynchronous transfers on destination GPU */
+	err = cudaSetDevice(gpu1_id);
 	if (err != cudaSuccess) {
 		fprintf(stderr, "nvlink_init_context: Failed to set device %d for stream: %s\n",
-			gpu0_id, cudaGetErrorString(err));
+			gpu1_id, cudaGetErrorString(err));
 		return 1;
 	}
 
@@ -147,7 +147,7 @@ int nvlink_cleanup_context(struct nvlink_context *ctx)
 
 	/* Synchronize devices before cleanup */
 	if (ctx->stream) {
-		cudaSetDevice(ctx->gpu0_id);
+		cudaSetDevice(ctx->gpu1_id);
 		cudaStreamSynchronize(ctx->stream);
 	}
 
@@ -161,7 +161,7 @@ int nvlink_cleanup_context(struct nvlink_context *ctx)
 
 	/* Destroy stream */
 	if (ctx->stream) {
-		cudaSetDevice(ctx->gpu0_id);
+		cudaSetDevice(ctx->gpu1_id);
 		err = cudaStreamDestroy(ctx->stream);
 		if (err != cudaSuccess) {
 			fprintf(stderr, "nvlink_cleanup_context: Failed to destroy stream: %s\n",
@@ -195,11 +195,11 @@ int nvlink_copy_gpu_to_gpu_sync(struct nvlink_context *ctx, void *dst, void *src
 		return 0;
 	}
 
-	/* Set device to GPU 0 (source) */
-	err = cudaSetDevice(ctx->gpu0_id);
+	/* Set device to destination GPU to enable parallel transfers */
+	err = cudaSetDevice(ctx->gpu1_id);
 	if (err != cudaSuccess) {
 		fprintf(stderr, "nvlink_copy_gpu_to_gpu_sync: Failed to set device %d: %s\n",
-			ctx->gpu0_id, cudaGetErrorString(err));
+			ctx->gpu1_id, cudaGetErrorString(err));
 		return 1;
 	}
 
@@ -249,11 +249,11 @@ int nvlink_copy_gpu_to_gpu_async(struct nvlink_context *ctx, void *dst, void *sr
 		return 1;
 	}
 
-	/* Set device to GPU 0 (source) */
-	err = cudaSetDevice(ctx->gpu0_id);
+	/* Set device to destination GPU to enable parallel transfers */
+	err = cudaSetDevice(ctx->gpu1_id);
 	if (err != cudaSuccess) {
 		fprintf(stderr, "nvlink_copy_gpu_to_gpu_async: Failed to set device %d: %s\n",
-			ctx->gpu0_id, cudaGetErrorString(err));
+			ctx->gpu1_id, cudaGetErrorString(err));
 		return 1;
 	}
 
@@ -285,10 +285,10 @@ int nvlink_synchronize(struct nvlink_context *ctx)
 		return 1;
 	}
 
-	err = cudaSetDevice(ctx->gpu0_id);
+	err = cudaSetDevice(ctx->gpu1_id);
 	if (err != cudaSuccess) {
 		fprintf(stderr, "nvlink_synchronize: Failed to set device %d: %s\n",
-			ctx->gpu0_id, cudaGetErrorString(err));
+			ctx->gpu1_id, cudaGetErrorString(err));
 		return 1;
 	}
 
