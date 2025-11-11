@@ -494,8 +494,21 @@ int main(int argc, char *argv[])
         statuses[i] = -1;
     }
     
+    /* Get CPU frequency for wall-clock time measurement */
+    double cpu_mhz = get_cpu_mhz(0);
+    if (cpu_mhz <= 0) {
+        fprintf(stderr, "Failed to get CPU frequency\n");
+        ret = 1;
+        goto cleanup;
+    }
+    
+    /* Measure wall-clock time for total bandwidth calculation */
+    cycles_t total_start_cycles, total_end_cycles;
+    size_t total_buffer_size = rdma_get_buffer_size(ctx);
+    
     /* Create threads */
     printf("Creating %d threads...\n", num_qps);
+    total_start_cycles = get_cycles();
     for (i = 0; i < num_qps; i++) {
         if (pthread_create(&threads[i], NULL, write_thread, &args[i]) != 0) {
             fprintf(stderr, "Failed to create thread %d\n", i);
@@ -513,6 +526,10 @@ int main(int argc, char *argv[])
             ret = 1;
         }
     }
+    total_end_cycles = get_cycles();
+    
+    /* Calculate total wall-clock time */
+    double total_time = (double)(total_end_cycles - total_start_cycles) / (cpu_mhz * 1e6);
     
     /* Print results */
     printf("\n========================================\n");
@@ -530,14 +547,19 @@ int main(int argc, char *argv[])
         }
     }
     
+    /* Calculate total bandwidth based on wall-clock time */
     double total_bw = 0.0;
+    int success_count = 0;
     for (i = 0; i < num_qps; i++) {
         if (statuses[i] == 0) {
-            total_bw += bandwidths[i];
+            success_count++;
         }
     }
-    if (total_bw > 0.0) {
-        printf("Total bandwidth: %.2f GB/s\n", total_bw);
+    if (success_count > 0 && total_time > 0.0) {
+        /* Total bandwidth = (total buffer size * iterations) / total wall-clock time */
+        total_bw = (total_buffer_size * DEFAULT_ITERATIONS) / (total_time * 1e9);
+        printf("Total bandwidth (wall-clock): %.2f GB/s (measured over %.6f seconds)\n", 
+               total_bw, total_time);
     }
     printf("========================================\n\n");
     
