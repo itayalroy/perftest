@@ -104,11 +104,9 @@ static void *write_thread(void *arg)
     
     /* Server just waits - no sending */
     if (args->is_server) {
-        printf("Server thread for QP %d: Waiting for client to complete...\n", qp_index);
         sleep(300);  /* 5 minutes should be enough */
         *args->bandwidth = 0.0;
         *args->status = 0;
-        printf("Server thread for QP %d: Done waiting\n", qp_index);
         return NULL;
     }
     
@@ -129,9 +127,6 @@ static void *write_thread(void *arg)
             return NULL;
         }
         
-        printf("Thread %d: Starting NVLink warmup (GPU %d -> GPU %d, part %zu bytes at offset %zu)...\n",
-               qp_index, args->gpu0_id, args->nvlink_ctx->gpu1_id, part_size, offset);
-        
         /* NVLink warmup */
         for (i = 0; i < WARMUP_ITERATIONS; i++) {
             if (nvlink_copy_gpu_to_gpu_async(args->nvlink_ctx, dst_part, 
@@ -146,8 +141,6 @@ static void *write_thread(void *arg)
             *args->status = -1;
             return NULL;
         }
-        
-        printf("Thread %d: NVLink warmup completed, starting RDMA warmup...\n", qp_index);
         
         /* RDMA warmup */
         for (i = 0; i < WARMUP_ITERATIONS; i++) {
@@ -164,8 +157,6 @@ static void *write_thread(void *arg)
                 return NULL;
             }
         }
-        
-        printf("Thread %d: Warmup completed, starting measurements...\n", qp_index);
         
         /* Wait at start barrier before beginning timed work */
         if (args->start_barrier) {
@@ -222,9 +213,6 @@ static void *write_thread(void *arg)
         *args->bandwidth = (part_size * args->iterations) / (total_time * 1e9);
         *args->status = 0;
         
-        printf("Thread %d: Completed %d iterations (NVLink + RDMA) in %.6f seconds\n",
-               qp_index, args->iterations, total_time);
-        
         return NULL;
     }
     
@@ -236,9 +224,6 @@ static void *write_thread(void *arg)
         *args->status = -1;
         return NULL;
     }
-    
-    printf("Thread for QP %d: Starting warmup (part %zu bytes at offset %zu)...\n", 
-           qp_index, part_size, offset);
     
     /* Warmup */
     for (i = 0; i < WARMUP_ITERATIONS; i++) {
@@ -257,8 +242,6 @@ static void *write_thread(void *arg)
             return NULL;
         }
     }
-    
-    printf("Thread for QP %d: Warmup completed, starting measurements...\n", qp_index);
     
     /* Wait at start barrier before beginning timed work */
     if (args->start_barrier) {
@@ -307,9 +290,6 @@ static void *write_thread(void *arg)
     /* Calculate bandwidth (total data transferred: part_size * iterations) */
     *args->bandwidth = (part_size * args->iterations) / (total_time * 1e9);
     *args->status = 0;
-    
-    printf("Thread for QP %d: Completed %d iterations in %.6f seconds\n",
-           qp_index, args->iterations, total_time);
     
     return NULL;
 }
@@ -456,41 +436,20 @@ int main(int argc, char *argv[])
     config.gpu_id = gpu_ids;
     config.num_qps = num_qps;
     
-    printf("\n========================================\n");
-    printf("RDMA Multi-QP Bandwidth Test\n");
-    printf("========================================\n");
-    printf("Mode: %s\n", config.is_server ? "Server" : "Client");
-    printf("Number of QPs: %d\n", num_qps);
-    for (i = 0; i < num_qps; i++) {
-        printf("NIC %d: %s, GPU %d: %d\n", i, nic_names[i], i, gpu_ids[i]);
-    }
-    printf("Base port: %d\n", config.base_port);
-    printf("Buffer size: %zu bytes (%.2f MB)\n", 
-           config.buffer_size, config.buffer_size / (1024.0 * 1024.0));
-    if (config.server_addr) {
-        printf("Server address: %s\n", config.server_addr);
-    }
-    printf("Iterations per thread: %d\n", DEFAULT_ITERATIONS);
-    printf("========================================\n\n");
-    
     /* Initialize RDMA context */
-    printf("Initializing RDMA context...\n");
     if (rdma_multi_qp_init(&config, &ctx, config.nics_only) != 0) {
         fprintf(stderr, "Failed to initialize RDMA context\n");
         ret = 1;
         goto cleanup;
     }
-    printf("RDMA context initialized\n\n");
     
     /* Connect QPs */
-    printf("Connecting QPs...\n");
     if (rdma_multi_qp_connect(ctx) != 0) {
         fprintf(stderr, "Failed to connect QPs\n");
         rdma_multi_qp_cleanup(ctx);
         ret = 1;
         goto cleanup;
     }
-    printf("QPs connected\n\n");
     
     /* Allocate thread arrays */
     threads = calloc(num_qps, sizeof(pthread_t));
@@ -509,8 +468,6 @@ int main(int argc, char *argv[])
     if (!config.is_server && gpu_ids[0] >= 0) {
         for (i = 1; i < num_qps; i++) {
             if (gpu_ids[i] >= 0 && gpu_ids[i] != gpu_ids[0]) {
-                printf("Initializing NVLink (GPU %d -> GPU %d) for thread %d...\n", 
-                       gpu_ids[0], gpu_ids[i], i);
                 if (nvlink_init_context(&nvlink_ctxs[i], gpu_ids[0], gpu_ids[i]) != 0) {
                     fprintf(stderr, "Failed to initialize NVLink context for thread %d\n", i);
                     ret = 1;
@@ -518,7 +475,38 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("NVLink contexts initialized\n\n");
+    }
+    
+    /* Print paths being used */
+    if (!config.is_server) {
+        printf("Paths:\n");
+        for (i = 0; i < num_qps; i++) {
+            if (config.nics_only) {
+                if (gpu_ids[0] >= 0) {
+                    printf("  QP %d: GPU%d -> %s -> RDMA\n", i, gpu_ids[0], nic_names[i]);
+                } else {
+                    printf("  QP %d: Host -> %s -> RDMA\n", i, nic_names[i]);
+                }
+            } else {
+                if (i == 0) {
+                    if (gpu_ids[0] >= 0) {
+                        printf("  QP %d: GPU%d -> %s -> RDMA\n", i, gpu_ids[0], nic_names[i]);
+                    } else {
+                        printf("  QP %d: Host -> %s -> RDMA\n", i, nic_names[i]);
+                    }
+                } else {
+                    if (gpu_ids[i] >= 0 && gpu_ids[i] != gpu_ids[0]) {
+                        printf("  QP %d: GPU%d -> GPU%d -> %s -> RDMA\n", 
+                               i, gpu_ids[0], gpu_ids[i], nic_names[i]);
+                    } else if (gpu_ids[0] >= 0) {
+                        printf("  QP %d: GPU%d -> %s -> RDMA\n", i, gpu_ids[0], nic_names[i]);
+                    } else {
+                        printf("  QP %d: Host -> %s -> RDMA\n", i, nic_names[i]);
+                    }
+                }
+            }
+        }
+        printf("\n");
     }
     
     /* Initialize barriers for synchronizing thread start/end */
@@ -571,7 +559,6 @@ int main(int argc, char *argv[])
     size_t total_buffer_size = rdma_get_buffer_size(ctx);
     
     /* Create threads */
-    printf("Creating %d threads...\n", num_qps);
     for (i = 0; i < num_qps; i++) {
         if (pthread_create(&threads[i], NULL, write_thread, &args[i]) != 0) {
             fprintf(stderr, "Failed to create thread %d\n", i);
@@ -593,7 +580,6 @@ int main(int argc, char *argv[])
     }
     
     /* Wait for threads */
-    printf("Waiting for threads to complete...\n\n");
     for (i = 0; i < num_qps; i++) {
         pthread_join(threads[i], NULL);
         if (statuses[i] != 0) {
@@ -604,22 +590,6 @@ int main(int argc, char *argv[])
     
     /* Calculate total wall-clock time */
     double total_time = (double)(total_end_cycles - total_start_cycles) / (cpu_mhz * 1e6);
-    
-    /* Print results */
-    printf("\n========================================\n");
-    printf("Results:\n");
-    printf("========================================\n");
-    for (i = 0; i < num_qps; i++) {
-        if (statuses[i] == 0) {
-            if (i > 0 && args[i].nvlink_ctx) {
-                printf("Thread %d (NVLink + RDMA) bandwidth: %.2f GB/s\n", i, bandwidths[i]);
-            } else {
-                printf("QP %d bandwidth: %.2f GB/s\n", i, bandwidths[i]);
-            }
-        } else {
-            printf("QP %d: FAILED\n", i);
-        }
-    }
     
     /* Calculate total bandwidth based on wall-clock time */
     double total_bw = 0.0;
@@ -632,14 +602,12 @@ int main(int argc, char *argv[])
     if (success_count > 0 && total_time > 0.0) {
         /* Total bandwidth = (total buffer size * iterations) / total wall-clock time */
         total_bw = (total_buffer_size * DEFAULT_ITERATIONS) / (total_time * 1e9);
-        printf("Total bandwidth (wall-clock): %.2f GB/s (measured over %.6f seconds)\n", 
-               total_bw, total_time);
+        /* Print total bandwidth in green */
+        printf("\033[0;32mTotal bandwidth: %.2f GB/s\033[0m\n", total_bw);
     }
-    printf("========================================\n\n");
     
 cleanup:
     /* Cleanup */
-    printf("Cleaning up...\n");
     if (barriers_initialized) {
         pthread_barrier_destroy(&start_barrier);
         pthread_barrier_destroy(&end_barrier);
