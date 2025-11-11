@@ -115,13 +115,6 @@ static void *write_thread(void *arg)
                 *args->status = -1;
                 return NULL;
             }
-            
-            /* Step 2: RDMA write via NIC 1 (QP 1) */
-            if (rdma_write(ctx, 1, 0, buffer_size, 0) != 0) {
-                fprintf(stderr, "RDMA write %d failed\n", i);
-                *args->status = -1;
-                return NULL;
-            }
         }
         
         /* Wait for NVLink to complete */
@@ -130,7 +123,16 @@ static void *write_thread(void *arg)
             *args->status = -1;
             return NULL;
         }
-        
+
+        for (i = 0; i < args->iterations; i++) {
+            /* Step 2: RDMA write via NIC 1 (QP 1) */
+            if (rdma_write(ctx, 1, 0, buffer_size, 0) != 0) {
+                fprintf(stderr, "RDMA write %d failed\n", i);
+                *args->status = -1;
+                return NULL;
+            }
+        }
+
         /* Poll for all RDMA completions */
         for (i = 0; i < args->iterations; i++) {
             if (rdma_poll_completion(ctx, 1, -1) != 0) {
