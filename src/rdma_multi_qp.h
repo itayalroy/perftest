@@ -35,6 +35,7 @@ struct rdma_multi_qp_config {
     size_t buffer_size;        /* Buffer size per QP */
     int *gpu_id;               /* Array of GPU IDs for buffer allocation per QP (-1 for host) */
     bool nics_only;            /* Whether to only use NICs for buffer allocation */
+    bool direct_mode;          /* Each GPU sends directly via its own NIC (no NVLink) */
 };
 
 /**

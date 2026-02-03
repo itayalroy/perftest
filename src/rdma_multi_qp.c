@@ -72,6 +72,7 @@ static int allocate_buffer(struct qp_context *qp, size_t size, int gpu_id)
 {
 #ifdef HAVE_CUDA
     if (gpu_id >= 0) {
+        printf("Allocating buffer on GPU %d\n", gpu_id);
         cudaError_t err = cudaSetDevice(gpu_id);
         if (err != cudaSuccess) {
             fprintf(stderr, "cudaSetDevice failed: %s\n", cudaGetErrorString(err));

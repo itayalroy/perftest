@@ -5,12 +5,14 @@
 #
 
 # Hardcoded configuration
-NICS="mlx5_0,mlx5_3,mlx5_4,mlx5_5,mlx5_6,mlx5_9,mlx5_10,mlx5_11"
-GPUS="0,1,2,3,4,5,6,7"
+ALL_NICS="mlx5_0,mlx5_1,mlx5_2,mlx5_4,mlx5_5,mlx5_6,mlx5_7,mlx5_8"
+ALL_GPUS="0,1,2,3,4,5,6,7"
 
 # Parse arguments
 USE_NVLINK=0
+DIRECT_MODE=0
 RECV_IP=""
+SOURCE_GPUS=""
 
 # First, check if receiver IP is provided as positional argument
 if [[ $# -gt 0 ]] && [[ ! "$1" =~ ^-- ]]; then
@@ -25,6 +27,14 @@ while [[ $# -gt 0 ]]; do
             USE_NVLINK=1
             shift
             ;;
+        --direct)
+            DIRECT_MODE=1
+            shift
+            ;;
+        --source-gpus)
+            SOURCE_GPUS="$2"
+            shift 2
+            ;;
         --help|-h)
             echo "Usage: $0 <RECEIVER_IP> [OPTIONS]"
             echo ""
@@ -32,12 +42,18 @@ while [[ $# -gt 0 ]]; do
             echo "  RECEIVER_IP        IP address of the receiver (required)"
             echo ""
             echo "Options:"
-            echo "  --allow-nvlink     Enable NVLink transfers (default: disabled, uses --nics-only)"
-            echo "  --help, -h         Show this help message"
+            echo "  --allow-nvlink         Enable NVLink transfers (default: disabled, uses --nics-only)"
+            echo "  --direct               Each GPU sends directly via its own NIC (no NVLink)"
+            echo "  --source-gpus <list>   Comma-separated GPU IDs to use (e.g., '0' or '0,3,5')"
+            echo "                         Filters which GPUs to use"
+            echo "  --help, -h             Show this help message"
             echo ""
             echo "Examples:"
-            echo "  $0 10.52.48.100                # Send with NICs-only mode"
-            echo "  $0 10.52.48.100 --allow-nvlink # Send with NVLink enabled"
+            echo "  $0 10.52.48.100                           # Send with NICs-only mode (all from GPU 0)"
+            echo "  $0 10.52.48.100 --allow-nvlink            # Send with NVLink enabled"
+            echo "  $0 10.52.48.100 --direct                  # All GPUs send directly via their NICs"
+            echo "  $0 10.52.48.100 --direct --source-gpus 0        # Only GPU 0 sends via mlx5_0"
+            echo "  $0 10.52.48.100 --direct --source-gpus 0,3,5    # GPU 0,3,5 send via mlx5_0,mlx5_4,mlx5_6"
             exit 0
             ;;
         *)
@@ -56,12 +72,54 @@ if [[ -z "$RECV_IP" ]]; then
     exit 1
 fi
 
+# Filter NICs and GPUs if source-gpus is specified AND in direct mode
+if [[ -n "$SOURCE_GPUS" ]] && [[ $DIRECT_MODE -eq 1 ]]; then
+    # Direct mode: Filter to only use source GPU NICs
+    IFS=',' read -ra ALL_NICS_ARRAY <<< "$ALL_NICS"
+    IFS=',' read -ra ALL_GPUS_ARRAY <<< "$ALL_GPUS"
+    IFS=',' read -ra SOURCE_GPUS_ARRAY <<< "$SOURCE_GPUS"
+    
+    FILTERED_NICS=()
+    FILTERED_GPUS=()
+    
+    # For each source GPU, find its index and add corresponding NIC
+    for src_gpu in "${SOURCE_GPUS_ARRAY[@]}"; do
+        for i in "${!ALL_GPUS_ARRAY[@]}"; do
+            if [[ "${ALL_GPUS_ARRAY[$i]}" == "$src_gpu" ]]; then
+                FILTERED_GPUS+=("$src_gpu")
+                FILTERED_NICS+=("${ALL_NICS_ARRAY[$i]}")
+                break
+            fi
+        done
+    done
+    
+    # Join arrays back to comma-separated strings
+    NICS=$(IFS=,; echo "${FILTERED_NICS[*]}")
+    GPUS=$(IFS=,; echo "${FILTERED_GPUS[*]}")
+    
+    if [[ -z "$NICS" ]] || [[ -z "$GPUS" ]]; then
+        echo "Error: No valid GPUs found in --source-gpus"
+        exit 1
+    fi
+else
+    # NVLink or NICs-only mode: Use all NICs/GPUs
+    NICS="$ALL_NICS"
+    GPUS="$ALL_GPUS"
+fi
+
 # Build command
 CMD="./test_rdma_multi_qp --nics ${NICS} --gpus ${GPUS} -a ${RECV_IP}"
 
-# Add --nics-only flag if NVLink is not enabled
-if [[ $USE_NVLINK -eq 0 ]]; then
+# Add mode flags
+if [[ $DIRECT_MODE -eq 1 ]]; then
+    CMD="${CMD} --direct"
+elif [[ $USE_NVLINK -eq 0 ]]; then
     CMD="${CMD} --nics-only"
+else
+    # NVLink mode - pass source-gpus if specified
+    if [[ -n "$SOURCE_GPUS" ]]; then
+        CMD="${CMD} --source-gpus ${SOURCE_GPUS}"
+    fi
 fi
 
 # Execute
