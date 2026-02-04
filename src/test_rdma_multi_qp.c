@@ -44,7 +44,12 @@ struct thread_args {
     int *status;        /* Output: 0 on success */
     bool nics_only;     /* Whether to only use NICs for buffer allocation */
     bool direct_mode;   /* Whether in direct mode (each GPU sends via own NIC) */
+    bool reassembly;    /* Whether reassembly mode is enabled (allow-nvlink only) */
     int source_qp_index;   /* QP index that has the source GPU buffer */
+    void **reassembly_buffers;  /* Array of reassembly buffers (receiver only, allow-nvlink) */
+    struct nvlink_context **reassembly_nvlink_ctxs;  /* NVLink contexts for reassembly */
+    pthread_barrier_t *reassembly_barrier;  /* Barrier after reassembly complete */
+    pthread_mutex_t *qp_mutex;  /* Mutex for serializing QP access (multi-source mode) */
 };
 
 /* Parse comma-separated string into array */
@@ -93,6 +98,106 @@ static int parse_comma_separated_ints(const char *str, int *out, int max_count)
     
     free(str_copy);
     return count;
+}
+
+/* Receiver thread for allow-nvlink mode with reassembly */
+static void *receive_thread_with_reassembly(void *arg)
+{
+    struct thread_args *args = (struct thread_args *)arg;
+    rdma_multi_qp_context_t *ctx = args->ctx;
+    int qp_index = args->qp_index;
+    size_t buffer_size = rdma_get_buffer_size(ctx);
+    size_t slice_size = DEFAULT_BUFFER_SIZE / args->num_qps;  /* 128MB per slice */
+    void *qp_buffer = rdma_get_local_buffer(ctx, qp_index);
+    int src_idx;
+    
+    /* Post M receive WQEs (one for each source GPU) */
+    for (src_idx = 0; src_idx < args->num_source_gpus; src_idx++) {
+        if (rdma_post_receive(ctx, qp_index, 0, 1) != 0) {
+            fprintf(stderr, "QP %d: Failed to post receive %d\n", qp_index, src_idx);
+            *args->status = -1;
+            return NULL;
+        }
+    }
+    
+    /* Wait at start barrier */
+    if (args->start_barrier) {
+        pthread_barrier_wait(args->start_barrier);
+    }
+    
+    /* Poll M times (once for each source GPU) and reassemble */
+    for (src_idx = 0; src_idx < args->num_source_gpus; src_idx++) {
+        /* Poll for completion with immediate data */
+        uint32_t source_gpu_idx = 0;
+        if (rdma_poll_completion_with_imm(ctx, qp_index, -1, &source_gpu_idx) != 0) {
+            fprintf(stderr, "QP %d: Failed to poll completion with imm %d\n", qp_index, src_idx);
+            *args->status = -1;
+            return NULL;
+        }
+        
+        /* Reassemble: Copy from QP buffer to reassembly buffer */
+        if (source_gpu_idx < args->num_source_gpus && args->reassembly_buffers) {
+            /* Calculate source and destination pointers */
+            void *dst_buffer = args->reassembly_buffers[source_gpu_idx];
+            size_t dst_offset = qp_index * slice_size;  /* Where in reassembly buffer */
+            void *dst_ptr = (char *)dst_buffer + dst_offset;
+            
+            /* QP buffer contains data from ALL source GPUs - extract the section for this source */
+            size_t src_offset_in_qp = source_gpu_idx * slice_size;  /* Which section in QP buffer */
+            void *src_ptr = (char *)qp_buffer + src_offset_in_qp;
+            
+            /* Use NVLink context for reassembly if available */
+            /* Context index: qp_index * num_source_gpus + source_gpu_idx */
+            int ctx_idx = qp_index * args->num_source_gpus + source_gpu_idx;
+            struct nvlink_context *nvlink_ctx = args->reassembly_nvlink_ctxs ? 
+                                                 args->reassembly_nvlink_ctxs[ctx_idx] : NULL;
+            
+            if (nvlink_ctx) {
+                /* Cross-GPU copy using NVLink */
+                if (nvlink_copy_gpu_to_gpu_async(nvlink_ctx, dst_ptr, src_ptr, slice_size) != 0) {
+                    fprintf(stderr, "QP %d: NVLink reassembly failed for source GPU %u\n", 
+                            qp_index, source_gpu_idx);
+                    *args->status = -1;
+                    return NULL;
+                }
+                if (nvlink_synchronize(nvlink_ctx) != 0) {
+                    fprintf(stderr, "QP %d: NVLink sync failed\n", qp_index);
+                    *args->status = -1;
+                    return NULL;
+                }
+            } else {
+                /* Local GPU copy */
+                cudaError_t err = cudaSetDevice(args->target_gpu_id);
+                if (err != cudaSuccess) {
+                    fprintf(stderr, "QP %d: Failed to set device %d: %s\n", 
+                            qp_index, args->target_gpu_id, cudaGetErrorString(err));
+                    *args->status = -1;
+                    return NULL;
+                }
+                err = cudaMemcpy(dst_ptr, src_ptr, slice_size, cudaMemcpyDeviceToDevice);
+                if (err != cudaSuccess) {
+                    fprintf(stderr, "QP %d: Reassembly copy failed: %s\n", 
+                            qp_index, cudaGetErrorString(err));
+                    *args->status = -1;
+                    return NULL;
+                }
+            }
+        }
+    }
+    
+    /* Wait for all threads to finish reassembly */
+    if (args->reassembly_barrier) {
+        pthread_barrier_wait(args->reassembly_barrier);
+    }
+    
+    /* Wait at end barrier (signal-back will be sent by main thread) */
+    if (args->end_barrier) {
+        pthread_barrier_wait(args->end_barrier);
+    }
+    
+    *args->bandwidth = 0.0;  /* Bandwidth calculated on sender side */
+    *args->status = 0;
+    return NULL;
 }
 
 static void *write_thread(void *arg)
@@ -161,11 +266,13 @@ static void *write_thread(void *arg)
             src_part = (char *)src_buffer + src_offset;
             dst_part = (char *)qp_buffer + dst_offset;
         } else {
-            /* Single-source: send full buffer */
-            src_offset = 0;
-            dst_offset = 0;
-            src_part = (char *)src_buffer;
-            dst_part = (char *)qp_buffer;
+            /* Single-source: each QP sends its corresponding slice from the source buffer */
+            size_t source_buffer_size = DEFAULT_BUFFER_SIZE;  /* 1GB */
+            size_t slice_size = source_buffer_size / args->num_qps;  /* 128MB per slice */
+            src_offset = qp_index * slice_size;  /* Each QP reads different slice */
+            dst_offset = 0;  /* Write to start of QP buffer */
+            src_part = (char *)src_buffer + src_offset;
+            dst_part = (char *)qp_buffer + dst_offset;
         }
         
         /* Get CPU frequency */
@@ -193,7 +300,7 @@ static void *write_thread(void *arg)
                 return NULL;
             }
         } else if (args->source_gpu_id == args->target_gpu_id) {
-            /* Same GPU: use local cudaMemcpy */
+            /* Same GPU: use local async copy + sync (match NVLink path) */
             cudaError_t err = cudaSetDevice(args->source_gpu_id);
             if (err != cudaSuccess) {
                 fprintf(stderr, "Failed to set device %d: %s\n", args->source_gpu_id, cudaGetErrorString(err));
@@ -201,20 +308,31 @@ static void *write_thread(void *arg)
                 return NULL;
             }
             for (i = 0; i < WARMUP_ITERATIONS; i++) {
-                err = cudaMemcpy(dst_part, src_part, part_size, cudaMemcpyDeviceToDevice);
+                err = cudaMemcpyAsync(dst_part, src_part, part_size, cudaMemcpyDeviceToDevice, 0);
                 if (err != cudaSuccess) {
                     fprintf(stderr, "Local GPU copy warmup %d failed: %s\n", i, cudaGetErrorString(err));
                     *args->status = -1;
                     return NULL;
                 }
             }
+            /* Synchronize to ensure GPU writes are visible to RDMA NIC */
+            err = cudaStreamSynchronize(0);
+            if (err != cudaSuccess) {
+                fprintf(stderr, "Local GPU warmup sync failed: %s\n", cudaGetErrorString(err));
+                *args->status = -1;
+                return NULL;
+            }
         }
         
-        /* RDMA warmup */
+        /* RDMA warmup (serialize QP access in multi-source mode) */
+        if (args->qp_mutex) {
+            pthread_mutex_lock(args->qp_mutex);
+        }
         for (i = 0; i < WARMUP_ITERATIONS; i++) {
             if (rdma_write(ctx, qp_index, dst_offset, part_size, dst_offset) != 0) {
                 fprintf(stderr, "QP %d: RDMA warmup write %d failed\n", qp_index, i);
                 *args->status = -1;
+                if (args->qp_mutex) pthread_mutex_unlock(args->qp_mutex);
                 return NULL;
             }
         }
@@ -222,8 +340,12 @@ static void *write_thread(void *arg)
             if (rdma_poll_completion(ctx, qp_index, -1) != 0) {
                 fprintf(stderr, "QP %d: RDMA warmup completion %d failed\n", qp_index, i);
                 *args->status = -1;
+                if (args->qp_mutex) pthread_mutex_unlock(args->qp_mutex);
                 return NULL;
             }
+        }
+        if (args->qp_mutex) {
+            pthread_mutex_unlock(args->qp_mutex);
         }
         
         /* Wait at start barrier before beginning timed work */
@@ -237,18 +359,12 @@ static void *write_thread(void *arg)
         /* Step 1: Copy from source buffer to QP buffer */
         if (args->source_gpu_id != args->target_gpu_id && args->nvlink_ctx) {
             /* Cross-GPU: use NVLink async */
-            for (i = 0; i < args->iterations; i++) {
-                if (nvlink_copy_gpu_to_gpu_async(args->nvlink_ctx, dst_part,
-                                                  src_part, part_size) != 0) {
-                    fprintf(stderr, "NVLink copy %d failed\n", i);
-                    *args->status = -1;
-                    return NULL;
-                }
+            if (nvlink_copy_gpu_to_gpu_async(args->nvlink_ctx, dst_part,
+                                              src_part, part_size) != 0) {
+                fprintf(stderr, "NVLink copy failed\n");
+                *args->status = -1;
+                return NULL;
             }
-            // printf("NVLink: GPU%d -> GPU%d, src=%p (off=%zu), dst=%p (off=%zu), size=%zu\n",
-            //        args->nvlink_ctx->gpu0_id, args->nvlink_ctx->gpu1_id,
-            //        src_part, src_offset, dst_part, dst_offset, part_size);
-            
             /* Wait for NVLink to complete */
             if (nvlink_synchronize(args->nvlink_ctx) != 0) {
                 fprintf(stderr, "NVLink sync failed\n");
@@ -256,41 +372,75 @@ static void *write_thread(void *arg)
                 return NULL;
             }
         } else if (args->source_gpu_id == args->target_gpu_id) {
-            /* Same GPU: local copy */
+            /* Same GPU: use async copy + sync (match NVLink path) */
             cudaError_t err = cudaSetDevice(args->source_gpu_id);
             if (err != cudaSuccess) {
                 fprintf(stderr, "Failed to set device %d: %s\n", args->source_gpu_id, cudaGetErrorString(err));
                 *args->status = -1;
                 return NULL;
             }
-            for (i = 0; i < args->iterations; i++) {
-                err = cudaMemcpy(dst_part, src_part, part_size, cudaMemcpyDeviceToDevice);
-                if (err != cudaSuccess) {
-                    fprintf(stderr, "Local GPU copy %d failed: %s\n", i, cudaGetErrorString(err));
-                    *args->status = -1;
-                    return NULL;
-                }
+            err = cudaMemcpyAsync(dst_part, src_part, part_size, cudaMemcpyDeviceToDevice, 0);
+            if (err != cudaSuccess) {
+                fprintf(stderr, "Local GPU copy failed: %s\n", cudaGetErrorString(err));
+                *args->status = -1;
+                return NULL;
             }
-            // printf("Local copy: GPU%d src=%p (off=%zu), dst=%p (off=%zu), size=%zu\n",
-            //        args->source_gpu_id, src_part, src_offset, dst_part, dst_offset, part_size);
+            /* Synchronize to ensure GPU writes are fully visible to RDMA NIC */
+            err = cudaStreamSynchronize(0);
+            if (err != cudaSuccess) {
+                fprintf(stderr, "Local GPU sync failed: %s\n", cudaGetErrorString(err));
+                *args->status = -1;
+                return NULL;
+            }
+            /* Debug: Thread 0 tracking */
+            if (args->source_gpu_index == 0 && qp_index == 0) {
+                printf("[DEBUG] Thread 0: cudaMemcpyAsync+sync done, part_size=%zu dst_offset=%zu\n", part_size, dst_offset);
+            }
+        }
+        /* Debug: Thread 0 tracking */
+        if (args->source_gpu_index == 0 && qp_index == 0) {
+            printf("[DEBUG] Thread 0: RDMA write+poll complete\n");
         }
         
-        for (i = 0; i < args->iterations; i++) {
-            /* Step 2: RDMA write */
-            if (rdma_write(ctx, qp_index, dst_offset, part_size, dst_offset) != 0) {
-                fprintf(stderr, "RDMA write %d failed\n", i);
+        /* Step 2: RDMA write (serialize QP access in multi-source mode) */
+        if (args->qp_mutex) {
+            pthread_mutex_lock(args->qp_mutex);
+        }
+        if (rdma_write(ctx, qp_index, dst_offset, part_size, dst_offset) != 0) {
+            fprintf(stderr, "RDMA write failed\n");
+            *args->status = -1;
+            if (args->qp_mutex) pthread_mutex_unlock(args->qp_mutex);
+            return NULL;
+        }
+        /* Poll for completion of RDMA write */
+        if (rdma_poll_completion(ctx, qp_index, -1) != 0) {
+            fprintf(stderr, "RDMA completion failed\n");
+            *args->status = -1;
+            if (args->qp_mutex) pthread_mutex_unlock(args->qp_mutex);
+            return NULL;
+        }
+        /* Debug: Thread 0 tracking */
+        if (args->source_gpu_index == 0 && qp_index == 0) {
+            printf("[DEBUG] Thread 0: RDMA write+poll complete\n");
+        }
+        
+        /* Step 3: Send completion signal with immediate (only if reassembly is enabled) */
+        if (args->reassembly) {
+            if (rdma_write_with_imm(ctx, qp_index, dst_offset, 0, dst_offset, args->source_gpu_index) != 0) {
+                fprintf(stderr, "RDMA write_with_imm failed\n");
                 *args->status = -1;
+                if (args->qp_mutex) pthread_mutex_unlock(args->qp_mutex);
+                return NULL;
+            }
+            if (rdma_poll_completion(ctx, qp_index, -1) != 0) {
+                fprintf(stderr, "RDMA write_with_imm completion failed\n");
+                *args->status = -1;
+                if (args->qp_mutex) pthread_mutex_unlock(args->qp_mutex);
                 return NULL;
             }
         }
-
-        /* Poll for all RDMA completions */
-        for (i = 0; i < args->iterations; i++) {
-            if (rdma_poll_completion(ctx, qp_index, -1) != 0) {
-                fprintf(stderr, "RDMA completion %d failed\n", i);
-                *args->status = -1;
-                return NULL;
-            }
+        if (args->qp_mutex) {
+            pthread_mutex_unlock(args->qp_mutex);
         }
         
         /* Wait at end barrier after completing all work */
@@ -308,7 +458,7 @@ static void *write_thread(void *arg)
         return NULL;
     }
     
-    /* Thread 0 uses RDMA writes only */
+    /* Direct/NICs-only mode */
     /* Get CPU frequency */
     cpu_mhz = get_cpu_mhz(1);  /* Suppress CPU frequency warnings */
     if (cpu_mhz <= 0) {
@@ -343,32 +493,25 @@ static void *write_thread(void *arg)
     /* Timed transfers */
     start_cycles = get_cycles();
     
-    for (i = 0; i < args->iterations; i++) {
-        char range_name[64];
-        snprintf(range_name, sizeof(range_name), "rdma_write_QP%d_iter%d", qp_index, i);
-        #ifdef HAVE_CUDA
-        nvtxRangePushA(range_name);
-        #endif
-        if (rdma_write(ctx, qp_index, offset, part_size, offset) != 0) {
-            #ifdef HAVE_CUDA
-            nvtxRangePop();
-            #endif
-            fprintf(stderr, "QP %d: Write %d failed\n", qp_index, i);
-            *args->status = -1;
-            return NULL;
-        }
+    #ifdef HAVE_CUDA
+    nvtxRangePushA("rdma_write");
+    #endif
+    if (rdma_write(ctx, qp_index, offset, part_size, offset) != 0) {
         #ifdef HAVE_CUDA
         nvtxRangePop();
         #endif
+        fprintf(stderr, "QP %d: Write failed\n", qp_index);
+        *args->status = -1;
+        return NULL;
     }
-
-    /* Poll for all timed test completions */
-    for (i = 0; i < args->iterations; i++) {
-        if (rdma_poll_completion(ctx, qp_index, -1) != 0) {
-            fprintf(stderr, "QP %d: Completion %d failed\n", qp_index, i);
-            *args->status = -1;
-            return NULL;
-        }
+    #ifdef HAVE_CUDA
+    nvtxRangePop();
+    #endif
+    
+    if (rdma_poll_completion(ctx, qp_index, -1) != 0) {
+        fprintf(stderr, "QP %d: Completion failed\n", qp_index);
+        *args->status = -1;
+        return NULL;
     }
     
     /* Wait at end barrier after completing all work */
@@ -399,6 +542,7 @@ static void print_usage(const char *prog_name)
     printf("  -g, --gpus LIST       Comma-separated GPU IDs (-1 for host, default: -1)\n");
     printf("  -S, --source-gpus LIST Comma-separated source GPU IDs for multi-source NVLink\n");
     printf("  -D, --direct          Each GPU sends directly via its own NIC (no NVLink)\n");
+    printf("  -R, --reassembly          Enable reassembly of data from multiple source GPUs only when using NVLink\n");
     printf("  -h, --help            Show this help message\n");
     printf("\n");
     printf("Examples:\n");
@@ -432,7 +576,9 @@ int main(int argc, char *argv[])
     config.buffer_size = DEFAULT_BUFFER_SIZE;
     config.is_server = 0;
     config.server_addr = NULL;
+    config.nics_only = 0;
     config.direct_mode = 0;
+    config.reassembly = 0;
     
     /* Command line parsing */
     static struct option long_options[] = {
@@ -447,6 +593,7 @@ int main(int argc, char *argv[])
         {"help", no_argument, 0, 'h'},
         {"nics-only", no_argument, 0, 'c'},
         {"direct", no_argument, 0, 'D'},
+        {"reassembly", no_argument, 0, 'R'},
         {0, 0, 0, 0}
     };
     
@@ -466,6 +613,13 @@ int main(int argc, char *argv[])
             break;
         case 'D':
             config.direct_mode = 1;
+            break;
+        case 'R':
+            config.reassembly = 1;
+            if (config.direct_mode || config.nics_only) {
+                fprintf(stderr, "Error: --reassembly is not supported in direct/nics-only mode\n");
+                return 1;
+            }
             break;
         case 'p':
             config.base_port = atoi(optarg);
@@ -569,8 +723,14 @@ int main(int argc, char *argv[])
                 
                 printf("Direct mode: %d source GPUs, %d QPs\n", num_source_gpus, num_qps);
             } else if (!config.nics_only) {
-                /* NVLink mode: M source GPUs × N target QPs threads */
-                num_threads = num_source_gpus * num_qps;
+                /* NVLink mode: M source GPUs × N target QPs threads (sender only) */
+                if (config.is_server) {
+                    /* Receiver: only need N QP threads (one per QP) */
+                    num_threads = num_qps;
+                } else {
+                    /* Sender: need M × N threads (one per source GPU × QP combination) */
+                    num_threads = num_source_gpus * num_qps;
+                }
                 
                 /* QP buffers: allocate on target GPUs (for RDMA)
                  * Separate source buffers (full size) will be allocated below
@@ -624,8 +784,8 @@ int main(int argc, char *argv[])
         goto cleanup;
     }
     
-    /* Allocate separate source buffers for multi-source NVLink mode */
-    if (!config.direct_mode && !config.nics_only && num_source_gpus > 0) {
+    /* Allocate separate source buffers for multi-source NVLink mode (sender only) */
+    if (!config.is_server && !config.direct_mode && !config.nics_only && num_source_gpus > 0) {
         source_buffers = calloc(num_source_gpus, sizeof(void*));
         if (!source_buffers) {
             fprintf(stderr, "Failed to allocate source buffers array\n");
@@ -654,6 +814,118 @@ int main(int argc, char *argv[])
             
             printf("Allocated source buffer on GPU %d: %zu bytes\n", src_gpu, source_buffer_size);
         }
+    }
+    
+    /* Declare reassembly variables (used conditionally throughout main) */
+    void **reassembly_buffers = NULL;
+    struct nvlink_context **reassembly_nvlink_ctxs = NULL;
+    pthread_barrier_t reassembly_barrier;
+    int reassembly_barrier_initialized = 0;
+    
+    /* Per-QP mutexes for serializing RDMA operations in multi-source mode */
+    pthread_mutex_t *qp_mutexes = NULL;
+    int qp_mutexes_initialized = 0;
+    
+    /* Allocate reassembly buffers for receiver in allow-nvlink mode */
+    if (config.reassembly) {
+        if (config.is_server && !config.direct_mode && !config.nics_only && num_source_gpus > 0) {
+            printf("\n=== Allocating reassembly buffers on receiver ===\n");
+            reassembly_buffers = calloc(num_source_gpus, sizeof(void*));
+            if (!reassembly_buffers) {
+                fprintf(stderr, "Failed to allocate reassembly buffers array\n");
+                ret = 1;
+                goto cleanup;
+            }
+            
+            size_t reassembly_buffer_size = DEFAULT_BUFFER_SIZE;  /* 1GB per source GPU */
+            for (i = 0; i < num_source_gpus; i++) {
+                int reassembly_gpu = source_gpu_ids_list[i];  /* Use same GPU IDs as source */
+                
+                cudaError_t err = cudaSetDevice(reassembly_gpu);
+                if (err != cudaSuccess) {
+                    fprintf(stderr, "Failed to set device %d for reassembly: %s\n",
+                            reassembly_gpu, cudaGetErrorString(err));
+                    ret = 1;
+                    goto cleanup;
+                }
+                
+                err = cudaMalloc(&reassembly_buffers[i], reassembly_buffer_size);
+                if (err != cudaSuccess) {
+                    fprintf(stderr, "Failed to allocate reassembly buffer on GPU %d: %s\n",
+                            reassembly_gpu, cudaGetErrorString(err));
+                    ret = 1;
+                    goto cleanup;
+                }
+                
+                printf("Allocated reassembly buffer on GPU %d: %zu bytes\n", reassembly_gpu, reassembly_buffer_size);
+            }
+            
+            /* Create NVLink contexts for reassembly (N QPs × M source GPUs) */
+            printf("Creating NVLink contexts for reassembly (all-to-all GPU pairs)\n");
+            reassembly_nvlink_ctxs = calloc(num_qps * num_source_gpus, sizeof(struct nvlink_context*));
+            if (!reassembly_nvlink_ctxs) {
+                fprintf(stderr, "Failed to allocate reassembly NVLink contexts array\n");
+                ret = 1;
+                goto cleanup;
+            }
+
+            for (int qp_idx = 0; qp_idx < num_qps; qp_idx++) {
+                int qp_gpu = target_gpu_ids[qp_idx];  /* QP buffer GPU */
+                
+                for (int src_idx = 0; src_idx < num_source_gpus; src_idx++) {
+                    int reassembly_gpu = source_gpu_ids_list[src_idx];  /* Reassembly buffer GPU */
+                    int ctx_idx = qp_idx * num_source_gpus + src_idx;
+                    
+                    if (qp_gpu != reassembly_gpu) {
+                        reassembly_nvlink_ctxs[ctx_idx] = malloc(sizeof(struct nvlink_context));
+                        if (!reassembly_nvlink_ctxs[ctx_idx]) {
+                            fprintf(stderr, "Failed to allocate reassembly NVLink context [QP%d->GPU%d]\n", 
+                                    qp_idx, src_idx);
+                            ret = 1;
+                            goto cleanup;
+                        }
+                        
+                        if (nvlink_init_context(reassembly_nvlink_ctxs[ctx_idx], qp_gpu, reassembly_gpu) != 0) {
+                            fprintf(stderr, "Failed to init NVLink context for reassembly: GPU%d -> GPU%d\n",
+                                    qp_gpu, reassembly_gpu);
+                            ret = 1;
+                            goto cleanup;
+                        }
+                        printf("Reassembly NVLink [QP%d->SrcGPU%d]: GPU%d -> GPU%d\n", 
+                               qp_idx, src_idx, qp_gpu, reassembly_gpu);
+                    } else {
+                        reassembly_nvlink_ctxs[ctx_idx] = NULL;  /* Same GPU, no NVLink needed */
+                    }
+                }
+            }
+            
+            /* Initialize reassembly barrier (for N QP threads on receiver) */
+            if (pthread_barrier_init(&reassembly_barrier, NULL, num_qps) != 0) {
+                fprintf(stderr, "Failed to initialize reassembly barrier\n");
+                ret = 1;
+                goto cleanup;
+            }
+            reassembly_barrier_initialized = 1;
+        }
+    }
+    
+    /* Initialize per-QP mutexes for multi-source NVLink mode on sender */
+    if (!config.is_server && !config.direct_mode && !config.nics_only && num_source_gpus > 1) {
+        qp_mutexes = calloc(num_qps, sizeof(pthread_mutex_t));
+        if (!qp_mutexes) {
+            fprintf(stderr, "Failed to allocate QP mutexes\n");
+            ret = 1;
+            goto cleanup;
+        }
+        for (i = 0; i < num_qps; i++) {
+            if (pthread_mutex_init(&qp_mutexes[i], NULL) != 0) {
+                fprintf(stderr, "Failed to initialize mutex for QP %d\n", i);
+                ret = 1;
+                goto cleanup;
+            }
+        }
+        qp_mutexes_initialized = num_qps;
+        printf("Initialized %d QP mutexes for serialized RDMA access\n", num_qps);
     }
     
     /* Connect QPs */
@@ -799,7 +1071,9 @@ int main(int argc, char *argv[])
     /* Initialize barriers for synchronizing thread start/end */
     pthread_barrier_t start_barrier, end_barrier;
     int barriers_initialized = 0;
-    if (!config.is_server) {
+    /* Barriers needed for client, and also for server in allow-nvlink mode (for timing) */
+    int needs_barriers = !config.is_server || (!config.direct_mode && !config.nics_only && num_source_gpus > 0 && config.reassembly);
+    if (needs_barriers) {
         /* Barriers need num_threads + 1 (threads + main thread) */
         if (pthread_barrier_init(&start_barrier, NULL, num_threads + 1) != 0) {
             fprintf(stderr, "Failed to initialize start barrier\n");
@@ -817,38 +1091,76 @@ int main(int argc, char *argv[])
     
     /* Setup thread arguments */
     if (!config.direct_mode && num_source_gpus > 0) {
-        /* Multi-source NVLink mode: M source GPUs × N QPs threads */
-        for (int src_idx = 0; src_idx < num_source_gpus; src_idx++) {
-            int src_gpu = source_gpu_ids_list[src_idx];
-            int src_qp_idx = src_idx;  /* QP that has this source GPU's buffer */
-            
+        if (config.is_server && config.reassembly) {
+            /* Receiver: N threads (one per QP) */
             for (int qp_idx = 0; qp_idx < num_qps; qp_idx++) {
-                int thread_idx = src_idx * num_qps + qp_idx;
                 int tgt_gpu = target_gpu_ids[qp_idx];
                 
-                args[thread_idx].ctx = ctx;
-                args[thread_idx].qp_index = qp_idx;  /* Which QP to use for RDMA */
-                args[thread_idx].iterations = DEFAULT_ITERATIONS;
-                args[thread_idx].is_server = config.is_server;
-                args[thread_idx].source_gpu_id = src_gpu;
-                args[thread_idx].target_gpu_id = tgt_gpu;
-                args[thread_idx].source_qp_index = src_qp_idx;  /* QP with source buffer */
-                args[thread_idx].num_source_gpus = num_source_gpus;
-                args[thread_idx].source_gpu_index = src_idx;
-                args[thread_idx].source_buffer = source_buffers ? source_buffers[src_idx] : NULL;
+                args[qp_idx].ctx = ctx;
+                args[qp_idx].qp_index = qp_idx;
+                args[qp_idx].iterations = DEFAULT_ITERATIONS;
+                args[qp_idx].is_server = config.is_server;
+                args[qp_idx].source_gpu_id = -1;  /* Not used on receiver */
+                args[qp_idx].target_gpu_id = tgt_gpu;
+                args[qp_idx].source_qp_index = -1;
+                args[qp_idx].num_source_gpus = num_source_gpus;
+                args[qp_idx].source_gpu_index = -1;
+                args[qp_idx].source_buffer = NULL;
+                args[qp_idx].nvlink_ctx = NULL;
                 
-                /* Set NVLink context if source != target */
-                args[thread_idx].nvlink_ctx = (src_gpu >= 0 && tgt_gpu >= 0 && src_gpu != tgt_gpu) 
-                                               ? &nvlink_ctxs[thread_idx] : NULL;
+                args[qp_idx].num_qps = num_qps;
+                args[qp_idx].start_barrier = &start_barrier;
+                args[qp_idx].end_barrier = &end_barrier;
+                args[qp_idx].bandwidth = &bandwidths[qp_idx];
+                args[qp_idx].status = &statuses[qp_idx];
+                args[qp_idx].nics_only = config.nics_only;
+                args[qp_idx].direct_mode = config.direct_mode;
+                args[qp_idx].reassembly = config.reassembly;
+                args[qp_idx].reassembly_buffers = reassembly_buffers;
+                args[qp_idx].reassembly_nvlink_ctxs = reassembly_nvlink_ctxs;
+                args[qp_idx].reassembly_barrier = reassembly_barrier_initialized ? &reassembly_barrier : NULL;
+                args[qp_idx].qp_mutex = NULL;  /* Receiver doesn't need mutex */
+                statuses[qp_idx] = -1;
+            }
+        } else {
+            /* Sender: M×N threads (one per source GPU × QP combination) */
+            for (int src_idx = 0; src_idx < num_source_gpus; src_idx++) {
+                int src_gpu = source_gpu_ids_list[src_idx];
+                int src_qp_idx = src_idx;  /* QP that has this source GPU's buffer */
                 
-                args[thread_idx].num_qps = num_qps;
-                args[thread_idx].start_barrier = config.is_server ? NULL : &start_barrier;
-                args[thread_idx].end_barrier = config.is_server ? NULL : &end_barrier;
-                args[thread_idx].bandwidth = &bandwidths[thread_idx];
-                args[thread_idx].status = &statuses[thread_idx];
-                args[thread_idx].nics_only = config.nics_only;
-                args[thread_idx].direct_mode = config.direct_mode;
-                statuses[thread_idx] = -1;
+                for (int qp_idx = 0; qp_idx < num_qps; qp_idx++) {
+                    int thread_idx = src_idx * num_qps + qp_idx;
+                    int tgt_gpu = target_gpu_ids[qp_idx];
+                    
+                    args[thread_idx].ctx = ctx;
+                    args[thread_idx].qp_index = qp_idx;  /* Which QP to use for RDMA */
+                    args[thread_idx].iterations = DEFAULT_ITERATIONS;
+                    args[thread_idx].is_server = config.is_server;
+                    args[thread_idx].source_gpu_id = src_gpu;
+                    args[thread_idx].target_gpu_id = tgt_gpu;
+                    args[thread_idx].source_qp_index = src_qp_idx;  /* QP with source buffer */
+                    args[thread_idx].num_source_gpus = num_source_gpus;
+                    args[thread_idx].source_gpu_index = src_idx;
+                    args[thread_idx].source_buffer = source_buffers ? source_buffers[src_idx] : NULL;
+                    
+                    /* Set NVLink context if source != target */
+                    args[thread_idx].nvlink_ctx = (src_gpu >= 0 && tgt_gpu >= 0 && src_gpu != tgt_gpu) 
+                                                   ? &nvlink_ctxs[thread_idx] : NULL;
+                    
+                    args[thread_idx].num_qps = num_qps;
+                    args[thread_idx].start_barrier = &start_barrier;
+                    args[thread_idx].end_barrier = &end_barrier;
+                    args[thread_idx].bandwidth = &bandwidths[thread_idx];
+                    args[thread_idx].status = &statuses[thread_idx];
+                    args[thread_idx].nics_only = config.nics_only;
+                    args[thread_idx].direct_mode = config.direct_mode;
+                    args[thread_idx].reassembly = config.reassembly;
+                    args[thread_idx].reassembly_buffers = NULL;  /* Not used on sender */
+                    args[thread_idx].reassembly_nvlink_ctxs = NULL;
+                    args[thread_idx].reassembly_barrier = NULL;
+                    args[thread_idx].qp_mutex = (qp_mutexes && qp_idx < qp_mutexes_initialized) ? &qp_mutexes[qp_idx] : NULL;
+                    statuses[thread_idx] = -1;
+                }
             }
         }
     } else {
@@ -877,6 +1189,11 @@ int main(int argc, char *argv[])
             args[i].status = &statuses[i];
             args[i].nics_only = config.nics_only;
             args[i].direct_mode = config.direct_mode;
+            args[i].reassembly = config.reassembly;
+            args[i].reassembly_buffers = NULL;  /* Not used in direct/nics-only */
+            args[i].reassembly_nvlink_ctxs = NULL;
+            args[i].reassembly_barrier = NULL;
+            args[i].qp_mutex = NULL;  /* No mutex needed for direct/single-source */
             statuses[i] = -1;
         }
     }
@@ -894,23 +1211,72 @@ int main(int argc, char *argv[])
     size_t total_buffer_size = rdma_get_buffer_size(ctx);
     
     /* Create threads */
+    /* Use receive_thread for server in allow-nvlink mode with reassembly, write_thread otherwise */
+    void *(*thread_func)(void *) = write_thread;
+    if (config.is_server && !config.direct_mode && !config.nics_only && config.reassembly) {
+        thread_func = receive_thread_with_reassembly;
+    }
+    
     for (i = 0; i < num_threads; i++) {
-        if (pthread_create(&threads[i], NULL, write_thread, &args[i]) != 0) {
+        if (pthread_create(&threads[i], NULL, thread_func, &args[i]) != 0) {
             fprintf(stderr, "Failed to create thread %d\n", i);
             ret = 1;
             goto cleanup;
         }
     }
     
+    /* Post receive for signal-back on sender (allow-nvlink mode with reassembly only) */
+    if (!config.is_server && !config.direct_mode && !config.nics_only && config.reassembly && num_source_gpus > 0) {
+        if (rdma_post_receive(ctx, 0, 0, 1) != 0) {
+            fprintf(stderr, "Failed to post receive for signal-back\n");
+            ret = 1;
+            goto cleanup;
+        }
+        printf("Sender: posted receive for signal-back from receiver\n");
+    }
+    
     /* Wait for all threads to reach start barrier, then take start time */
-    if (!config.is_server) {
+    if (needs_barriers) {
         pthread_barrier_wait(&start_barrier);
         total_start_cycles = get_cycles();
     }
     
-    /* Wait for all threads to reach end barrier, then take end time */
-    if (!config.is_server) {
+    /* Wait for all threads to reach end barrier */
+    if (needs_barriers) {
         pthread_barrier_wait(&end_barrier);
+    }
+    
+    /* Allow-nvlink mode with reassembly: signal-back mechanism */
+    if (!config.direct_mode && !config.nics_only && config.reassembly && num_source_gpus > 0) {
+        if (config.is_server) {
+            /* Receiver: send signal back to sender */
+            if (rdma_write_with_imm(ctx, 0, 0, 1, 0, 0xDEADBEEF) != 0) {
+                fprintf(stderr, "Failed to send signal back\n");
+                ret = 1;
+                goto cleanup;
+            }
+            printf("Sent signal back to sender\n");
+            if (rdma_poll_completion(ctx, 0, -1) != 0) {
+                fprintf(stderr, "Failed to poll signal send completion\n");
+                ret = 1;
+                goto cleanup;
+            }
+            printf("Signal send completed\n");
+        } else {
+            /* Sender: wait for signal-back, then end timer */
+            printf("Waiting for signal-back from receiver\n");
+            uint32_t dummy_imm = 0;
+            if (rdma_poll_completion_with_imm(ctx, 0, -1, &dummy_imm) != 0) {
+                fprintf(stderr, "Failed to receive signal-back\n");
+                ret = 1;
+                goto cleanup;
+            }
+            printf("Received signal-back from receiver (imm=0x%x)\n", dummy_imm);
+        }
+    }
+    
+    /* End timer after signal-back (or immediately if not allow-nvlink) */
+    if (needs_barriers) {
         total_end_cycles = get_cycles();
     }
     
@@ -928,7 +1294,7 @@ int main(int argc, char *argv[])
     
     printf("Total elapsed time: %.6f seconds\n", total_time);
     
-    /* Calculate total bandwidth based on wall-clock time */
+    /* Calculate total bandwidth based on wall-clock time (SENDER ONLY) */
     double total_bw = 0.0;
     int success_count = 0;
     for (i = 0; i < num_threads; i++) {
@@ -936,7 +1302,7 @@ int main(int argc, char *argv[])
             success_count++;
         }
     }
-    if (success_count > 0 && total_time > 0.0) {
+    if (!config.is_server && success_count > 0 && total_time > 0.0) {
         /* Calculate total data transferred */
         size_t total_data;
         if (config.direct_mode) {
@@ -1015,6 +1381,39 @@ int main(int argc, char *argv[])
         }
     }
     
+    /* Verify reassembly buffers on receiver */
+    if (config.is_server && config.reassembly && reassembly_buffers && num_source_gpus > 0) {
+        printf("\n=== Verifying reassembled data on receiver ===\n");
+        size_t slice_size = DEFAULT_BUFFER_SIZE / num_qps;  /* 128MB per slice */
+        
+        for (i = 0; i < num_source_gpus; i++) {
+            int gpu = source_gpu_ids_list[i];
+            cudaError_t err = cudaSetDevice(gpu);
+            if (err != cudaSuccess) {
+                fprintf(stderr, "Failed to set device %d: %s\n", gpu, cudaGetErrorString(err));
+                continue;
+            }
+            
+            printf("Reassembly buffer[%d] (GPU %d) slices:\n", i, gpu);
+            
+            /* Check each slice (one from each QP) */
+            for (int qp_idx = 0; qp_idx < num_qps; qp_idx++) {
+                char host_buf[256] = {0};
+                size_t offset = qp_idx * slice_size;
+                void *slice_ptr = (char *)reassembly_buffers[i] + offset;
+                
+                err = cudaMemcpy(host_buf, slice_ptr, sizeof(host_buf) - 1, cudaMemcpyDeviceToHost);
+                if (err != cudaSuccess) {
+                    fprintf(stderr, "  Failed to read slice %d: %s\n", qp_idx, cudaGetErrorString(err));
+                    continue;
+                }
+                
+                host_buf[sizeof(host_buf) - 1] = '\0';
+                printf("  Slice %d (from QP %d): %s", qp_idx, qp_idx, host_buf);
+            }
+        }
+    }
+    
     printf("=== Data verification complete ===\n\n");
     
     /* Skip cleanup to avoid segfault - just return */
@@ -1030,6 +1429,40 @@ cleanup:
             }
         }
         free(source_buffers);
+    }
+    
+    /* Free reassembly buffers if allocated */
+    if (reassembly_buffers) {
+        for (i = 0; i < num_source_gpus; i++) {
+            if (reassembly_buffers[i]) {
+                cudaSetDevice(source_gpu_ids_list[i]);
+                cudaFree(reassembly_buffers[i]);
+            }
+        }
+        free(reassembly_buffers);
+    }
+    
+    /* Free reassembly NVLink contexts if allocated */
+    if (reassembly_nvlink_ctxs) {
+        for (i = 0; i < num_qps * num_source_gpus; i++) {
+            if (reassembly_nvlink_ctxs[i]) {
+                free(reassembly_nvlink_ctxs[i]);
+            }
+        }
+        free(reassembly_nvlink_ctxs);
+    }
+    
+    /* Destroy reassembly barrier */
+    if (reassembly_barrier_initialized) {
+        pthread_barrier_destroy(&reassembly_barrier);
+    }
+    
+    /* Destroy QP mutexes */
+    if (qp_mutexes) {
+        for (i = 0; i < qp_mutexes_initialized; i++) {
+            pthread_mutex_destroy(&qp_mutexes[i]);
+        }
+        free(qp_mutexes);
     }
     
     /* Minimal cleanup for error paths - skip problematic cleanup calls */

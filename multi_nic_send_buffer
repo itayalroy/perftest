@@ -11,6 +11,7 @@ ALL_GPUS="0,1,2,3,4,5,6,7"
 # Parse arguments
 USE_NVLINK=0
 DIRECT_MODE=0
+REASSEMBLY=0
 RECV_IP=""
 SOURCE_GPUS=""
 
@@ -31,6 +32,10 @@ while [[ $# -gt 0 ]]; do
             DIRECT_MODE=1
             shift
             ;;
+        --reassembly)
+            REASSEMBLY=1
+            shift
+            ;;
         --source-gpus)
             SOURCE_GPUS="$2"
             shift 2
@@ -44,6 +49,7 @@ while [[ $# -gt 0 ]]; do
             echo "Options:"
             echo "  --allow-nvlink         Enable NVLink transfers (default: disabled, uses --nics-only)"
             echo "  --direct               Each GPU sends directly via its own NIC (no NVLink)"
+            echo "  --reassembly           Enable reassembly on receiver (requires --allow-nvlink)"
             echo "  --source-gpus <list>   Comma-separated GPU IDs to use (e.g., '0' or '0,3,5')"
             echo "                         Filters which GPUs to use"
             echo "  --help, -h             Show this help message"
@@ -119,6 +125,10 @@ else
     # NVLink mode - pass source-gpus if specified
     if [[ -n "$SOURCE_GPUS" ]]; then
         CMD="${CMD} --source-gpus ${SOURCE_GPUS}"
+    fi
+    # Add reassembly flag if enabled
+    if [[ $REASSEMBLY -eq 1 ]]; then
+        CMD="${CMD} --reassembly"
     fi
 fi
 

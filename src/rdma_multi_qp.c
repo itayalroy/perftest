@@ -655,6 +655,110 @@ int rdma_multi_qp_get_num_qps(rdma_multi_qp_context_t *ctx)
     return ctx->num_qps;
 }
 
+int rdma_write_with_imm(rdma_multi_qp_context_t *ctx, int qp_index,
+                        uint64_t local_offset, uint64_t size, uint64_t remote_offset,
+                        uint32_t imm_data)
+{
+    struct qp_context *qp;
+    struct ibv_sge sge;
+    struct ibv_send_wr wr, *bad_wr;
+    
+    if (!ctx || qp_index < 0 || qp_index >= ctx->num_qps || !ctx->qps[qp_index].connected) {
+        return -1;
+    }
+    
+    qp = &ctx->qps[qp_index];
+    pthread_mutex_lock(&ctx->mutex[qp_index]);
+    
+    memset(&sge, 0, sizeof(sge));
+    sge.addr = (uint64_t)(uintptr_t)qp->buffer + local_offset;
+    sge.length = size;
+    sge.lkey = qp->mr->lkey;
+    
+    memset(&wr, 0, sizeof(wr));
+    wr.sg_list = &sge;
+    wr.num_sge = 1;
+    wr.opcode = IBV_WR_RDMA_WRITE_WITH_IMM; /* Write with immediate data */
+    wr.send_flags = IBV_SEND_SIGNALED;
+    wr.imm_data = htonl(imm_data);  /* Network byte order (source GPU index) */
+    wr.wr.rdma.remote_addr = qp->remote_vaddr + remote_offset;
+    wr.wr.rdma.rkey = qp->remote_rkey;
+    
+    if (ibv_post_send(qp->qp, &wr, &bad_wr)) {
+        pthread_mutex_unlock(&ctx->mutex[qp_index]);
+        return -1;
+    }
+    
+    pthread_mutex_unlock(&ctx->mutex[qp_index]);
+    return 0;
+}
+
+int rdma_post_receive(rdma_multi_qp_context_t *ctx, int qp_index,
+                      uint64_t local_offset, uint64_t size)
+{
+    struct qp_context *qp;
+    struct ibv_sge sge;
+    struct ibv_recv_wr wr, *bad_wr;
+    
+    if (!ctx || qp_index < 0 || qp_index >= ctx->num_qps) {
+        return -1;
+    }
+    
+    qp = &ctx->qps[qp_index];
+    
+    memset(&sge, 0, sizeof(sge));
+    sge.addr = (uint64_t)(uintptr_t)qp->buffer + local_offset;
+    sge.length = size;
+    sge.lkey = qp->mr->lkey;
+    
+    memset(&wr, 0, sizeof(wr));
+    wr.sg_list = &sge;
+    wr.num_sge = 1;
+    
+    if (ibv_post_recv(qp->qp, &wr, &bad_wr)) {
+        return -1;
+    }
+    
+    return 0;
+}
+
+int rdma_poll_completion_with_imm(rdma_multi_qp_context_t *ctx, int qp_index,
+                                   int timeout_ms, uint32_t *imm_data)
+{
+    struct qp_context *qp;
+    struct ibv_wc wc;
+    int ne;
+    int polled = 0;
+    
+    if (!ctx || qp_index < 0 || qp_index >= ctx->num_qps) return -1;
+    
+    qp = &ctx->qps[qp_index];
+    
+    while (polled < timeout_ms || timeout_ms < 0) {
+        ne = ibv_poll_cq(qp->cq, 1, &wc);
+        if (ne > 0) {
+            if (wc.status != IBV_WC_SUCCESS) {
+                fprintf(stderr, "WC error: %s\n", ibv_wc_status_str(wc.status));
+                return -1;
+            }
+            
+            /* Extract immediate data if present and requested */
+            if (imm_data && (wc.wc_flags & IBV_WC_WITH_IMM)) {
+                *imm_data = ntohl(wc.imm_data);  /* Convert from network byte order */
+            }
+            
+            return 0;
+        }
+        
+        if (timeout_ms >= 0) {
+            polled++;
+            usleep(1000);  /* Sleep 1ms between polls */
+        }
+    }
+    
+    return 1; /* Timeout */
+}
+
 int rdma_multi_qp_cleanup(rdma_multi_qp_context_t *ctx)
 {
     int i;

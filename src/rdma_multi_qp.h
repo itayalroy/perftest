@@ -36,6 +36,7 @@ struct rdma_multi_qp_config {
     int *gpu_id;               /* Array of GPU IDs for buffer allocation per QP (-1 for host) */
     bool nics_only;            /* Whether to only use NICs for buffer allocation */
     bool direct_mode;          /* Each GPU sends directly via its own NIC (no NVLink) */
+    bool reassembly;           /* Enable reassembly on receiver side (multi-source NVLink only) */
 };
 
 /**
@@ -110,6 +111,52 @@ size_t rdma_get_buffer_size(rdma_multi_qp_context_t *ctx);
  * @return: Number of QPs, 0 on error
  */
 int rdma_multi_qp_get_num_qps(rdma_multi_qp_context_t *ctx);
+
+/**
+ * RDMA write with immediate data
+ *
+ * @param ctx: Context handle
+ * @param qp_index: QP index
+ * @param local_offset: Offset in local buffer
+ * @param size: Number of bytes to write
+ * @param remote_offset: Offset in remote buffer
+ * @param imm_data: 32-bit immediate data to send with completion
+ * @return: 0 on success, non-zero on error
+ */
+int rdma_write_with_imm(rdma_multi_qp_context_t *ctx,
+                        int qp_index,
+                        uint64_t local_offset,
+                        uint64_t size,
+                        uint64_t remote_offset,
+                        uint32_t imm_data);
+
+/**
+ * Post receive work request
+ *
+ * @param ctx: Context handle
+ * @param qp_index: QP index
+ * @param local_offset: Offset in local buffer for receive
+ * @param size: Maximum size to receive
+ * @return: 0 on success, non-zero on error
+ */
+int rdma_post_receive(rdma_multi_qp_context_t *ctx,
+                      int qp_index,
+                      uint64_t local_offset,
+                      uint64_t size);
+
+/**
+ * Poll for completion with immediate data
+ *
+ * @param ctx: Context handle
+ * @param qp_index: QP index
+ * @param timeout_ms: Timeout in milliseconds (-1 for infinite)
+ * @param imm_data: Output parameter for immediate data (can be NULL)
+ * @return: 0 on success, 1 on timeout, negative on error
+ */
+int rdma_poll_completion_with_imm(rdma_multi_qp_context_t *ctx,
+                                   int qp_index,
+                                   int timeout_ms,
+                                   uint32_t *imm_data);
 
 /**
  * Cleanup and destroy multi-QP context
