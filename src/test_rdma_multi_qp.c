@@ -22,8 +22,8 @@
 #endif
 
 #define DEFAULT_BUFFER_SIZE (1024 * 1024 * 1024)  /* 1 GB */
-#define DEFAULT_ITERATIONS 10
-#define WARMUP_ITERATIONS 0
+#define DEFAULT_ITERATIONS 50
+#define WARMUP_ITERATIONS 5
 #define MAX_THREADS 64
 
 struct thread_args {
@@ -40,6 +40,8 @@ struct thread_args {
     void *source_buffer;   /* Pointer to source buffer (full size, on source GPU) */
     pthread_barrier_t *start_barrier;  /* Barrier before starting work */
     pthread_barrier_t *end_barrier;    /* Barrier after finishing work */
+    pthread_barrier_t *completion_barrier;  /* Barrier after completing iteration work */
+    pthread_barrier_t *iteration_barrier;  /* Barrier before starting next iteration */
     double *bandwidth;  /* Output: bandwidth in GB/s */
     int *status;        /* Output: 0 on success */
     bool nics_only;     /* Whether to only use NICs for buffer allocation */
@@ -50,7 +52,6 @@ struct thread_args {
     struct nvlink_context **reassembly_nvlink_ctxs;  /* NVLink contexts for reassembly */
     pthread_barrier_t *reassembly_barrier;  /* Barrier after reassembly complete */
     pthread_mutex_t *qp_mutex;  /* Mutex for serializing QP access (multi-source mode) */
-    pthread_barrier_t *iteration_barrier;  /* Barrier to sync between iterations */
 };
 
 /* Parse comma-separated string into array */
@@ -192,7 +193,12 @@ static void *receive_thread_with_reassembly(void *arg)
             pthread_barrier_wait(args->reassembly_barrier);
         }
         
-        /* Wait at iteration barrier (synchronize before next iteration) */
+        /* Wait at completion barrier (signal we finished work for this iteration) */
+        if (args->completion_barrier) {
+            pthread_barrier_wait(args->completion_barrier);
+        }
+        
+        /* Wait at iteration barrier (wait for main to send signal-back before next iteration) */
         if (args->iteration_barrier) {
             pthread_barrier_wait(args->iteration_barrier);
         }
@@ -451,8 +457,12 @@ static void *write_thread(void *arg)
                 pthread_mutex_unlock(args->qp_mutex);
             }
             
-            /* End timing for this iteration */
-            /* Wait at iteration barrier (synchronize all threads before next iteration) */
+            /* Wait at completion barrier (signal we finished work for this iteration) */
+            if (args->completion_barrier) {
+                pthread_barrier_wait(args->completion_barrier);
+            }
+            
+            /* Wait at iteration barrier (wait for main to receive signal-back before starting next iteration) */
             if (args->iteration_barrier) {
                 pthread_barrier_wait(args->iteration_barrier);
             }
@@ -533,7 +543,12 @@ static void *write_thread(void *arg)
             return NULL;
         }
         
-        /* Wait at iteration barrier (synchronize all threads between iterations) */
+        /* Wait at completion barrier (signal we finished work for this iteration) */
+        if (args->completion_barrier) {
+            pthread_barrier_wait(args->completion_barrier);
+        }
+        
+        /* Wait at iteration barrier (wait for main before starting next iteration) */
         if (args->iteration_barrier) {
             pthread_barrier_wait(args->iteration_barrier);
         }
@@ -1095,8 +1110,9 @@ int main(int argc, char *argv[])
     }
     
     /* Initialize barriers for synchronizing thread start/end */
-    pthread_barrier_t start_barrier, end_barrier, iteration_barrier;
+    pthread_barrier_t start_barrier, end_barrier, completion_barrier, iteration_barrier;
     int barriers_initialized = 0;
+    int completion_barrier_initialized = 0;
     int iteration_barrier_initialized = 0;
     /* Barriers needed for client, and also for server in allow-nvlink mode (for timing) */
     int needs_barriers = !config.is_server || (!config.direct_mode && !config.nics_only && num_source_gpus > 0 && config.reassembly);
@@ -1113,11 +1129,21 @@ int main(int argc, char *argv[])
             ret = 1;
             goto cleanup;
         }
-        /* Iteration barrier for synchronizing between iterations */
+        /* Completion barrier: workers signal they finished work for this iteration */
+        if (pthread_barrier_init(&completion_barrier, NULL, num_threads + 1) != 0) {
+            fprintf(stderr, "Failed to initialize completion barrier\n");
+            pthread_barrier_destroy(&start_barrier);
+            pthread_barrier_destroy(&end_barrier);
+            ret = 1;
+            goto cleanup;
+        }
+        completion_barrier_initialized = 1;
+        /* Iteration barrier: main signals signal-back received, workers can start next iteration */
         if (pthread_barrier_init(&iteration_barrier, NULL, num_threads + 1) != 0) {
             fprintf(stderr, "Failed to initialize iteration barrier\n");
             pthread_barrier_destroy(&start_barrier);
             pthread_barrier_destroy(&end_barrier);
+            pthread_barrier_destroy(&completion_barrier);
             ret = 1;
             goto cleanup;
         }
@@ -1147,6 +1173,7 @@ int main(int argc, char *argv[])
                 args[qp_idx].num_qps = num_qps;
                 args[qp_idx].start_barrier = &start_barrier;
                 args[qp_idx].end_barrier = &end_barrier;
+                args[qp_idx].completion_barrier = completion_barrier_initialized ? &completion_barrier : NULL;
                 args[qp_idx].iteration_barrier = iteration_barrier_initialized ? &iteration_barrier : NULL;
                 args[qp_idx].bandwidth = &bandwidths[qp_idx];
                 args[qp_idx].status = &statuses[qp_idx];
@@ -1187,6 +1214,7 @@ int main(int argc, char *argv[])
                     args[thread_idx].num_qps = num_qps;
                     args[thread_idx].start_barrier = &start_barrier;
                     args[thread_idx].end_barrier = &end_barrier;
+                    args[thread_idx].completion_barrier = completion_barrier_initialized ? &completion_barrier : NULL;
                     args[thread_idx].iteration_barrier = iteration_barrier_initialized ? &iteration_barrier : NULL;
                     args[thread_idx].bandwidth = &bandwidths[thread_idx];
                     args[thread_idx].status = &statuses[thread_idx];
@@ -1220,6 +1248,7 @@ int main(int argc, char *argv[])
                 args[qp_idx].num_qps = num_qps;
                 args[qp_idx].start_barrier = NULL;
                 args[qp_idx].end_barrier = NULL;
+                args[qp_idx].completion_barrier = NULL;
                 args[qp_idx].iteration_barrier = NULL;
                 args[qp_idx].bandwidth = &bandwidths[qp_idx];
                 args[qp_idx].status = &statuses[qp_idx];
@@ -1255,6 +1284,7 @@ int main(int argc, char *argv[])
             args[i].num_qps = num_qps;
             args[i].start_barrier = config.is_server ? NULL : &start_barrier;
             args[i].end_barrier = config.is_server ? NULL : &end_barrier;
+            args[i].completion_barrier = (config.is_server || !completion_barrier_initialized) ? NULL : &completion_barrier;
             args[i].iteration_barrier = (config.is_server || !iteration_barrier_initialized) ? NULL : &iteration_barrier;
             args[i].bandwidth = &bandwidths[i];
             args[i].status = &statuses[i];
@@ -1320,8 +1350,13 @@ int main(int argc, char *argv[])
         /* Allow-nvlink mode with reassembly: signal-back per iteration */
         if (!config.direct_mode && !config.nics_only && config.reassembly && num_source_gpus > 0) {
             if (config.is_server) {
-                /* Receiver: wait for all reassembly threads, then send signal back, then iteration barrier */
+                /* Receiver: wait for all reassembly threads, then send signal back */
                 pthread_barrier_wait(&reassembly_barrier);
+                
+                /* Wait for workers to finish (completion_barrier) */
+                if (needs_barriers) {
+                    pthread_barrier_wait(&completion_barrier);
+                }
                 
                 if (rdma_write_with_imm(ctx, 0, 0, 1, 0, 0xDEADBEEF) != 0) {
                     fprintf(stderr, "Failed to send signal back for iteration %d\n", i);
@@ -1334,26 +1369,33 @@ int main(int argc, char *argv[])
                     goto cleanup;
                 }
                 
-                /* Wait at iteration barrier after sending signal */
+                /* Release workers to start next iteration */
                 if (needs_barriers) {
                     pthread_barrier_wait(&iteration_barrier);
                 }
             } else {
-                /* Sender: wait for workers first, then wait for signal-back from receiver */
+                /* Sender: wait for workers to complete, poll for signal-back, then release workers */
                 if (needs_barriers) {
-                    pthread_barrier_wait(&iteration_barrier);
+                    pthread_barrier_wait(&completion_barrier);
                 }
                 
+                /* Poll for signal-back while workers wait at iteration_barrier */
                 uint32_t dummy_imm = 0;
                 if (rdma_poll_completion_with_imm(ctx, 0, -1, &dummy_imm) != 0) {
                     fprintf(stderr, "Failed to receive signal-back for iteration %d\n", i);
                     ret = 1;
                     goto cleanup;
                 }
+                
+                /* Release workers to start next iteration */
+                if (needs_barriers) {
+                    pthread_barrier_wait(&iteration_barrier);
+                }
             }
         } else {
-            /* Non-reassembly modes: just sync at iteration barrier */
+            /* Non-reassembly modes: sync at completion barrier, then release via iteration barrier */
             if (needs_barriers) {
+                pthread_barrier_wait(&completion_barrier);
                 pthread_barrier_wait(&iteration_barrier);
             }
         }
@@ -1419,12 +1461,10 @@ int main(int argc, char *argv[])
         size_t total_data;
         if (config.direct_mode) {
             /* Direct mode: each source GPU sends full buffer */
-            printf("default initial buffer_size: %d\n", DEFAULT_BUFFER_SIZE);
             printf("total_buffer_size: %zu and num_threads: %d\n", total_buffer_size, num_threads);
             total_data = total_buffer_size * num_threads;
         } else if (!config.nics_only && num_source_gpus > 0) {
             /* Multi-source NVLink: total = buffer_per_QP × num_QPs  = (initial buffer_size * num_source_gpus) / num_qps × num_QPs  = initial buffer_size * num_source_gpus */
-            printf("default initial buffer_size: %d\n", DEFAULT_BUFFER_SIZE);
             printf("total_buffer_size: %zu and num_qps: %d and num_source_gpus: %d\n", total_buffer_size, num_qps, num_source_gpus);
             total_data = total_buffer_size * num_qps;
         } else {
@@ -1585,6 +1625,9 @@ cleanup:
     if (barriers_initialized) {
         pthread_barrier_destroy(&start_barrier);
         pthread_barrier_destroy(&end_barrier);
+    }
+    if (completion_barrier_initialized) {
+        pthread_barrier_destroy(&completion_barrier);
     }
     if (iteration_barrier_initialized) {
         pthread_barrier_destroy(&iteration_barrier);
