@@ -139,12 +139,14 @@ int rdma_write_with_imm(rdma_multi_qp_context_t *ctx,
  * @param qp_index: QP index
  * @param local_offset: Offset in local buffer for receive
  * @param size: Maximum size to receive
+ * @param wr_id: Work request ID (returned in completion; use 0 if not needed)
  * @return: 0 on success, non-zero on error
  */
 int rdma_post_receive(rdma_multi_qp_context_t *ctx,
                       int qp_index,
                       uint64_t local_offset,
-                      uint64_t size);
+                      uint64_t size,
+                      uint64_t wr_id);
 
 /**
  * Poll for completion with immediate data
@@ -153,12 +155,14 @@ int rdma_post_receive(rdma_multi_qp_context_t *ctx,
  * @param qp_index: QP index
  * @param timeout_ms: Timeout in milliseconds (-1 for infinite)
  * @param imm_data: Output parameter for immediate data (can be NULL)
+ * @param wr_id_out: Output parameter for work request ID from recv (can be NULL)
  * @return: 0 on success, 1 on timeout, negative on error
  */
 int rdma_poll_completion_with_imm(rdma_multi_qp_context_t *ctx,
                                    int qp_index,
                                    int timeout_ms,
-                                   uint32_t *imm_data);
+                                   uint32_t *imm_data,
+                                   uint64_t *wr_id_out);
 
 /**
  * Cleanup and destroy multi-QP context

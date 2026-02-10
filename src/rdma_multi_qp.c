@@ -698,7 +698,7 @@ int rdma_write_with_imm(rdma_multi_qp_context_t *ctx, int qp_index,
 }
 
 int rdma_post_receive(rdma_multi_qp_context_t *ctx, int qp_index,
-                      uint64_t local_offset, uint64_t size)
+                      uint64_t local_offset, uint64_t size, uint64_t wr_id)
 {
     struct qp_context *qp;
     struct ibv_sge sge;
@@ -716,6 +716,7 @@ int rdma_post_receive(rdma_multi_qp_context_t *ctx, int qp_index,
     sge.lkey = qp->mr->lkey;
     
     memset(&wr, 0, sizeof(wr));
+    wr.wr_id = wr_id;
     wr.sg_list = &sge;
     wr.num_sge = 1;
     
@@ -727,7 +728,7 @@ int rdma_post_receive(rdma_multi_qp_context_t *ctx, int qp_index,
 }
 
 int rdma_poll_completion_with_imm(rdma_multi_qp_context_t *ctx, int qp_index,
-                                   int timeout_ms, uint32_t *imm_data)
+                                   int timeout_ms, uint32_t *imm_data, uint64_t *wr_id_out)
 {
     struct qp_context *qp;
     struct ibv_wc wc;
@@ -746,17 +747,17 @@ int rdma_poll_completion_with_imm(rdma_multi_qp_context_t *ctx, int qp_index,
                 return -1;
             }
             
-            /* Extract immediate data if present and requested */
-            if (imm_data && (wc.wc_flags & IBV_WC_WITH_IMM)) {
-                *imm_data = ntohl(wc.imm_data);  /* Convert from network byte order */
-            }
+            if (wr_id_out)
+                *wr_id_out = wc.wr_id;
+            if (imm_data && (wc.wc_flags & IBV_WC_WITH_IMM))
+                *imm_data = ntohl(wc.imm_data);
             
             return 0;
         }
         
         if (timeout_ms >= 0) {
             polled++;
-            usleep(1000);  /* Sleep 1ms between polls */
+            usleep(1000);
         }
     }
     
