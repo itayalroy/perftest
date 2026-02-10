@@ -12,6 +12,7 @@ ALL_GPUS="0,1,2,3,4,5,6,7"
 USE_NVLINK=0
 DIRECT_MODE=0
 REASSEMBLY=0
+ALL_TO_ALL=0
 SOURCE_GPUS=""
 
 while [[ $# -gt 0 ]]; do
@@ -28,6 +29,10 @@ while [[ $# -gt 0 ]]; do
             REASSEMBLY=1
             shift
             ;;
+        --all-to-all)
+            ALL_TO_ALL=1
+            shift
+            ;;
         --source-gpus)
             SOURCE_GPUS="$2"
             shift 2
@@ -39,6 +44,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --allow-nvlink         Enable NVLink transfers (default: disabled, uses --nics-only)"
             echo "  --direct               Each GPU receives directly via its own NIC (no NVLink)"
             echo "  --reassembly           Enable reassembly from multiple source GPUs (requires --allow-nvlink)"
+            echo "  --all-to-all           Receive from every source to every target (N*M QPs); requires --direct or --allow-nvlink --reassembly and --source-gpus"
             echo "  --source-gpus <list>   Comma-separated GPU IDs to use (e.g., '0' or '0,3,5')"
             echo "                         - In direct mode: filters which GPUs to use"
             echo "                         - In NVLink mode: multiple source GPUs (e.g., '0,1')"
@@ -51,6 +57,7 @@ while [[ $# -gt 0 ]]; do
             echo "  $0 --direct                                # All GPUs receive directly"
             echo "  $0 --direct --source-gpus 0                # Only GPU 0 receives via mlx5_0"
             echo "  $0 --direct --source-gpus 0,1,2            # GPU 0,1,2 via mlx5_0,3,4"
+            echo "  $0 --direct --all-to-all --source-gpus 0,1 # All-to-all receive (match sender)"
             exit 0
             ;;
         *)
@@ -61,8 +68,20 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Filter NICs and GPUs if source-gpus is specified AND in direct mode
-if [[ -n "$SOURCE_GPUS" ]] && [[ $DIRECT_MODE -eq 1 ]]; then
+# Validate --all-to-all: requires --direct or (--allow-nvlink and --reassembly) and --source-gpus
+if [[ $ALL_TO_ALL -eq 1 ]]; then
+    if [[ $DIRECT_MODE -eq 0 ]] && [[ $USE_NVLINK -eq 0 || $REASSEMBLY -eq 0 ]]; then
+        echo "Error: --all-to-all requires --direct or --allow-nvlink --reassembly"
+        exit 1
+    fi
+    if [[ -z "$SOURCE_GPUS" ]]; then
+        echo "Error: --all-to-all requires --source-gpus"
+        exit 1
+    fi
+fi
+
+# Filter NICs and GPUs if source-gpus is specified AND in direct mode AND not all-to-all
+if [[ -n "$SOURCE_GPUS" ]] && [[ $DIRECT_MODE -eq 1 ]] && [[ $ALL_TO_ALL -eq 0 ]]; then
     # Direct mode: Filter to only use source GPU NICs
     IFS=',' read -ra ALL_NICS_ARRAY <<< "$ALL_NICS"
     IFS=',' read -ra ALL_GPUS_ARRAY <<< "$ALL_GPUS"
@@ -102,6 +121,9 @@ CMD="./test_rdma_multi_qp -s --nics ${NICS} --gpus ${GPUS}"
 # Add mode flags
 if [[ $DIRECT_MODE -eq 1 ]]; then
     CMD="${CMD} --direct"
+    if [[ $ALL_TO_ALL -eq 1 ]]; then
+        CMD="${CMD} --all-to-all --source-gpus ${SOURCE_GPUS}"
+    fi
 elif [[ $USE_NVLINK -eq 0 ]]; then
     CMD="${CMD} --nics-only"
 else
@@ -112,6 +134,9 @@ else
     # Add reassembly flag if enabled
     if [[ $REASSEMBLY -eq 1 ]]; then
         CMD="${CMD} --reassembly"
+    fi
+    if [[ $ALL_TO_ALL -eq 1 ]]; then
+        CMD="${CMD} --all-to-all"
     fi
 fi
 

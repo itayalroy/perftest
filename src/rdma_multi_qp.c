@@ -26,7 +26,7 @@
 
 #define QUEUE_DEPTH 256
 #define HANDSHAKE_PORT_OFFSET 30000
-#define MAX_QPS 32  /* Maximum number of QPs supported */
+#define MAX_QPS 128  /* Maximum number of QPs supported (all-to-all can use N*M, e.g. 8*8=64) */
 
 struct qp_context {
     struct ibv_device *dev;
@@ -66,6 +66,7 @@ struct rdma_multi_qp_context {
     const char *server_addr;
     int gpu_id;  /* Keep for backward compatibility */
     pthread_mutex_t *mutex;
+    int buffers_are_external;  /* 1 if external_buffers were used (do not free in cleanup) */
 };
 
 static int allocate_buffer(struct qp_context *qp, size_t size, int gpu_id)
@@ -414,6 +415,7 @@ int rdma_multi_qp_init(const struct rdma_multi_qp_config *config,
     ctx->base_port = config->base_port;
     ctx->server_addr = config->server_addr;
     ctx->gpu_id = config->gpu_id[0];  /* Keep for backward compatibility */
+    ctx->buffers_are_external = (config->external_buffers != NULL);
     
     for (i = 0; i < ctx->num_qps; i++) {
         pthread_mutex_init(&ctx->mutex[i], NULL);
@@ -423,12 +425,14 @@ int rdma_multi_qp_init(const struct rdma_multi_qp_config *config,
             goto error;
         }
         
-        if (allocate_buffer(&ctx->qps[i], config->buffer_size, nics_only ? config->gpu_id[0] : config->gpu_id[i]) != 0) {
+        if (config->external_buffers) {
+            ctx->qps[i].buffer = config->external_buffers[i];
+            ctx->qps[i].buffer_size = config->buffer_size;
+        } else if (allocate_buffer(&ctx->qps[i], config->buffer_size, nics_only ? config->gpu_id[0] : config->gpu_id[i]) != 0) {
             fprintf(stderr, "Failed to allocate buffer %d\n", i);
             goto error;
         }
 
-        
         if (register_mr(&ctx->qps[i], config->gpu_id[i]) != 0) {
             fprintf(stderr, "Failed to register MR %d\n", i);
             goto error;
@@ -440,7 +444,7 @@ int rdma_multi_qp_init(const struct rdma_multi_qp_config *config,
     
 error:
     for (i = 0; i < ctx->num_qps; i++) {
-        if (ctx->qps[i].buffer) free_buffer(&ctx->qps[i], config->gpu_id[i]);
+        if (ctx->qps[i].buffer && !ctx->buffers_are_external) free_buffer(&ctx->qps[i], config->gpu_id[i]);
         if (ctx->qps[i].mr) ibv_dereg_mr(ctx->qps[i].mr);
         if (ctx->qps[i].qp) ibv_destroy_qp(ctx->qps[i].qp);
         if (ctx->qps[i].cq) ibv_destroy_cq(ctx->qps[i].cq);
@@ -769,8 +773,8 @@ int rdma_multi_qp_cleanup(rdma_multi_qp_context_t *ctx)
         if (ctx->qps[i].qp) ibv_destroy_qp(ctx->qps[i].qp);
         if (ctx->qps[i].cq) ibv_destroy_cq(ctx->qps[i].cq);
         if (ctx->qps[i].mr) ibv_dereg_mr(ctx->qps[i].mr);
-        if (ctx->qps[i].buffer) {
-            int gpu_id = -1;  /* Default to host memory */
+        if (ctx->qps[i].buffer && !ctx->buffers_are_external) {
+            int gpu_id = (ctx->num_qps > 0 && ctx->gpu_id >= 0) ? ctx->gpu_id : -1;
             free_buffer(&ctx->qps[i], gpu_id);
         }
         if (ctx->qps[i].pd) ibv_dealloc_pd(ctx->qps[i].pd);
