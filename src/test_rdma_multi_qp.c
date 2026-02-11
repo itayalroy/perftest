@@ -82,6 +82,221 @@ struct thread_args {
     size_t sub_slice_size;     /* 1GB/M² */
 };
 
+/* Environment for setting up thread args (avoids passing many parameters) */
+struct thread_setup_env {
+    rdma_multi_qp_context_t *ctx;
+    const struct rdma_multi_qp_config *config;
+    int num_threads;
+    int num_qps;
+    int num_source_gpus;
+    int num_nics;
+    int *source_gpu_ids_list;
+    int *target_gpu_ids;
+    int *gpu_ids;
+    int *expanded_gpu_ids;
+    void **source_buffers;
+    struct nvlink_context *nvlink_ctxs;
+    pthread_barrier_t *start_barrier;
+    pthread_barrier_t *end_barrier;
+    pthread_barrier_t *completion_barrier;
+    pthread_barrier_t *iteration_barrier;
+    int completion_barrier_initialized;
+    int iteration_barrier_initialized;
+    void **reassembly_buffers;
+    struct nvlink_context **reassembly_nvlink_ctxs;
+    pthread_barrier_t *reassembly_barrier;
+    int reassembly_barrier_initialized;
+    void **reassembly_buffers_2d;
+    pthread_mutex_t *qp_mutexes;
+    int qp_mutexes_initialized;
+    size_t full_source_buffer_size_all_to_all;
+    double *bandwidths;
+    int *statuses;
+};
+
+/* Set fields common to all thread args for this run */
+static void set_thread_arg_base(struct thread_args *a, const struct thread_setup_env *env, int thread_idx)
+{
+    a->ctx = env->ctx;
+    a->iterations = DEFAULT_ITERATIONS;
+    a->is_server = env->config->is_server;
+    a->num_qps = env->num_qps;
+    a->start_barrier = env->start_barrier;
+    a->end_barrier = env->end_barrier;
+    a->completion_barrier = env->completion_barrier_initialized ? env->completion_barrier : NULL;
+    a->iteration_barrier = env->iteration_barrier_initialized ? env->iteration_barrier : NULL;
+    a->bandwidth = &env->bandwidths[thread_idx];
+    a->status = &env->statuses[thread_idx];
+    a->nics_only = env->config->nics_only;
+    a->direct_mode = env->config->direct_mode;
+    a->reassembly = env->config->reassembly;
+}
+
+/* Fill thread args and statuses according to run mode. Caller allocates args, statuses, bandwidths. */
+static void setup_thread_args(struct thread_args *args, int *statuses, double *bandwidths,
+                              const struct thread_setup_env *env)
+{
+    const struct rdma_multi_qp_config *config = env->config;
+    int num_qps = env->num_qps;
+    int num_source_gpus = env->num_source_gpus;
+    int *source_gpu_ids_list = env->source_gpu_ids_list;
+    int *target_gpu_ids = env->target_gpu_ids;
+
+    /* NVLink multi-source / reassembly modes */
+    if (!config->direct_mode && num_source_gpus > 0) {
+        if (config->is_server && config->reassembly) {
+            /* Receiver: M threads (one per QP) */
+            size_t sub_slice_sz = config->all_to_all ? (DEFAULT_BUFFER_SIZE / (num_qps * num_qps)) : 0;
+            for (int qp_idx = 0; qp_idx < num_qps; qp_idx++) {
+                struct thread_args *a = &args[qp_idx];
+                set_thread_arg_base(a, env, qp_idx);
+                a->qp_index = qp_idx;
+                a->source_gpu_id = -1;
+                a->target_gpu_id = target_gpu_ids[qp_idx];
+                a->source_qp_index = -1;
+                a->num_source_gpus = num_source_gpus;
+                a->source_gpu_index = -1;
+                a->source_buffer = NULL;
+                a->nvlink_ctx = NULL;
+                a->reassembly_buffers = config->all_to_all ? NULL : env->reassembly_buffers;
+                a->reassembly_nvlink_ctxs = env->reassembly_nvlink_ctxs;
+                a->reassembly_barrier = env->reassembly_barrier_initialized ? env->reassembly_barrier : NULL;
+                a->qp_mutex = NULL;
+                a->all_to_all_reassembly = config->all_to_all;
+                a->slice_index_j = 0;
+                a->reassembly_buffers_2d = config->all_to_all ? env->reassembly_buffers_2d : NULL;
+                a->sub_slice_size = sub_slice_sz;
+                statuses[qp_idx] = -1;
+            }
+            return;
+        }
+        if (!config->is_server) {
+            if (config->all_to_all && config->reassembly) {
+                /* Sender: N×M×M threads */
+                size_t sub_slice_sz = DEFAULT_BUFFER_SIZE / (num_qps * num_qps);
+                for (int n = 0; n < num_source_gpus; n++) {
+                    int src_gpu = source_gpu_ids_list[n];
+                    for (int i = 0; i < num_qps; i++) {
+                        int tgt_gpu = target_gpu_ids[i];
+                        for (int j = 0; j < num_qps; j++) {
+                            int thread_idx = n * num_qps * num_qps + i * num_qps + j;
+                            struct thread_args *a = &args[thread_idx];
+                            set_thread_arg_base(a, env, thread_idx);
+                            a->qp_index = i;
+                            a->source_gpu_id = src_gpu;
+                            a->target_gpu_id = tgt_gpu;
+                            a->source_qp_index = n;
+                            a->num_source_gpus = num_source_gpus;
+                            a->source_gpu_index = n;
+                            a->source_buffer = env->source_buffers ? env->source_buffers[n] : NULL;
+                            a->nvlink_ctx = (src_gpu >= 0 && tgt_gpu >= 0 && src_gpu != tgt_gpu)
+                                             ? &env->nvlink_ctxs[thread_idx] : NULL;
+                            a->reassembly_buffers = NULL;
+                            a->reassembly_nvlink_ctxs = NULL;
+                            a->reassembly_barrier = NULL;
+                            a->qp_mutex = (env->qp_mutexes && i < env->qp_mutexes_initialized) ? &env->qp_mutexes[i] : NULL;
+                            a->all_to_all_reassembly = true;
+                            a->slice_index_j = j;
+                            a->reassembly_buffers_2d = NULL;
+                            a->sub_slice_size = sub_slice_sz;
+                            statuses[thread_idx] = -1;
+                        }
+                    }
+                }
+                return;
+            }
+            /* Sender: M×N threads (one per source GPU × QP) */
+            for (int src_idx = 0; src_idx < num_source_gpus; src_idx++) {
+                int src_gpu = source_gpu_ids_list[src_idx];
+                int src_qp_idx = src_idx;
+                for (int qp_idx = 0; qp_idx < num_qps; qp_idx++) {
+                    int thread_idx = src_idx * num_qps + qp_idx;
+                    int tgt_gpu = target_gpu_ids[qp_idx];
+                    struct thread_args *a = &args[thread_idx];
+                    set_thread_arg_base(a, env, thread_idx);
+                    a->qp_index = qp_idx;
+                    a->source_gpu_id = src_gpu;
+                    a->target_gpu_id = tgt_gpu;
+                    a->source_qp_index = src_qp_idx;
+                    a->num_source_gpus = num_source_gpus;
+                    a->source_gpu_index = src_idx;
+                    a->source_buffer = env->source_buffers ? env->source_buffers[src_idx] : NULL;
+                    a->nvlink_ctx = (src_gpu >= 0 && tgt_gpu >= 0 && src_gpu != tgt_gpu)
+                                     ? &env->nvlink_ctxs[thread_idx] : NULL;
+                    a->reassembly_buffers = NULL;
+                    a->reassembly_nvlink_ctxs = NULL;
+                    a->reassembly_barrier = NULL;
+                    a->qp_mutex = (env->qp_mutexes && qp_idx < env->qp_mutexes_initialized) ? &env->qp_mutexes[qp_idx] : NULL;
+                    a->all_to_all_reassembly = false;
+                    statuses[thread_idx] = -1;
+                }
+            }
+            return;
+        }
+        /* Receiver without reassembly: N threads (no barriers) */
+        for (int qp_idx = 0; qp_idx < num_qps; qp_idx++) {
+            struct thread_args *a = &args[qp_idx];
+            set_thread_arg_base(a, env, qp_idx);
+            a->qp_index = qp_idx;
+            a->source_gpu_id = -1;
+            a->target_gpu_id = target_gpu_ids[qp_idx];
+            a->source_qp_index = -1;
+            a->num_source_gpus = num_source_gpus;
+            a->source_gpu_index = -1;
+            a->source_buffer = NULL;
+            a->nvlink_ctx = NULL;
+            a->start_barrier = NULL;
+            a->end_barrier = NULL;
+            a->completion_barrier = NULL;
+            a->iteration_barrier = NULL;
+            a->reassembly_buffers = NULL;
+            a->reassembly_nvlink_ctxs = NULL;
+            a->reassembly_barrier = NULL;
+            a->qp_mutex = NULL;
+            a->all_to_all_reassembly = false;
+            statuses[qp_idx] = -1;
+        }
+        return;
+    }
+
+    /* Direct or NICs-only: one thread per QP (includes all-to-all direct) */
+    int num_threads = env->num_threads;
+    int *expanded_gpu_ids = env->expanded_gpu_ids;
+    int *gpu_ids = env->gpu_ids;
+    if (config->all_to_all && num_source_gpus > 0) {
+        printf("\n=== Setting thread args for all-to-all direct (%d threads, M=%d target NICs) ===\n", num_threads, env->num_nics);
+    }
+    for (int i = 0; i < num_threads; i++) {
+        int src_gpu = expanded_gpu_ids ? expanded_gpu_ids[i] : gpu_ids[i];
+        int tgt_gpu = expanded_gpu_ids ? expanded_gpu_ids[i] : (target_gpu_ids ? target_gpu_ids[i] : gpu_ids[i]);
+        struct thread_args *a = &args[i];
+        set_thread_arg_base(a, env, i);
+        a->qp_index = i;
+        a->source_gpu_id = src_gpu;
+        a->target_gpu_id = tgt_gpu;
+        a->source_qp_index = i;
+        a->num_source_gpus = (num_source_gpus > 0) ? 1 : 0;
+        a->source_gpu_index = 0;
+        a->source_buffer = NULL;
+        a->nvlink_ctx = NULL;
+        a->all_to_all = config->all_to_all;
+        a->num_target_nics = config->all_to_all ? env->num_nics : 0;
+        a->source_buffer_size = (config->all_to_all && num_source_gpus > 0) ? env->full_source_buffer_size_all_to_all : 0;
+        a->start_barrier = config->is_server ? NULL : env->start_barrier;
+        a->end_barrier = config->is_server ? NULL : env->end_barrier;
+        a->completion_barrier = (config->is_server || !env->completion_barrier_initialized) ? NULL : env->completion_barrier;
+        a->iteration_barrier = (config->is_server || !env->iteration_barrier_initialized) ? NULL : env->iteration_barrier;
+        a->reassembly_buffers = NULL;
+        a->reassembly_nvlink_ctxs = NULL;
+        a->reassembly_barrier = NULL;
+        a->qp_mutex = NULL;
+        statuses[i] = -1;
+    }
+    if (config->all_to_all && num_source_gpus > 0) {
+        printf("=== End thread args (all-to-all direct) ===\n\n");
+    }
+}
+
 /* Parse comma-separated string into array */
 static int parse_comma_separated(const char *str, char **out, int max_count)
 {
@@ -513,10 +728,7 @@ static void *write_thread(void *arg)
                 if (nvlink_copy_gpu_to_gpu_async(args->nvlink_ctx, dst_part,
                                                   src_part, part_size) != 0) {
                     fprintf(stderr, "NVLink copy failed (iteration %d) qp=%d\n", i, qp_index);
-#ifdef HAVE_CUDA
-                    debug_print_ptr_device("src_part (source buffer, expect on source GPU)", src_part, args->source_gpu_id);
-                    debug_print_ptr_device("dst_part (QP buffer, expect on target GPU)", dst_part, args->target_gpu_id);
-#endif
+
                     *args->status = -1;
                     return NULL;
                 }
@@ -537,10 +749,7 @@ static void *write_thread(void *arg)
                 err = cudaMemcpyAsync(dst_part, src_part, part_size, cudaMemcpyDeviceToDevice, 0);
                 if (err != cudaSuccess) {
                     fprintf(stderr, "Local GPU copy failed: %s (iteration %d) qp=%d\n", cudaGetErrorString(err), i, qp_index);
-#ifdef HAVE_CUDA
-                    debug_print_ptr_device("src_part (source buffer)", src_part, args->source_gpu_id);
-                    debug_print_ptr_device("dst_part (QP buffer)", dst_part, args->source_gpu_id);
-#endif
+
                     *args->status = -1;
                     return NULL;
                 }
@@ -688,6 +897,187 @@ static void *write_thread(void *arg)
     *args->status = 0;
     if (args->end_barrier) pthread_barrier_wait(args->end_barrier);
     return NULL;
+}
+
+/**
+ * Print the results on the buffers to the console
+ *
+ * @param ctx: Context handle
+ * @param expanded_gpu_ids: Expanded GPU IDs
+ * @param target_gpu_ids: Target GPU IDs
+ * @param num_source_gpus: Number of source GPUs
+ * @param num_qps: Number of QPs
+ * @param source_buffers: Source buffers
+ * @param reassembly_buffers: Reassembly buffers
+ * @param reassembly_buffers_2d: Reassembly buffers 2D
+ */
+static void print_results(struct rdma_multi_qp_config config, rdma_multi_qp_context_t *ctx, int *expanded_gpu_ids,int *target_gpu_ids, int num_source_gpus, int *gpu_ids, int num_qps, void **source_buffers, int *source_gpu_ids_list, void **reassembly_buffers, void **reassembly_buffers_2d){
+
+    /* Verify transferred data on QP*/
+    printf("\n=== Verifying transferred data on QP buffers ===\n");
+    
+    if (config.direct_mode) {
+        /* Direct mode: read test string from each QP buffer (use same GPU array as buffer placement) */
+        int *verify_gpu_ids = expanded_gpu_ids ? expanded_gpu_ids : gpu_ids;
+        for (int i = 0; i < num_qps; i++) {
+            int buf_gpu = verify_gpu_ids[i];
+            cudaError_t err = cudaSetDevice(buf_gpu);
+            if (err != cudaSuccess) {
+                fprintf(stderr, "Failed to set device %d: %s\n", buf_gpu, cudaGetErrorString(err));
+                continue;
+            }
+            
+            void *qp_buf = rdma_get_local_buffer(ctx, i);
+            char host_buf[256] = {0};
+            
+            err = cudaMemcpy(host_buf, qp_buf, sizeof(host_buf) - 1, cudaMemcpyDeviceToHost);
+            if (err != cudaSuccess) {
+                fprintf(stderr, "Failed to read from GPU %d: %s\n", buf_gpu, cudaGetErrorString(err));
+                continue;
+            }
+            
+            host_buf[sizeof(host_buf) - 1] = '\0';
+            printf("QP %d (GPU_%d) read from buffer: %s", i, buf_gpu, host_buf);
+        }
+    } else if (!config.is_server && config.all_to_all && config.reassembly && source_buffers && num_source_gpus > 0) {
+        /* All-to-all NVLink reassembly (sender only): QP buffers overwritten per send; verify source buffers show all sub-slices */
+        size_t slice_size = DEFAULT_BUFFER_SIZE / num_qps;
+        size_t sub_slice_sz = DEFAULT_BUFFER_SIZE / (num_qps * num_qps);
+        printf("Sender: all-to-all reassembly - verifying source buffers (all sub-slices):\n");
+        for (int n = 0; n < num_source_gpus; n++) {
+            int src_gpu = source_gpu_ids_list[n];
+            cudaError_t err = cudaSetDevice(src_gpu);
+            if (err != cudaSuccess) {
+                fprintf(stderr, "Failed to set device %d: %s\n", src_gpu, cudaGetErrorString(err));
+                continue;
+            }
+            printf("  Source %d (GPU %d) :\n", n, src_gpu, num_qps - 1, num_qps - 1);
+            for (int j = 0; j < num_qps; j++) {
+                for (int i = 0; i < num_qps; i++) {
+                    char host_buf[128] = {0};
+                    size_t offset = (size_t)j * slice_size + (size_t)i * sub_slice_sz;
+                    err = cudaMemcpy(host_buf, (char *)source_buffers[n] + offset, sizeof(host_buf) - 1, cudaMemcpyDeviceToHost);
+                    if (err != cudaSuccess) break;
+                    host_buf[sizeof(host_buf) - 1] = '\0';
+                    /* Trim newline for inline */
+                    for (char *p = host_buf; *p; p++) { if (*p == '\n') { *p = '\0'; break; } }
+                    printf(" %s\n", host_buf);
+                }
+            }
+        }
+    } else if (config.is_server && config.all_to_all && config.reassembly && num_source_gpus > 0) {
+            /* All-to-all NVLink reassembly (receiver only): each QP buffer has N*M slots (no overwrite); print all slots */
+            size_t sub_slice_sz = DEFAULT_BUFFER_SIZE / (num_qps * num_qps);
+            int num_slots_per_qp = num_source_gpus * num_qps;
+            printf("\n=== QP buffers after receive (before reassembly copy) - all %d slots per QP ===\n", num_slots_per_qp);
+            for (int qp_idx = 0; qp_idx < num_qps; qp_idx++) {
+                int tgt_gpu = target_gpu_ids[qp_idx];
+                cudaError_t err = cudaSetDevice(tgt_gpu);
+                if (err != cudaSuccess) {
+                    fprintf(stderr, "Failed to set device %d: %s\n", tgt_gpu, cudaGetErrorString(err));
+                    continue;
+                }
+                void *qp_buf = rdma_get_local_buffer(ctx, qp_idx);
+                printf("QP %d (GPU %d) slots 0..%d:\n", qp_idx, tgt_gpu, num_slots_per_qp - 1);
+                for (int slot = 0; slot < num_slots_per_qp; slot++) {
+                    char host_buf[256] = {0};
+                    size_t offset = (size_t)slot * sub_slice_sz;
+                    err = cudaMemcpy(host_buf, (char *)qp_buf + offset, sizeof(host_buf) - 1, cudaMemcpyDeviceToHost);
+                    if (err != cudaSuccess) {
+                        fprintf(stderr, "  slot %d: read failed: %s\n", slot, cudaGetErrorString(err));
+                        continue;
+                    }
+                    host_buf[sizeof(host_buf) - 1] = '\0';
+                    printf("  slot %d: %s", slot, host_buf);
+                }
+            }
+    } else if (num_source_gpus > 0) {
+        /* NVLink mode (non all-to-all): read all sections from each target QP buffer */
+        size_t qp_buf_size = rdma_get_buffer_size(ctx);
+        size_t section_size = qp_buf_size / num_source_gpus;
+        for (int qp_idx = 0; qp_idx < num_qps; qp_idx++) {
+            int tgt_gpu = target_gpu_ids[qp_idx];
+            cudaError_t err = cudaSetDevice(tgt_gpu);
+            if (err != cudaSuccess) {
+                fprintf(stderr, "Failed to set device %d: %s\n", tgt_gpu, cudaGetErrorString(err));
+                continue;
+            }
+            void *qp_buf = rdma_get_local_buffer(ctx, qp_idx);
+            printf("Target GPU_%d (QP %d) sections:\n", tgt_gpu, qp_idx);
+            for (int src_idx = 0; src_idx < num_source_gpus; src_idx++) {
+                char host_buf[256] = {0};
+                size_t offset = src_idx * section_size;
+                void *src = (char *)qp_buf + offset;
+                err = cudaMemcpy(host_buf, src, sizeof(host_buf) - 1, cudaMemcpyDeviceToHost);
+                if (err != cudaSuccess) {
+                    fprintf(stderr, "  Failed to read section %d: %s\n", src_idx, cudaGetErrorString(err));
+                    continue;
+                }
+                host_buf[sizeof(host_buf) - 1] = '\0';
+                printf("  Section %d: %s", src_idx, host_buf);
+            }
+        }
+    }
+    
+    /* Verify reassembly buffers on receiver (after copy from QP buffers: slice j lives on GPU j) */
+    if (config.is_server && config.reassembly && num_source_gpus > 0) {
+        if (config.all_to_all && reassembly_buffers_2d) {
+            size_t sub_slice_sz = DEFAULT_BUFFER_SIZE / (num_qps * num_qps);
+            printf("\n=== Reassembled data: slice j on GPU j (expected) ===\n");
+            for (int j = 0; j < num_qps; j++) {
+                int gpu_j = target_gpu_ids[j];
+                cudaError_t err = cudaSetDevice(gpu_j);
+                if (err != cudaSuccess) {
+                    fprintf(stderr, "Failed to set device %d: %s\n", gpu_j, cudaGetErrorString(err));
+                    continue;
+                }
+                printf("Slice j=%d on GPU %d (reassembly_buffers_2d[*,%d]):\n", j, gpu_j, j);
+                for (int n = 0; n < num_source_gpus; n++) {
+                    void *buf = reassembly_buffers_2d[n * num_qps + j];
+                    if (!buf) continue;
+                    for (int i = 0; i < num_qps; i++) {
+                        char host_buf[256] = {0};
+                        size_t offset = (size_t)i * sub_slice_sz;
+                        err = cudaMemcpy(host_buf, (char *)buf + offset, sizeof(host_buf) - 1, cudaMemcpyDeviceToHost);
+                        if (err != cudaSuccess) {
+                            fprintf(stderr, "  subslice (%d,%d): read failed: %s\n", i, j, cudaGetErrorString(err));
+                            continue;
+                        }
+                        host_buf[sizeof(host_buf) - 1] = '\0';
+                        printf("  subslice (i=%d,j=%d): %s", i, j, host_buf);
+                    }
+                }
+                printf("\n");
+            }
+        } else if (reassembly_buffers) {
+            printf("\n=== Verifying reassembled data on receiver ===\n");
+            size_t slice_size = DEFAULT_BUFFER_SIZE / num_qps;  /* 128MB per slice */
+            for (int i = 0; i < num_source_gpus; i++) {
+                int gpu = source_gpu_ids_list[i];
+                cudaError_t err = cudaSetDevice(gpu);
+                if (err != cudaSuccess) {
+                    fprintf(stderr, "Failed to set device %d: %s\n", gpu, cudaGetErrorString(err));
+                    continue;
+                }
+                printf("Reassembly buffer[%d] (GPU %d) slices:\n", i, gpu);
+                for (int qp_idx = 0; qp_idx < num_qps; qp_idx++) {
+                    char host_buf[256] = {0};
+                    size_t offset = qp_idx * slice_size;
+                    void *slice_ptr = (char *)reassembly_buffers[i] + offset;
+                    err = cudaMemcpy(host_buf, slice_ptr, sizeof(host_buf) - 1, cudaMemcpyDeviceToHost);
+                    if (err != cudaSuccess) {
+                        fprintf(stderr, "  Failed to read slice %d: %s\n", qp_idx, cudaGetErrorString(err));
+                        continue;
+                    }
+                    host_buf[sizeof(host_buf) - 1] = '\0';
+                    printf("  Slice %d (from QP %d): %s", qp_idx, qp_idx, host_buf);
+                }
+            }
+        }
+    }
+    
+    printf("=== Data verification complete ===\n\n");
+    
 }
 
 static void print_usage(const char *prog_name)
@@ -1415,7 +1805,6 @@ int main(int argc, char *argv[])
     }
     
     /* Setup NVLink contexts (skip in direct mode) */
-    printf("num_source_gpus: %d and config.direct_mode: %d\n", num_source_gpus, config.direct_mode);
     if (!config.is_server && !config.direct_mode && num_source_gpus > 0) {
         if (config.all_to_all && config.reassembly) {
             /* All-to-all reassembly: one NVLink context per thread (N×M×M) so no sharing / no mutex */
@@ -1518,7 +1907,6 @@ int main(int argc, char *argv[])
     int iteration_barrier_initialized = 0;
     /* Barriers needed for client, and also for server in allow-nvlink mode and reassembly mode (for timing) */
     int needs_barriers = !config.is_server || (!config.direct_mode && !config.nics_only && num_source_gpus > 0 && config.reassembly);
-    printf("needs_barriers: %d\n", needs_barriers);
     if (needs_barriers) {
         /* Barriers need num_threads + 1 (threads + main thread) */
         if (pthread_barrier_init(&start_barrier, NULL, num_threads + 1) != 0) {
@@ -1555,206 +1943,40 @@ int main(int argc, char *argv[])
     }
     
     /* Setup thread arguments */
-    if (!config.direct_mode && num_source_gpus > 0) {
-        if (config.is_server && config.reassembly) {
-            /* Receiver: M threads (one per QP) */
-            size_t sub_slice_sz = config.all_to_all ? (DEFAULT_BUFFER_SIZE / (num_qps * num_qps)) : 0;
-            for (int qp_idx = 0; qp_idx < num_qps; qp_idx++) {
-                int tgt_gpu = target_gpu_ids[qp_idx];
-                args[qp_idx].ctx = ctx;
-                args[qp_idx].qp_index = qp_idx;
-                args[qp_idx].iterations = DEFAULT_ITERATIONS;
-                args[qp_idx].is_server = config.is_server;
-                args[qp_idx].source_gpu_id = -1;
-                args[qp_idx].target_gpu_id = tgt_gpu;
-                args[qp_idx].source_qp_index = -1;
-                args[qp_idx].num_source_gpus = num_source_gpus;
-                args[qp_idx].source_gpu_index = -1;
-                args[qp_idx].source_buffer = NULL;
-                args[qp_idx].nvlink_ctx = NULL;
-                args[qp_idx].num_qps = num_qps;
-                args[qp_idx].start_barrier = &start_barrier;
-                args[qp_idx].end_barrier = &end_barrier;
-                args[qp_idx].completion_barrier = completion_barrier_initialized ? &completion_barrier : NULL;
-                args[qp_idx].iteration_barrier = iteration_barrier_initialized ? &iteration_barrier : NULL;
-                args[qp_idx].bandwidth = &bandwidths[qp_idx];
-                args[qp_idx].status = &statuses[qp_idx];
-                args[qp_idx].nics_only = config.nics_only;
-                args[qp_idx].direct_mode = config.direct_mode;
-                args[qp_idx].reassembly = config.reassembly;
-                args[qp_idx].reassembly_buffers = config.all_to_all ? NULL : reassembly_buffers;
-                args[qp_idx].reassembly_nvlink_ctxs = reassembly_nvlink_ctxs;
-                args[qp_idx].reassembly_barrier = reassembly_barrier_initialized ? &reassembly_barrier : NULL;
-                args[qp_idx].qp_mutex = NULL;
-                args[qp_idx].all_to_all_reassembly = config.all_to_all;
-                args[qp_idx].slice_index_j = 0;
-                args[qp_idx].reassembly_buffers_2d = config.all_to_all ? reassembly_buffers_2d : NULL;
-                args[qp_idx].sub_slice_size = sub_slice_sz;
-                statuses[qp_idx] = -1;
-            }
-        } else if (!config.is_server) {
-            if (config.all_to_all && config.reassembly) {
-                /* Sender: N×M×M threads (n,i,j): source n, sub-slice i of slice j -> QP i */
-                size_t sub_slice_sz = DEFAULT_BUFFER_SIZE / (num_qps * num_qps);
-                for (int n = 0; n < num_source_gpus; n++) {
-                    int src_gpu = source_gpu_ids_list[n];
-                    for (int i = 0; i < num_qps; i++) {
-                        int tgt_gpu = target_gpu_ids[i];
-                        for (int j = 0; j < num_qps; j++) {
-                            int thread_idx = n * num_qps * num_qps + i * num_qps + j;
-                            args[thread_idx].ctx = ctx;
-                            args[thread_idx].qp_index = i;
-                            args[thread_idx].iterations = DEFAULT_ITERATIONS;
-                            args[thread_idx].is_server = config.is_server;
-                            args[thread_idx].source_gpu_id = src_gpu;
-                            args[thread_idx].target_gpu_id = tgt_gpu;
-                            args[thread_idx].source_qp_index = n;
-                            args[thread_idx].num_source_gpus = num_source_gpus;
-                            args[thread_idx].source_gpu_index = n;
-                            args[thread_idx].source_buffer = source_buffers ? source_buffers[n] : NULL;
-                            args[thread_idx].nvlink_ctx = (src_gpu >= 0 && tgt_gpu >= 0 && src_gpu != tgt_gpu)
-                                                          ? &nvlink_ctxs[thread_idx] : NULL;
-                            args[thread_idx].num_qps = num_qps;
-                            args[thread_idx].start_barrier = &start_barrier;
-                            args[thread_idx].end_barrier = &end_barrier;
-                            args[thread_idx].completion_barrier = completion_barrier_initialized ? &completion_barrier : NULL;
-                            args[thread_idx].iteration_barrier = iteration_barrier_initialized ? &iteration_barrier : NULL;
-                            args[thread_idx].bandwidth = &bandwidths[thread_idx];
-                            args[thread_idx].status = &statuses[thread_idx];
-                            args[thread_idx].nics_only = config.nics_only;
-                            args[thread_idx].direct_mode = config.direct_mode;
-                            args[thread_idx].reassembly = config.reassembly;
-                            args[thread_idx].reassembly_buffers = NULL;
-                            args[thread_idx].reassembly_nvlink_ctxs = NULL;
-                            args[thread_idx].reassembly_barrier = NULL;
-                            args[thread_idx].qp_mutex = (qp_mutexes && i < qp_mutexes_initialized) ? &qp_mutexes[i] : NULL;
-                            args[thread_idx].all_to_all_reassembly = true;
-                            args[thread_idx].slice_index_j = j;
-                            args[thread_idx].reassembly_buffers_2d = NULL;
-                            args[thread_idx].sub_slice_size = sub_slice_sz;
-                            statuses[thread_idx] = -1;
-                        }
-                    }
-                }
-            } else {
-                /* Sender: M×N threads (one per source GPU × QP combination) */
-                for (int src_idx = 0; src_idx < num_source_gpus; src_idx++) {
-                    int src_gpu = source_gpu_ids_list[src_idx];
-                    int src_qp_idx = src_idx;
-                    for (int qp_idx = 0; qp_idx < num_qps; qp_idx++) {
-                        int thread_idx = src_idx * num_qps + qp_idx;
-                        int tgt_gpu = target_gpu_ids[qp_idx];
-                        args[thread_idx].ctx = ctx;
-                        args[thread_idx].qp_index = qp_idx;
-                        args[thread_idx].iterations = DEFAULT_ITERATIONS;
-                        args[thread_idx].is_server = config.is_server;
-                        args[thread_idx].source_gpu_id = src_gpu;
-                        args[thread_idx].target_gpu_id = tgt_gpu;
-                        args[thread_idx].source_qp_index = src_qp_idx;
-                        args[thread_idx].num_source_gpus = num_source_gpus;
-                        args[thread_idx].source_gpu_index = src_idx;
-                        args[thread_idx].source_buffer = source_buffers ? source_buffers[src_idx] : NULL;
-                        args[thread_idx].nvlink_ctx = (src_gpu >= 0 && tgt_gpu >= 0 && src_gpu != tgt_gpu)
-                                                       ? &nvlink_ctxs[thread_idx] : NULL;
-                        args[thread_idx].num_qps = num_qps;
-                        args[thread_idx].start_barrier = &start_barrier;
-                        args[thread_idx].end_barrier = &end_barrier;
-                        args[thread_idx].completion_barrier = completion_barrier_initialized ? &completion_barrier : NULL;
-                        args[thread_idx].iteration_barrier = iteration_barrier_initialized ? &iteration_barrier : NULL;
-                        args[thread_idx].bandwidth = &bandwidths[thread_idx];
-                        args[thread_idx].status = &statuses[thread_idx];
-                        args[thread_idx].nics_only = config.nics_only;
-                        args[thread_idx].direct_mode = config.direct_mode;
-                        args[thread_idx].reassembly = config.reassembly;
-                        args[thread_idx].reassembly_buffers = NULL;
-                        args[thread_idx].reassembly_nvlink_ctxs = NULL;
-                        args[thread_idx].reassembly_barrier = NULL;
-                        args[thread_idx].qp_mutex = (qp_mutexes && qp_idx < qp_mutexes_initialized) ? &qp_mutexes[qp_idx] : NULL;
-                        statuses[thread_idx] = -1;
-                    }
-                }
-            }
-        } else {
-            /* Receiver without reassembly: N threads (basic receive, no reassembly) */
-            for (int qp_idx = 0; qp_idx < num_qps; qp_idx++) {
-                int tgt_gpu = target_gpu_ids[qp_idx];
-                
-                args[qp_idx].ctx = ctx;
-                args[qp_idx].qp_index = qp_idx;
-                args[qp_idx].iterations = DEFAULT_ITERATIONS;
-                args[qp_idx].is_server = config.is_server;
-                args[qp_idx].source_gpu_id = -1;
-                args[qp_idx].target_gpu_id = tgt_gpu;
-                args[qp_idx].source_qp_index = -1;
-                args[qp_idx].num_source_gpus = num_source_gpus;
-                args[qp_idx].source_gpu_index = -1;
-                args[qp_idx].source_buffer = NULL;
-                args[qp_idx].nvlink_ctx = NULL;
-                
-                args[qp_idx].num_qps = num_qps;
-                args[qp_idx].start_barrier = NULL;
-                args[qp_idx].end_barrier = NULL;
-                args[qp_idx].completion_barrier = NULL;
-                args[qp_idx].iteration_barrier = NULL;
-                args[qp_idx].bandwidth = &bandwidths[qp_idx];
-                args[qp_idx].status = &statuses[qp_idx];
-                args[qp_idx].nics_only = config.nics_only;
-                args[qp_idx].direct_mode = config.direct_mode;
-                args[qp_idx].reassembly = config.reassembly;
-                args[qp_idx].reassembly_buffers = NULL;
-                args[qp_idx].reassembly_nvlink_ctxs = NULL;
-                args[qp_idx].reassembly_barrier = NULL;
-                args[qp_idx].qp_mutex = NULL;
-                statuses[qp_idx] = -1;
-            }
-        }
-    } else {
-        /* Direct mode or single-source: One thread per QP (includes all-to-all direct: N*M threads) */
-        if (config.all_to_all && num_source_gpus > 0) {
-            printf("\n=== Setting thread args for all-to-all direct (%d threads, M=%d target NICs) ===\n", num_threads, num_nics);
-        }
-        for (i = 0; i < num_threads; i++) {
-            int src_gpu = expanded_gpu_ids ? expanded_gpu_ids[i] : gpu_ids[i];
-            int tgt_gpu = expanded_gpu_ids ? expanded_gpu_ids[i] : (target_gpu_ids ? target_gpu_ids[i] : gpu_ids[i]);
-            
-            args[i].ctx = ctx;
-            args[i].qp_index = i;
-            args[i].iterations = DEFAULT_ITERATIONS;
-            args[i].is_server = config.is_server;
-            args[i].source_gpu_id = src_gpu;
-            args[i].target_gpu_id = tgt_gpu;
-            args[i].source_qp_index = i;
-            args[i].num_source_gpus = (num_source_gpus > 0) ? 1 : 0;
-            args[i].source_gpu_index = 0;
-            /* Direct mode: QP buffers are either per-QP (plain) or slices via external_buffers (all-to-all); no thread uses source_buffer */
-            args[i].source_buffer = NULL;
-            
-            args[i].nvlink_ctx = NULL;  /* No NVLink in direct/nics-only mode */
-            
-            args[i].num_qps = num_qps;
-            args[i].all_to_all = config.all_to_all;
-            args[i].num_target_nics = config.all_to_all ? num_nics : 0;
-            args[i].source_buffer_size = (config.all_to_all && num_source_gpus > 0) ? full_source_buffer_size_all_to_all : 0;
-            args[i].start_barrier = config.is_server ? NULL : &start_barrier;
-            args[i].end_barrier = config.is_server ? NULL : &end_barrier;
-            args[i].completion_barrier = (config.is_server || !completion_barrier_initialized) ? NULL : &completion_barrier;
-            args[i].iteration_barrier = (config.is_server || !iteration_barrier_initialized) ? NULL : &iteration_barrier;
-            args[i].bandwidth = &bandwidths[i];
-            args[i].status = &statuses[i];
-            args[i].nics_only = config.nics_only;
-            args[i].direct_mode = config.direct_mode;
-            args[i].reassembly = config.reassembly;
-            args[i].reassembly_buffers = NULL;  /* Not used in direct/nics-only */
-            args[i].reassembly_nvlink_ctxs = NULL;
-            args[i].reassembly_barrier = NULL;
-            args[i].qp_mutex = NULL;  /* No mutex needed for direct/single-source */
-            statuses[i] = -1;
-        }
-        if (config.all_to_all && num_source_gpus > 0) {
-            printf("=== End thread args (all-to-all direct) ===\n\n");
-        }
+    {
+        struct thread_setup_env env = {
+            .ctx = ctx,
+            .config = &config,
+            .num_threads = num_threads,
+            .num_qps = num_qps,
+            .num_source_gpus = num_source_gpus,
+            .num_nics = num_nics,
+            .source_gpu_ids_list = source_gpu_ids_list,
+            .target_gpu_ids = target_gpu_ids,
+            .gpu_ids = gpu_ids,
+            .expanded_gpu_ids = expanded_gpu_ids,
+            .source_buffers = source_buffers,
+            .nvlink_ctxs = nvlink_ctxs,
+            .start_barrier = &start_barrier,
+            .end_barrier = &end_barrier,
+            .completion_barrier = &completion_barrier,
+            .iteration_barrier = &iteration_barrier,
+            .completion_barrier_initialized = completion_barrier_initialized,
+            .iteration_barrier_initialized = iteration_barrier_initialized,
+            .reassembly_buffers = reassembly_buffers,
+            .reassembly_nvlink_ctxs = reassembly_nvlink_ctxs,
+            .reassembly_barrier = &reassembly_barrier,
+            .reassembly_barrier_initialized = reassembly_barrier_initialized,
+            .reassembly_buffers_2d = reassembly_buffers_2d,
+            .qp_mutexes = qp_mutexes,
+            .qp_mutexes_initialized = qp_mutexes_initialized,
+            .full_source_buffer_size_all_to_all = full_source_buffer_size_all_to_all,
+            .bandwidths = bandwidths,
+            .statuses = statuses,
+        };
+        setup_thread_args(args, statuses, bandwidths, &env);
     }
-    
+
     /* Get CPU frequency for wall-clock time measurement */
     double cpu_mhz = get_cpu_mhz(1);  /* Suppress CPU frequency warnings */
     if (cpu_mhz <= 0) {
@@ -1776,7 +1998,6 @@ int main(int argc, char *argv[])
             thread_func = receive_thread_with_reassembly;
     }
     
-    printf("creating threads for %d threads\n", num_threads);
     for (i = 0; i < num_threads; i++) {
         if (pthread_create(&threads[i], NULL, thread_func, &args[i]) != 0) {
             fprintf(stderr, "Failed to create thread %d\n", i);
@@ -1852,14 +2073,12 @@ int main(int argc, char *argv[])
                 }
             }
         } else {
-            printf("non-reassembly modes: needs_barriers: %d\n", needs_barriers);
             /* Non-reassembly modes: sync at completion barrier, then release via iteration barrier */
             if (needs_barriers) {
                 pthread_barrier_wait(&completion_barrier);
                 pthread_barrier_wait(&iteration_barrier);
             }
         }
-        
         
         /* Calculate and print per-iteration bandwidth (sender only) */
         if (!config.is_server && needs_barriers) {
@@ -1939,210 +2158,17 @@ int main(int argc, char *argv[])
         }
         printf("total_data: %zu\n", total_data);
         double aggregate_bw = (double)(total_data * DEFAULT_ITERATIONS) / (total_time * 1e9);
-        /* All-to-all direct with one source: all QPs share one source NIC, so total BW cannot exceed that NIC (~50 GB/s) */
-        if (config.direct_mode && config.all_to_all && num_nics > 0) {
-            total_bw = aggregate_bw;
-            double avg_iter_time = total_time / DEFAULT_ITERATIONS;
-            double avg_iter_bw = total_data / (avg_iter_time * 1e9);
-            printf("Average per iteration: %.2f GB/s aggregate (%.6f seconds)\n", avg_iter_bw, avg_iter_time);
-            printf("\033[0;32mTotal bandwidth: %.2f GB/s\033[0m\n", total_bw);
-        } else {
-            total_bw = aggregate_bw;
-            double avg_iter_time = total_time / DEFAULT_ITERATIONS;
-            double avg_iter_bw = total_data / (avg_iter_time * 1e9);
-            printf("Average per iteration: %.2f GB/s (%.6f seconds)\n", avg_iter_bw, avg_iter_time);
-            printf("\033[0;32mTotal bandwidth: %.2f GB/s\033[0m\n", total_bw);
-        }
+        total_bw = aggregate_bw;
+        double avg_iter_time = total_time / DEFAULT_ITERATIONS;
+        double avg_iter_bw = total_data / (avg_iter_time * 1e9);
+        printf("Average per iteration: %.2f GB/s (%.6f seconds)\n", avg_iter_bw, avg_iter_time);
+        printf("\033[0;32mTotal bandwidth: %.2f GB/s\033[0m\n", total_bw);
     }
-    
-    /* Verify transferred data */
-    printf("\n=== Verifying transferred data ===\n");
-    
-    if (config.direct_mode) {
-        /* Direct mode: read test string from each QP buffer (use same GPU array as buffer placement) */
-        int *verify_gpu_ids = expanded_gpu_ids ? expanded_gpu_ids : gpu_ids;
-        for (i = 0; i < num_qps; i++) {
-            int buf_gpu = verify_gpu_ids[i];
-            cudaError_t err = cudaSetDevice(buf_gpu);
-            if (err != cudaSuccess) {
-                fprintf(stderr, "Failed to set device %d: %s\n", buf_gpu, cudaGetErrorString(err));
-                continue;
-            }
-            
-            void *qp_buf = rdma_get_local_buffer(ctx, i);
-            char host_buf[256] = {0};
-            
-            err = cudaMemcpy(host_buf, qp_buf, sizeof(host_buf) - 1, cudaMemcpyDeviceToHost);
-            if (err != cudaSuccess) {
-                fprintf(stderr, "Failed to read from GPU %d: %s\n", buf_gpu, cudaGetErrorString(err));
-                continue;
-            }
-            
-            host_buf[sizeof(host_buf) - 1] = '\0';
-            printf("QP %d (GPU_%d) read from buffer: %s", i, buf_gpu, host_buf);
-        }
-    } else if (!config.is_server && config.all_to_all && config.reassembly && source_buffers && num_source_gpus > 0) {
-        /* All-to-all NVLink reassembly (sender only): QP buffers overwritten per send; verify source buffers show all sub-slices */
-        size_t slice_size = DEFAULT_BUFFER_SIZE / num_qps;
-        size_t sub_slice_sz = DEFAULT_BUFFER_SIZE / (num_qps * num_qps);
-        printf("Sender: all-to-all reassembly - verifying source buffers (all sub-slices):\n");
-        for (int n = 0; n < num_source_gpus; n++) {
-            int src_gpu = source_gpu_ids_list[n];
-            cudaError_t err = cudaSetDevice(src_gpu);
-            if (err != cudaSuccess) {
-                fprintf(stderr, "Failed to set device %d: %s\n", src_gpu, cudaGetErrorString(err));
-                continue;
-            }
-            printf("  Source %d (GPU %d) :\n", n, src_gpu, num_qps - 1, num_qps - 1);
-            for (int j = 0; j < num_qps; j++) {
-                for (int i = 0; i < num_qps; i++) {
-                    char host_buf[128] = {0};
-                    size_t offset = (size_t)j * slice_size + (size_t)i * sub_slice_sz;
-                    err = cudaMemcpy(host_buf, (char *)source_buffers[n] + offset, sizeof(host_buf) - 1, cudaMemcpyDeviceToHost);
-                    if (err != cudaSuccess) break;
-                    host_buf[sizeof(host_buf) - 1] = '\0';
-                    /* Trim newline for inline */
-                    for (char *p = host_buf; *p; p++) { if (*p == '\n') { *p = '\0'; break; } }
-                    printf(" %s\n", host_buf);
-                }
-            }
-        }
-    } else if (config.is_server && config.all_to_all && config.reassembly && num_source_gpus > 0) {
-            /* All-to-all NVLink reassembly (receiver only): each QP buffer has N*M slots (no overwrite); print all slots */
-            size_t sub_slice_sz = DEFAULT_BUFFER_SIZE / (num_qps * num_qps);
-            int num_slots_per_qp = num_source_gpus * num_qps;
-            printf("\n=== QP buffers after receive (before reassembly copy) - all %d slots per QP ===\n", num_slots_per_qp);
-            for (int qp_idx = 0; qp_idx < num_qps; qp_idx++) {
-                int tgt_gpu = target_gpu_ids[qp_idx];
-                cudaError_t err = cudaSetDevice(tgt_gpu);
-                if (err != cudaSuccess) {
-                    fprintf(stderr, "Failed to set device %d: %s\n", tgt_gpu, cudaGetErrorString(err));
-                    continue;
-                }
-                void *qp_buf = rdma_get_local_buffer(ctx, qp_idx);
-                printf("QP %d (GPU %d) slots 0..%d:\n", qp_idx, tgt_gpu, num_slots_per_qp - 1);
-                for (int slot = 0; slot < num_slots_per_qp; slot++) {
-                    char host_buf[256] = {0};
-                    size_t offset = (size_t)slot * sub_slice_sz;
-                    err = cudaMemcpy(host_buf, (char *)qp_buf + offset, sizeof(host_buf) - 1, cudaMemcpyDeviceToHost);
-                    if (err != cudaSuccess) {
-                        fprintf(stderr, "  slot %d: read failed: %s\n", slot, cudaGetErrorString(err));
-                        continue;
-                    }
-                    host_buf[sizeof(host_buf) - 1] = '\0';
-                    printf("  slot %d: %s", slot, host_buf);
-                }
-            }
-    } else if (num_source_gpus > 0) {
-        /* NVLink mode (non all-to-all): read all sections from each target QP buffer */
-        size_t qp_buf_size = rdma_get_buffer_size(ctx);
-        size_t section_size = qp_buf_size / num_source_gpus;
-        for (int qp_idx = 0; qp_idx < num_qps; qp_idx++) {
-            int tgt_gpu = target_gpu_ids[qp_idx];
-            cudaError_t err = cudaSetDevice(tgt_gpu);
-            if (err != cudaSuccess) {
-                fprintf(stderr, "Failed to set device %d: %s\n", tgt_gpu, cudaGetErrorString(err));
-                continue;
-            }
-            void *qp_buf = rdma_get_local_buffer(ctx, qp_idx);
-            printf("Target GPU_%d (QP %d) sections:\n", tgt_gpu, qp_idx);
-            for (int src_idx = 0; src_idx < num_source_gpus; src_idx++) {
-                char host_buf[256] = {0};
-                size_t offset = src_idx * section_size;
-                void *src = (char *)qp_buf + offset;
-                err = cudaMemcpy(host_buf, src, sizeof(host_buf) - 1, cudaMemcpyDeviceToHost);
-                if (err != cudaSuccess) {
-                    fprintf(stderr, "  Failed to read section %d: %s\n", src_idx, cudaGetErrorString(err));
-                    continue;
-                }
-                host_buf[sizeof(host_buf) - 1] = '\0';
-                printf("  Section %d: %s", src_idx, host_buf);
-            }
-        }
-    }
-    
-    /* Verify reassembly buffers on receiver (after copy from QP buffers: slice j lives on GPU j) */
-    if (config.is_server && config.reassembly && num_source_gpus > 0) {
-        if (config.all_to_all && reassembly_buffers_2d) {
-            size_t sub_slice_sz = DEFAULT_BUFFER_SIZE / (num_qps * num_qps);
-            printf("\n=== Reassembled data: slice j on GPU j (expected) ===\n");
-            for (int j = 0; j < num_qps; j++) {
-                int gpu_j = target_gpu_ids[j];
-                cudaError_t err = cudaSetDevice(gpu_j);
-                if (err != cudaSuccess) {
-                    fprintf(stderr, "Failed to set device %d: %s\n", gpu_j, cudaGetErrorString(err));
-                    continue;
-                }
-                printf("Slice j=%d on GPU %d (reassembly_buffers_2d[*,%d]):\n", j, gpu_j, j);
-                for (int n = 0; n < num_source_gpus; n++) {
-                    void *buf = reassembly_buffers_2d[n * num_qps + j];
-                    if (!buf) continue;
-                    for (int i = 0; i < num_qps; i++) {
-                        char host_buf[256] = {0};
-                        size_t offset = (size_t)i * sub_slice_sz;
-                        err = cudaMemcpy(host_buf, (char *)buf + offset, sizeof(host_buf) - 1, cudaMemcpyDeviceToHost);
-                        if (err != cudaSuccess) {
-                            fprintf(stderr, "  subslice (%d,%d): read failed: %s\n", i, j, cudaGetErrorString(err));
-                            continue;
-                        }
-                        host_buf[sizeof(host_buf) - 1] = '\0';
-                        printf("  subslice (i=%d,j=%d): %s", i, j, host_buf);
-                    }
-                }
-                printf("\n");
-            }
-            // /* Per-QP view: for each QP i, what it contributed to each slice j */
-            // printf("\n=== Per QP: what QP i contributed to each slice j (reassembled) ===\n");
-            // for (int i = 0; i < num_qps; i++) {
-            //     printf("QP %d (sub-slice index i=%d) contributed to each slice j=0..%d:\n", i, i, num_qps - 1);
-            //     for (int j = 0; j < num_qps; j++) {
-            //         int gpu_j = target_gpu_ids[j];
-            //         cudaError_t err = cudaSetDevice(gpu_j);
-            //         if (err != cudaSuccess) continue;
-            //         for (int n = 0; n < num_source_gpus; n++) {
-            //             void *buf = reassembly_buffers_2d[n * num_qps + j];
-            //             if (!buf) continue;
-            //             char host_buf[256] = {0};
-            //             size_t offset = (size_t)i * sub_slice_sz;
-            //             err = cudaMemcpy(host_buf, (char *)buf + offset, sizeof(host_buf) - 1, cudaMemcpyDeviceToHost);
-            //             if (err != cudaSuccess) continue;
-            //             host_buf[sizeof(host_buf) - 1] = '\0';
-            //             printf("  slice j=%d (GPU %d): %s", j, gpu_j, host_buf);
-            //         }
-            //     }
-            //     printf("\n");
-            // }
-        } else if (reassembly_buffers) {
-            printf("\n=== Verifying reassembled data on receiver ===\n");
-            size_t slice_size = DEFAULT_BUFFER_SIZE / num_qps;  /* 128MB per slice */
-            for (i = 0; i < num_source_gpus; i++) {
-                int gpu = source_gpu_ids_list[i];
-                cudaError_t err = cudaSetDevice(gpu);
-                if (err != cudaSuccess) {
-                    fprintf(stderr, "Failed to set device %d: %s\n", gpu, cudaGetErrorString(err));
-                    continue;
-                }
-                printf("Reassembly buffer[%d] (GPU %d) slices:\n", i, gpu);
-                for (int qp_idx = 0; qp_idx < num_qps; qp_idx++) {
-                    char host_buf[256] = {0};
-                    size_t offset = qp_idx * slice_size;
-                    void *slice_ptr = (char *)reassembly_buffers[i] + offset;
-                    err = cudaMemcpy(host_buf, slice_ptr, sizeof(host_buf) - 1, cudaMemcpyDeviceToHost);
-                    if (err != cudaSuccess) {
-                        fprintf(stderr, "  Failed to read slice %d: %s\n", qp_idx, cudaGetErrorString(err));
-                        continue;
-                    }
-                    host_buf[sizeof(host_buf) - 1] = '\0';
-                    printf("  Slice %d (from QP %d): %s", qp_idx, qp_idx, host_buf);
-                }
-            }
-        }
-    }
-    
-    printf("=== Data verification complete ===\n\n");
+    /*verify data -print QP and data buffer */
+    print_results(config, ctx, expanded_gpu_ids, target_gpu_ids, num_source_gpus, gpu_ids, num_qps, source_buffers, source_gpu_ids_list, reassembly_buffers, reassembly_buffers_2d);
     
     /* Skip cleanup to avoid segfault - just return */
-    return ret;
+    // return ret;
     
 cleanup:
     /* Free source buffers if allocated */
