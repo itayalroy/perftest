@@ -14,6 +14,7 @@ DIRECT_MODE=0
 REASSEMBLY=0
 ALL_TO_ALL=0
 SOURCE_GPUS=""
+UTILIZE_NIC=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -37,6 +38,10 @@ while [[ $# -gt 0 ]]; do
             SOURCE_GPUS="$2"
             shift 2
             ;;
+        --utilize-nic)
+            UTILIZE_NIC="$2"
+            shift 2
+            ;;
         --help|-h)
             echo "Usage: $0 [OPTIONS]"
             echo ""
@@ -48,6 +53,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --source-gpus <list>   Comma-separated GPU IDs to use (e.g., '0' or '0,3,5')"
             echo "                         - In direct mode: filters which GPUs to use"
             echo "                         - In NVLink mode: multiple source GPUs (e.g., '0,1')"
+            echo "  --utilize-nic <NIC>    Run extra QP on this NIC for background load (must be in -n list)"
             echo "  --help, -h             Show this help message"
             echo ""
             echo "Examples:"
@@ -138,6 +144,9 @@ else
     if [[ $ALL_TO_ALL -eq 1 ]]; then
         CMD="${CMD} --all-to-all"
     fi
+fi
+if [[ -n "$UTILIZE_NIC" ]]; then
+    CMD="${CMD} --utilize-nic ${UTILIZE_NIC}"
 fi
 
 # Execute

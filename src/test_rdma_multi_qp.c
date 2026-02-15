@@ -41,7 +41,7 @@ static void debug_print_ptr_device(const char *label, void *ptr, int expected_de
 #endif
 
 #define DEFAULT_BUFFER_SIZE (1024 * 1024 * 1024)  /* 1 GB */
-// #define DEFAULT_BUFFER_SIZE (1024 * 1024 * 128)  /* 128 MB */
+// #define DEFAULT_BUFFER_SIZE (1024 * 1024 *128 )  /* 128 MB */
 #define DEFAULT_ITERATIONS 50
 #define WARMUP_ITERATIONS 5
 #define MAX_THREADS 513
@@ -546,6 +546,25 @@ static void *receive_thread_all_to_all_reassembly(void *arg)
     }
     *args->bandwidth = 0.0;
     *args->status = 0;
+    return NULL;
+}
+
+/* Background thread to utilize a NIC with write+poll on an extra QP (simulates other traffic on same NIC) */
+struct util_nic_thread_args {
+    rdma_multi_qp_context_t *ctx;
+    volatile int *stop;
+    size_t write_size;
+};
+
+static void *util_nic_thread(void *arg)
+{
+    struct util_nic_thread_args *u = (struct util_nic_thread_args *)arg;
+    while (!*u->stop) {
+        if (rdma_write(u->ctx, 0, 0, u->write_size, 0) != 0)
+            break;
+        if (rdma_poll_completion(u->ctx, 0, 100) != 0)  /* 100 ms timeout so we can check stop */
+            continue;
+    }
     return NULL;
 }
 
@@ -1095,6 +1114,7 @@ static void print_usage(const char *prog_name)
     printf("  -D, --direct          Each GPU sends directly via its own NIC (no NVLink)\n");
     printf("  -R, --reassembly      Enable reassembly of data from multiple source GPUs only when using NVLink\n");
     printf("  -A, --all-to-all      Spread from each source to every target (N*M QPs); use with --direct or --allow-nvlink --reassembly\n");
+    printf("  -U, --utilize-nic NIC Run a background thread that does RDMA write+poll on an extra QP on NIC (same as one of -n) to simulate NIC load\n");
     printf("  -h, --help            Show this help message\n");
     printf("\n");
     printf("Examples:\n");
@@ -1130,6 +1150,11 @@ int main(int argc, char *argv[])
 {
     struct rdma_multi_qp_config config = {0};
     rdma_multi_qp_context_t *ctx = NULL;
+    rdma_multi_qp_context_t *util_ctx = NULL;  /* Extra QP on utilize_nic for background load */
+    pthread_t util_thread;
+    volatile int util_stop = 0;
+    struct util_nic_thread_args util_args = {0};
+    int util_thread_started = 0;
     pthread_t *threads = NULL;
     struct thread_args *args = NULL;
     double *bandwidths = NULL;
@@ -1148,6 +1173,7 @@ int main(int argc, char *argv[])
     char *nics_str = NULL;
     char *gpus_str = NULL;
     char *source_gpus_filter = NULL; /* filter the GPU to use as data source */
+    const char *utilize_nic = NULL;  /* If set, run util thread on this NIC (must be in -n list) */
     
     /* Defaults */
     config.base_port = 18515;
@@ -1174,11 +1200,12 @@ int main(int argc, char *argv[])
         {"direct", no_argument, 0, 'D'},
         {"reassembly", no_argument, 0, 'R'},
         {"all-to-all", no_argument, 0, 'A'},
+        {"utilize-nic", required_argument, 0, 'U'},
         {0, 0, 0, 0}
     };
     
     /* parsing arguments*/
-    while ((opt = getopt_long(argc, argv, "n:sa:p:b:i:g:S:h:DA", long_options, NULL)) != -1) {
+    while ((opt = getopt_long(argc, argv, "n:sa:p:b:i:g:S:h:DAU:", long_options, NULL)) != -1) {
         switch (opt) {
         case 'n':
             nics_str = optarg;
@@ -1204,6 +1231,9 @@ int main(int argc, char *argv[])
             break;
         case 'A':
             config.all_to_all = 1;
+            break;
+        case 'U':
+            utilize_nic = optarg;
             break;
         case 'p':
             config.base_port = atoi(optarg);
@@ -1258,6 +1288,22 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Error: Failed to parse NIC names\n");
         free(nic_names);
         return 1;
+    }
+    if (utilize_nic) {
+        int found = 0;
+        for (i = 0; i < num_qps; i++) {
+            if (strcmp(nic_names[i], utilize_nic) == 0) {
+                found = 1;
+                break;
+            }
+        }
+        if (!found) {
+            fprintf(stderr, "Error: --utilize-nic %s is not in the NIC list (-n)\n", utilize_nic);
+            for (i = 0; i < num_qps; i++) free(nic_names[i]);
+            free(nic_names);
+            return 1;
+        }
+        printf("Utilize-NIC: will run background write+poll on NIC %s\n", utilize_nic);
     }
     int num_nics = num_qps;  /* M = number of NICs (target NICs for all-to-all) */
     
@@ -1690,6 +1736,38 @@ int main(int argc, char *argv[])
         printf("\n=== Receiver: all-to-all QPs connected (%d QPs), ready for incoming writes ===\n\n", num_qps);
     }
     
+    /* Optional: create and connect util QP on utilize_nic (both sides) for background NIC load */
+    if (utilize_nic) {
+        const char *util_nic_names[1] = { utilize_nic };
+        int util_gpu_id[1] = { -1 };
+        struct rdma_multi_qp_config util_config = {0};
+        util_config.nic_names = util_nic_names;
+        util_config.num_qps = 1;
+        util_config.base_port = config.base_port + num_qps;  /* Next port so handshake doesn't clash */
+        util_config.server_addr = config.server_addr;
+        util_config.is_server = config.is_server;
+        util_config.buffer_size = (size_t)1024 * 1024 * 1024;  /* 1 GB per write to create heavy NIC load */
+        util_config.gpu_id = util_gpu_id;
+        util_config.nics_only = 1;
+        if (rdma_multi_qp_init(&util_config, &util_ctx, 1) != 0) {
+            fprintf(stderr, "Failed to init util QP on NIC %s\n", utilize_nic);
+            ret = 1;
+            goto cleanup;
+        }
+        /* Client: give server time to finish main connect and start listening for util QP */
+        if (!config.is_server) {
+            sleep(2);
+        }
+        if (rdma_multi_qp_connect(util_ctx) != 0) {
+            fprintf(stderr, "Failed to connect util QP (is the receiver also running with --utilize-nic %s?)\n", utilize_nic);
+            rdma_multi_qp_cleanup(util_ctx);
+            util_ctx = NULL;
+            /* Continue without util QP so the benchmark can still run */
+        } else {
+            printf("Util QP connected on NIC %s (buffer %zu bytes)\n", utilize_nic, (size_t)util_config.buffer_size);
+        }
+    }
+    
     /* Initialize buffers with test data (client/sender only) */
     if (!config.is_server) {
         printf("\n=== Initializing test data in buffers ===\n");
@@ -2006,6 +2084,19 @@ int main(int argc, char *argv[])
         }
     }
     
+    /* Start util NIC thread (client only): write+poll loop on util QP to simulate other traffic on that NIC */
+    if (util_ctx && !config.is_server) {
+        util_args.ctx = util_ctx;
+        util_args.stop = &util_stop;
+        util_args.write_size = rdma_get_buffer_size(util_ctx);
+        if (util_args.write_size == 0) util_args.write_size = (size_t)1024 * 1024 * 1024;  /* 1 GB */
+        util_stop = 0;
+        if (pthread_create(&util_thread, NULL, util_nic_thread, &util_args) == 0) {
+            util_thread_started = 1;
+            printf("Util NIC thread started on %s\n", utilize_nic);
+        }
+    }
+    
     /* Post receive WQEs for signal-back on sender (one per iteration) for allow-nvlink mode and reassembly mode */
     if (!config.is_server && !config.direct_mode && !config.nics_only && config.reassembly && num_source_gpus > 0) {
         for (i = 0; i < DEFAULT_ITERATIONS; i++) {
@@ -2122,6 +2213,13 @@ int main(int argc, char *argv[])
         }
     }
     
+    /* Stop and join util NIC thread */
+    if (util_thread_started) {
+        util_stop = 1;
+        pthread_join(util_thread, NULL);
+        util_thread_started = 0;
+    }
+    
     /* Calculate total wall-clock time */
     double total_time = (double)(total_end_cycles - total_start_cycles) / (cpu_mhz * 1e6);
     
@@ -2161,8 +2259,10 @@ int main(int argc, char *argv[])
         total_bw = aggregate_bw;
         double avg_iter_time = total_time / DEFAULT_ITERATIONS;
         double avg_iter_bw = total_data / (avg_iter_time * 1e9);
+        double latency_sec = total_time / DEFAULT_ITERATIONS;  /* latency = total time / iterations */
         printf("Average per iteration: %.2f GB/s (%.6f seconds)\n", avg_iter_bw, avg_iter_time);
         printf("\033[0;32mTotal bandwidth: %.2f GB/s\033[0m\n", total_bw);
+        printf("Latency (per iteration): %.6f s (%.3f ms)\n", latency_sec, latency_sec * 1000.0);
     }
     /*verify data -print QP and data buffer */
     print_results(config, ctx, expanded_gpu_ids, target_gpu_ids, num_source_gpus, gpu_ids, num_qps, source_buffers, source_gpu_ids_list, reassembly_buffers, reassembly_buffers_2d);
@@ -2171,6 +2271,16 @@ int main(int argc, char *argv[])
     // return ret;
     
 cleanup:
+    /* Stop util NIC thread and cleanup util context */
+    if (util_thread_started) {
+        util_stop = 1;
+        pthread_join(util_thread, NULL);
+        util_thread_started = 0;
+    }
+    if (util_ctx) {
+        rdma_multi_qp_cleanup(util_ctx);
+        util_ctx = NULL;
+    }
     /* Free source buffers if allocated */
     if (source_buffers) {
         for (i = 0; i < num_source_gpus; i++) {
