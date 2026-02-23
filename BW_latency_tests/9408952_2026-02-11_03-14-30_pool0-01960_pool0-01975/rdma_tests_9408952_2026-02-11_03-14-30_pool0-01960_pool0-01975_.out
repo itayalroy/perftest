@@ -1,0 +1,90 @@
+OUTPUT_DIR (logs/results): /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest
+BINDIR (scripts, container mount): /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest
+LOG_FILE: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/rdma_tests_full_9408952_2026-02-11_03-14-30_pool0-01960_pool0-01975_.log
+RESULTS_FILE: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/rdma_tests_results_9408952_2026-02-11_03-14-30_pool0-01960_pool0-01975_.txt
+SLURM stdout: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/rdma_tests_9408952_2026-02-11_03-14-30_pool0-01960_pool0-01975_.out
+SLURM stderr: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/rdma_tests_9408952_2026-02-11_03-14-30_pool0-01960_pool0-01975_.err
+=== RDMA multi-QP test suite ===
+First node (receiver): pool0-01960
+Second node (sender):  pool0-01975
+Receiver IP:           100.126.39.52
+Partition:             <default>
+Account (group):       <default>
+Container:             /lustre/fsw/portfolios/network/users/eflorentzkon/elastic-ep-sglan_image.sqsh
+Container workdir:     /workdir
+Bind mounts:           <none>
+Log file:              /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/rdma_tests_full_9408952_2026-02-11_03-14-30_pool0-01960_pool0-01975_.log
+Results file:          /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/rdma_tests_results_9408952_2026-02-11_03-14-30_pool0-01960_pool0-01975_.txt
+
+
+========== source-gpus: 0 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink ---
+  --- mode: allow_nvlink_reassembly ---
+  --- mode: allow_nvlink_reassembly_alltoall ---
+
+========== source-gpus: 0,1 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink ---
+  --- mode: allow_nvlink_reassembly ---
+  --- mode: allow_nvlink_reassembly_alltoall ---
+
+========== source-gpus: 0,1,2 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink ---
+  --- mode: allow_nvlink_reassembly ---
+  --- mode: allow_nvlink_reassembly_alltoall ---
+
+========== source-gpus: 0,1,2,3 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink ---
+  --- mode: allow_nvlink_reassembly ---
+  --- mode: allow_nvlink_reassembly_alltoall ---
+
+========== source-gpus: 0,1,2,3,4 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink ---
+  --- mode: allow_nvlink_reassembly ---
+  --- mode: allow_nvlink_reassembly_alltoall ---
+
+========== source-gpus: 0,1,2,3,4,5 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink ---
+  --- mode: allow_nvlink_reassembly ---
+  --- mode: allow_nvlink_reassembly_alltoall ---
+
+========== source-gpus: 0,1,2,3,4,5,6 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink ---
+  --- mode: allow_nvlink_reassembly ---
+  --- mode: allow_nvlink_reassembly_alltoall ---
+
+========== source-gpus: 0,1,2,3,4,5,6,7 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink ---
+  --- mode: allow_nvlink_reassembly ---
+  --- mode: allow_nvlink_reassembly_alltoall ---
+
+=== Results table (source_gpus x mode -> GB/s) ===
+ source_gpus     |    direct |  direct_alltoall |  allow_nvlink |  allow_nvlink_reassembly | allow_nvlink_reassembly_alltoall
+-----------------+----------+-----------------+--------------+-------------------------+----------------------------------
+ 0               |     48.38 |            48.54 |        206.48 |                   193.01 |                         248.99
+ 0,1             |     96.76 |            96.98 |        269.01 |                   262.90 |                         280.77
+ 0,1,2           |    145.18 |           145.12 |        312.94 |                   304.37 |                         289.85
+ 0,1,2,3         |    193.55 |           193.72 |        336.37 |                   329.47 |                         291.53
+ 0,1,2,3,4       |    241.94 |           241.47 |        344.22 |                   343.32 |                         294.05
+ 0,1,2,3,4,5     |    290.30 |           290.16 |        356.72 |                   353.08 |                         293.67
+ 0,1,2,3,4,5,6   |    338.70 |           336.71 |        361.74 |                   356.93 |                         294.58
+ 0,1,2,3,4,5,6,7 |    386.98 |           384.05 |        363.15 |                   360.05 |                         295.12
+
+All values in GB/s.
+
+Done. Full log: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/rdma_tests_full_9408952_2026-02-11_03-14-30_pool0-01960_pool0-01975_.log  Results: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/rdma_tests_results_9408952_2026-02-11_03-14-30_pool0-01960_pool0-01975_.txt

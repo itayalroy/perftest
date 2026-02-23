@@ -1,0 +1,108 @@
+OUTPUT_DIR (logs/results): /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9477819_2026-02-16_00-48-38_latency_clc_64MB_pool0-00132_pool0-00150_
+BINDIR (scripts, container mount): /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest
+TEST_NAME (in filenames): latency_clc_64MB
+LOG_FILE: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9477819_2026-02-16_00-48-38_latency_clc_64MB_pool0-00132_pool0-00150_/rdma_tests_full_9477819_2026-02-16_00-48-38_latency_clc_64MB_pool0-00132_pool0-00150_.log
+RESULTS_FILE: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9477819_2026-02-16_00-48-38_latency_clc_64MB_pool0-00132_pool0-00150_/rdma_tests_results_9477819_2026-02-16_00-48-38_latency_clc_64MB_pool0-00132_pool0-00150_.txt
+SLURM stdout: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9477819_2026-02-16_00-48-38_latency_clc_64MB_pool0-00132_pool0-00150_/rdma_tests_9477819_2026-02-16_00-48-38_latency_clc_64MB_pool0-00132_pool0-00150_.out
+SLURM stderr: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9477819_2026-02-16_00-48-38_latency_clc_64MB_pool0-00132_pool0-00150_/rdma_tests_9477819_2026-02-16_00-48-38_latency_clc_64MB_pool0-00132_pool0-00150_.err
+=== RDMA multi-QP test suite ===
+First node (receiver): pool0-00132
+Second node (sender):  pool0-00150
+Receiver IP:           100.126.42.20
+Partition:             <default>
+Account (group):       <default>
+Container:             /lustre/fsw/portfolios/network/users/eflorentzkon/elastic-ep-sglan_image.sqsh
+Container workdir:     /workdir
+Bind mounts:           <none>
+Log file:              /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9477819_2026-02-16_00-48-38_latency_clc_64MB_pool0-00132_pool0-00150_/rdma_tests_full_9477819_2026-02-16_00-48-38_latency_clc_64MB_pool0-00132_pool0-00150_.log
+Results file:          /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9477819_2026-02-16_00-48-38_latency_clc_64MB_pool0-00132_pool0-00150_/rdma_tests_results_9477819_2026-02-16_00-48-38_latency_clc_64MB_pool0-00132_pool0-00150_.txt
+Use single srun step:  1
+Sender delay (s):      10
+
+
+========== source-gpus: 0 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink ---
+  --- mode: allow_nvlink_reassembly ---
+  --- mode: allow_nvlink_reassembly_alltoall ---
+
+========== source-gpus: 0,1 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink ---
+  --- mode: allow_nvlink_reassembly ---
+  --- mode: allow_nvlink_reassembly_alltoall ---
+
+========== source-gpus: 0,1,2 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink ---
+  --- mode: allow_nvlink_reassembly ---
+  --- mode: allow_nvlink_reassembly_alltoall ---
+
+========== source-gpus: 0,1,2,3 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink ---
+  --- mode: allow_nvlink_reassembly ---
+  --- mode: allow_nvlink_reassembly_alltoall ---
+
+========== source-gpus: 0,1,2,3,4 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink ---
+  --- mode: allow_nvlink_reassembly ---
+  --- mode: allow_nvlink_reassembly_alltoall ---
+
+========== source-gpus: 0,1,2,3,4,5 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink ---
+  --- mode: allow_nvlink_reassembly ---
+  --- mode: allow_nvlink_reassembly_alltoall ---
+
+========== source-gpus: 0,1,2,3,4,5,6 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink ---
+  --- mode: allow_nvlink_reassembly ---
+  --- mode: allow_nvlink_reassembly_alltoall ---
+
+========== source-gpus: 0,1,2,3,4,5,6,7 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink ---
+  --- mode: allow_nvlink_reassembly ---
+  --- mode: allow_nvlink_reassembly_alltoall ---
+
+=== Results table (source_gpus x mode -> BW in GB/s, latency in ms per iteration) ===
+=== Bandwidth (GB/s) ===
+ source_gpus     |    direct |  direct_alltoall |  allow_nvlink |  allow_nvlink_reassembly | allow_nvlink_reassembly_alltoall
+-----------------+----------+-----------------+--------------+-------------------------+----------------------------------
+ 0               |     47.98 |            47.53 |        170.12 |                   151.30 |                          71.40
+ 0,1             |     95.93 |            93.45 |        233.57 |                   225.69 |                         110.79
+ 0,1,2           |    143.83 |           138.27 |        271.77 |                   261.74 |                         137.45
+ 0,1,2,3         |    191.67 |           181.43 |        293.16 |                   290.22 |                         137.18
+ 0,1,2,3,4       |    239.47 |           224.84 |        302.16 |                   302.63 |                         132.72
+ 0,1,2,3,4,5     |    287.01 |           267.58 |        312.00 |                   315.84 |                         143.25
+ 0,1,2,3,4,5,6   |    335.15 |           304.75 |        318.84 |                   315.86 |                         136.31
+ 0,1,2,3,4,5,6,7 |    382.52 |           342.36 |        320.50 |                   321.35 |                         144.61
+
+All values in GB/s.
+
+=== Latency (ms per iteration) ===
+ source_gpus     |    direct |  direct_alltoall |  allow_nvlink |  allow_nvlink_reassembly | allow_nvlink_reassembly_alltoall
+-----------------+----------+-----------------+--------------+-------------------------+----------------------------------
+ 0               |     1.399 |            1.412 |         0.394 |                    0.444 |                          0.940
+ 0,1             |     1.399 |            1.436 |         0.575 |                    0.595 |                          1.211
+ 0,1,2           |     1.400 |            1.456 |         0.741 |                    0.769 |                          1.465
+ 0,1,2,3         |     1.401 |            1.480 |         0.916 |                    0.925 |                          1.957
+ 0,1,2,3,4       |     1.401 |            1.492 |         1.110 |                    1.109 |                          2.528
+ 0,1,2,3,4,5     |     1.403 |            1.505 |         1.291 |                    1.275 |                          2.811
+ 0,1,2,3,4,5,6   |     1.402 |            1.541 |         1.473 |                    1.487 |                          3.446
+ 0,1,2,3,4,5,6,7 |     1.404 |            1.568 |         1.675 |                    1.671 |                          3.713
+
+All values in ms per iteration.
+
+Done. Full log: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9477819_2026-02-16_00-48-38_latency_clc_64MB_pool0-00132_pool0-00150_/rdma_tests_full_9477819_2026-02-16_00-48-38_latency_clc_64MB_pool0-00132_pool0-00150_.log  Results: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9477819_2026-02-16_00-48-38_latency_clc_64MB_pool0-00132_pool0-00150_/rdma_tests_results_9477819_2026-02-16_00-48-38_latency_clc_64MB_pool0-00132_pool0-00150_.txt
