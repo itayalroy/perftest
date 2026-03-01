@@ -16,6 +16,7 @@ ALL_TO_ALL=0
 RECV_IP=""
 SOURCE_GPUS=""
 UTILIZE_NIC=""
+TRANSPORT_BUFFER=""
 
 # First, check if receiver IP is provided as positional argument
 if [[ $# -gt 0 ]] && [[ ! "$1" =~ ^-- ]]; then
@@ -50,6 +51,10 @@ while [[ $# -gt 0 ]]; do
             UTILIZE_NIC="$2"
             shift 2
             ;;
+        --transport-buffer)
+            TRANSPORT_BUFFER="$2"
+            shift 2
+            ;;
         --help|-h)
             echo "Usage: $0 <RECEIVER_IP> [OPTIONS]"
             echo ""
@@ -64,6 +69,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --source-gpus <list>   Comma-separated GPU IDs to use (e.g., '0' or '0,3,5')"
             echo "                         Filters which GPUs to use"
             echo "  --utilize-nic <NIC>    Run extra QP on this NIC for background load (must be in -n list)"
+            echo "  --transport-buffer <SIZE>  QP transport buffer size per GPU (e.g. 32M, 1G); enables piping. Not valid with --direct or --nics-only."
             echo "  --help, -h             Show this help message"
             echo ""
             echo "Examples:"
@@ -165,6 +171,9 @@ else
 fi
 if [[ -n "$UTILIZE_NIC" ]]; then
     CMD="${CMD} --utilize-nic ${UTILIZE_NIC}"
+fi
+if [[ -n "$TRANSPORT_BUFFER" ]]; then
+    CMD="${CMD} --transport-buffer ${TRANSPORT_BUFFER}"
 fi
 
 # Execute

@@ -32,7 +32,8 @@ struct qp_context {
     struct ibv_device *dev;
     struct ibv_context *ctx;
     struct ibv_pd *pd;
-    struct ibv_cq *cq;
+    struct ibv_cq *cq;      /* send CQ */
+    struct ibv_cq *recv_cq; /* receive CQ (separate to avoid races with concurrent send polls) */
     struct ibv_qp *qp;
     struct ibv_mr *mr;
     void *buffer;
@@ -196,20 +197,30 @@ static int setup_device(struct qp_context *qp, const char *dev_name)
         return -1;
     }
     
-    /* Create CQ */
+    /* Create send CQ and receive CQ separately so concurrent polls never race:
+     * rdma_poll_completion  → send_cq (qp->cq),  called inside qp_mutex
+     * rdma_poll_completion_with_imm → recv_cq, called outside qp_mutex by leader only */
     qp->cq = ibv_create_cq(qp->ctx, QUEUE_DEPTH, NULL, NULL, 0);
     if (!qp->cq) {
-        fprintf(stderr, "ibv_create_cq failed\n");
+        fprintf(stderr, "ibv_create_cq (send) failed\n");
         ibv_dealloc_pd(qp->pd);
         ibv_close_device(qp->ctx);
         return -1;
     }
-    
+    qp->recv_cq = ibv_create_cq(qp->ctx, QUEUE_DEPTH, NULL, NULL, 0);
+    if (!qp->recv_cq) {
+        fprintf(stderr, "ibv_create_cq (recv) failed\n");
+        ibv_destroy_cq(qp->cq);
+        ibv_dealloc_pd(qp->pd);
+        ibv_close_device(qp->ctx);
+        return -1;
+    }
+
     /* Create QP */
     struct ibv_qp_init_attr qp_attr = {0};
     qp_attr.qp_type = IBV_QPT_RC;
     qp_attr.send_cq = qp->cq;
-    qp_attr.recv_cq = qp->cq;
+    qp_attr.recv_cq = qp->recv_cq;
     qp_attr.cap.max_send_wr = QUEUE_DEPTH;
     qp_attr.cap.max_recv_wr = QUEUE_DEPTH;
     qp_attr.cap.max_send_sge = 1;
@@ -447,6 +458,7 @@ error:
         if (ctx->qps[i].buffer && !ctx->buffers_are_external) free_buffer(&ctx->qps[i], config->gpu_id[i]);
         if (ctx->qps[i].mr) ibv_dereg_mr(ctx->qps[i].mr);
         if (ctx->qps[i].qp) ibv_destroy_qp(ctx->qps[i].qp);
+        if (ctx->qps[i].recv_cq) ibv_destroy_cq(ctx->qps[i].recv_cq);
         if (ctx->qps[i].cq) ibv_destroy_cq(ctx->qps[i].cq);
         if (ctx->qps[i].pd) ibv_dealloc_pd(ctx->qps[i].pd);
         if (ctx->qps[i].ctx) ibv_close_device(ctx->qps[i].ctx);
@@ -738,20 +750,20 @@ int rdma_poll_completion_with_imm(rdma_multi_qp_context_t *ctx, int qp_index,
     if (!ctx || qp_index < 0 || qp_index >= ctx->num_qps) return -1;
     
     qp = &ctx->qps[qp_index];
-    
+
     while (polled < timeout_ms || timeout_ms < 0) {
-        ne = ibv_poll_cq(qp->cq, 1, &wc);
+        ne = ibv_poll_cq(qp->recv_cq, 1, &wc);
         if (ne > 0) {
             if (wc.status != IBV_WC_SUCCESS) {
                 fprintf(stderr, "WC error: %s\n", ibv_wc_status_str(wc.status));
                 return -1;
             }
-            
+
             if (wr_id_out)
                 *wr_id_out = wc.wr_id;
             if (imm_data && (wc.wc_flags & IBV_WC_WITH_IMM))
                 *imm_data = ntohl(wc.imm_data);
-            
+
             return 0;
         }
         
@@ -772,6 +784,7 @@ int rdma_multi_qp_cleanup(rdma_multi_qp_context_t *ctx)
     
     for (i = 0; i < ctx->num_qps; i++) {
         if (ctx->qps[i].qp) ibv_destroy_qp(ctx->qps[i].qp);
+        if (ctx->qps[i].recv_cq) ibv_destroy_cq(ctx->qps[i].recv_cq);
         if (ctx->qps[i].cq) ibv_destroy_cq(ctx->qps[i].cq);
         if (ctx->qps[i].mr) ibv_dereg_mr(ctx->qps[i].mr);
         if (ctx->qps[i].buffer && !ctx->buffers_are_external) {

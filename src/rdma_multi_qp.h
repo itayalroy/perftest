@@ -39,6 +39,7 @@ struct rdma_multi_qp_config {
     bool reassembly;           /* Enable reassembly on receiver side (multi-source NVLink only) */
     bool all_to_all;           /* Spread from each source to every target (N*M QPs); with --direct or --allow-nvlink --reassembly */
     void **external_buffers;   /* Optional: per-QP buffer pointers (e.g. slices of source buffer); if set, no allocation, caller owns memory */
+    size_t transport_buffer_size; /* 0 = use full slice size (no piping); otherwise QP buffer size per GPU */
 };
 
 /**

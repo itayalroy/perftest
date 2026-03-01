@@ -15,6 +15,7 @@ REASSEMBLY=0
 ALL_TO_ALL=0
 SOURCE_GPUS=""
 UTILIZE_NIC=""
+TRANSPORT_BUFFER=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -42,6 +43,10 @@ while [[ $# -gt 0 ]]; do
             UTILIZE_NIC="$2"
             shift 2
             ;;
+        --transport-buffer)
+            TRANSPORT_BUFFER="$2"
+            shift 2
+            ;;
         --help|-h)
             echo "Usage: $0 [OPTIONS]"
             echo ""
@@ -54,6 +59,7 @@ while [[ $# -gt 0 ]]; do
             echo "                         - In direct mode: filters which GPUs to use"
             echo "                         - In NVLink mode: multiple source GPUs (e.g., '0,1')"
             echo "  --utilize-nic <NIC>    Run extra QP on this NIC for background load (must be in -n list)"
+            echo "  --transport-buffer <SIZE>  QP transport buffer size per GPU (e.g. 32M, 1G); enables piping. Not valid with --direct or --nics-only."
             echo "  --help, -h             Show this help message"
             echo ""
             echo "Examples:"
@@ -147,6 +153,9 @@ else
 fi
 if [[ -n "$UTILIZE_NIC" ]]; then
     CMD="${CMD} --utilize-nic ${UTILIZE_NIC}"
+fi
+if [[ -n "$TRANSPORT_BUFFER" ]]; then
+    CMD="${CMD} --transport-buffer ${TRANSPORT_BUFFER}"
 fi
 
 # Execute
