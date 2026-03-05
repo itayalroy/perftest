@@ -38618,3 +38618,3028 @@ Target m=7 on GPU 7 (reassembly_buffers_2d[*,7]):
 
 === Data verification complete ===
 
+DEBUG [mlx5_0]: Port 1 - LID=10936, State=4, MTU=5, GID index=0
+DEBUG [mlx5_1]: Port 1 - LID=10836, State=4, MTU=5, GID index=0
+DEBUG [mlx5_2]: Port 1 - LID=10872, State=4, MTU=5, GID index=0
+DEBUG [mlx5_4]: Port 1 - LID=10809, State=4, MTU=5, GID index=0
+DEBUG [mlx5_5]: Port 1 - LID=11032, State=4, MTU=5, GID index=0
+DEBUG [mlx5_6]: Port 1 - LID=10962, State=4, MTU=5, GID index=0
+DEBUG [mlx5_7]: Port 1 - LID=11053, State=4, MTU=5, GID index=0
+DEBUG [mlx5_8]: Port 1 - LID=11059, State=4, MTU=5, GID index=0
+DEBUG [QP 0 CLIENT]: Connecting to 100.126.37.100:48515...
+DEBUG [QP 0 CLIENT]: Connected
+DEBUG [QP 1 CLIENT]: Connecting to 100.126.37.100:48516...
+DEBUG [QP 1 CLIENT]: Connected
+DEBUG [QP 2 CLIENT]: Connecting to 100.126.37.100:48517...
+DEBUG [QP 2 CLIENT]: Connected
+DEBUG [QP 3 CLIENT]: Connecting to 100.126.37.100:48518...
+DEBUG [QP 3 CLIENT]: Connected
+DEBUG [QP 4 CLIENT]: Connecting to 100.126.37.100:48519...
+DEBUG [QP 4 CLIENT]: Connected
+DEBUG [QP 5 CLIENT]: Connecting to 100.126.37.100:48520...
+DEBUG [QP 5 CLIENT]: Connected
+DEBUG [QP 6 CLIENT]: Connecting to 100.126.37.100:48521...
+DEBUG [QP 6 CLIENT]: Connected
+DEBUG [QP 7 CLIENT]: Connecting to 100.126.37.100:48522...
+DEBUG [QP 7 CLIENT]: Connected
+DEBUG [QP 0 CLIENT]: Sending - QPN=33002, VADDR=23446562013184, LID=10936, PSN=9585881, RKEY=239318, GID=fe80000000000000946dae03009174f2
+DEBUG [QP 0 CLIENT]: Received raw: 95527 23446562013184 11687 12190050 244669 fe80000000000000946dae03008b15b4
+DEBUG [QP 0 CLIENT]: Parsed 6 values - Remote QPN=95527, VADDR=23446562013184, LID=11687, PSN=12190050, RKEY=244669, GID=fe80000000000000946dae03008b15b4
+DEBUG: Using LID-based addressing - Remote LID=11687
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=95527, Remote PSN=12190050, MTU=5
+DEBUG [QP 1 CLIENT]: Sending - QPN=20172, VADDR=23445823815680, LID=10836, PSN=918140, RKEY=239492, GID=fe80000000000000946dae0300919a52
+DEBUG [QP 1 CLIENT]: Received raw: 88111 23445823815680 11656 5407585 244745 fe80000000000000946dae03008b156c
+DEBUG [QP 1 CLIENT]: Parsed 6 values - Remote QPN=88111, VADDR=23445823815680, LID=11656, PSN=5407585, RKEY=244745, GID=fe80000000000000946dae03008b156c
+DEBUG: Using LID-based addressing - Remote LID=11656
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=88111, Remote PSN=5407585, MTU=5
+DEBUG [QP 2 CLIENT]: Sending - QPN=19831, VADDR=23445152727040, LID=10872, PSN=4722941, RKEY=240634, GID=fe80000000000000946dae030091d7aa
+DEBUG [QP 2 CLIENT]: Received raw: 85200 23445152727040 11699 1770436 247561 fe80000000000000946dae03008b13dc
+DEBUG [QP 2 CLIENT]: Parsed 6 values - Remote QPN=85200, VADDR=23445152727040, LID=11699, PSN=1770436, RKEY=247561, GID=fe80000000000000946dae03008b13dc
+DEBUG: Using LID-based addressing - Remote LID=11699
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=85200, Remote PSN=1770436, MTU=5
+DEBUG [QP 3 CLIENT]: Sending - QPN=17761, VADDR=23444414529536, LID=10809, PSN=549696, RKEY=242957, GID=fe80000000000000946dae030091dd0a
+DEBUG [QP 3 CLIENT]: Received raw: 85292 23444414529536 11606 2903293 239119 fe80000000000000946dae03008b1504
+DEBUG [QP 3 CLIENT]: Parsed 6 values - Remote QPN=85292, VADDR=23444414529536, LID=11606, PSN=2903293, RKEY=239119, GID=fe80000000000000946dae03008b1504
+DEBUG: Using LID-based addressing - Remote LID=11606
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=85292, Remote PSN=2903293, MTU=5
+DEBUG [QP 4 CLIENT]: Sending - QPN=28070, VADDR=23443743440896, LID=11032, PSN=9437819, RKEY=239299, GID=fe80000000000000946dae03009177ba
+DEBUG [QP 4 CLIENT]: Received raw: 83319 23443743440896 11741 16481467 242656 fe80000000000000946dae03008b150c
+DEBUG [QP 4 CLIENT]: Parsed 6 values - Remote QPN=83319, VADDR=23443743440896, LID=11741, PSN=16481467, RKEY=242656, GID=fe80000000000000946dae03008b150c
+DEBUG: Using LID-based addressing - Remote LID=11741
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=83319, Remote PSN=16481467, MTU=5
+DEBUG [QP 5 CLIENT]: Sending - QPN=18744, VADDR=23443005243392, LID=10962, PSN=10434809, RKEY=235778, GID=fe80000000000000946dae030091dd22
+DEBUG [QP 5 CLIENT]: Received raw: 79548 23443005243392 11821 3790317 236629 fe80000000000000946dae03008b15a4
+DEBUG [QP 5 CLIENT]: Parsed 6 values - Remote QPN=79548, VADDR=23443005243392, LID=11821, PSN=3790317, RKEY=236629, GID=fe80000000000000946dae03008b15a4
+DEBUG: Using LID-based addressing - Remote LID=11821
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=79548, Remote PSN=3790317, MTU=5
+DEBUG [QP 6 CLIENT]: Sending - QPN=20406, VADDR=23442300600320, LID=11053, PSN=5613440, RKEY=244502, GID=fe80000000000000946dae030091ddd2
+DEBUG [QP 6 CLIENT]: Received raw: 80376 23442300600320 11864 1848675 242735 fe80000000000000946dae03008b1644
+DEBUG [QP 6 CLIENT]: Parsed 6 values - Remote QPN=80376, VADDR=23442300600320, LID=11864, PSN=1848675, RKEY=242735, GID=fe80000000000000946dae03008b1644
+DEBUG: Using LID-based addressing - Remote LID=11864
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=80376, Remote PSN=1848675, MTU=5
+DEBUG [QP 7 CLIENT]: Sending - QPN=18092, VADDR=23441595957248, LID=11059, PSN=2132752, RKEY=242908, GID=fe80000000000000946dae03009174ea
+DEBUG [QP 7 CLIENT]: Received raw: 73506 23441595957248 11759 7323190 247294 fe80000000000000946dae03008b1534
+DEBUG [QP 7 CLIENT]: Parsed 6 values - Remote QPN=73506, VADDR=23441595957248, LID=11759, PSN=7323190, RKEY=247294, GID=fe80000000000000946dae03008b1534
+DEBUG: Using LID-based addressing - Remote LID=11759
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=73506, Remote PSN=7323190, MTU=5
+All-to-all NVLink reassembly: 4 × 8 × 8 = 256 sender threads (N×K×M)
+QP 0 buffer on target GPU 0 (for RDMA)
+QP 1 buffer on target GPU 1 (for RDMA)
+QP 2 buffer on target GPU 2 (for RDMA)
+QP 3 buffer on target GPU 3 (for RDMA)
+QP 4 buffer on target GPU 4 (for RDMA)
+QP 5 buffer on target GPU 5 (for RDMA)
+QP 6 buffer on target GPU 6 (for RDMA)
+QP 7 buffer on target GPU 7 (for RDMA)
+Allocating buffer on GPU 0
+Allocating buffer on GPU 1
+Allocating buffer on GPU 2
+Allocating buffer on GPU 3
+Allocating buffer on GPU 4
+Allocating buffer on GPU 5
+Allocating buffer on GPU 6
+Allocating buffer on GPU 7
+Initialized 8 QP mutexes for serialized RDMA access
+Creating NVLink contexts for all-to-all reassembly: 256 threads (N×K×M=4×8×8)
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 1
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 2
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 3
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 4
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 5
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 6
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 7
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 0
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 2
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 3
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 4
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 5
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 6
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 7
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 0
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 1
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 3
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 4
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 5
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 6
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 7
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 0
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 1
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 2
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 4
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 5
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 6
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 7
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink all-to-all: 256 contexts created (one per thread, no sharing)
+Paths:
+  Source GPU 0:
+    Thread 0: GPU0 -> mlx5_0 -> RDMA
+    Thread 1: GPU0 -> NVLink -> GPU1 -> mlx5_1 -> RDMA
+    Thread 2: GPU0 -> NVLink -> GPU2 -> mlx5_2 -> RDMA
+    Thread 3: GPU0 -> NVLink -> GPU3 -> mlx5_4 -> RDMA
+    Thread 4: GPU0 -> NVLink -> GPU4 -> mlx5_5 -> RDMA
+    Thread 5: GPU0 -> NVLink -> GPU5 -> mlx5_6 -> RDMA
+    Thread 6: GPU0 -> NVLink -> GPU6 -> mlx5_7 -> RDMA
+    Thread 7: GPU0 -> NVLink -> GPU7 -> mlx5_8 -> RDMA
+  Source GPU 1:
+    Thread 8: GPU1 -> NVLink -> GPU0 -> mlx5_0 -> RDMA
+    Thread 9: GPU1 -> mlx5_1 -> RDMA
+    Thread 10: GPU1 -> NVLink -> GPU2 -> mlx5_2 -> RDMA
+    Thread 11: GPU1 -> NVLink -> GPU3 -> mlx5_4 -> RDMA
+    Thread 12: GPU1 -> NVLink -> GPU4 -> mlx5_5 -> RDMA
+    Thread 13: GPU1 -> NVLink -> GPU5 -> mlx5_6 -> RDMA
+    Thread 14: GPU1 -> NVLink -> GPU6 -> mlx5_7 -> RDMA
+    Thread 15: GPU1 -> NVLink -> GPU7 -> mlx5_8 -> RDMA
+  Source GPU 2:
+    Thread 16: GPU2 -> NVLink -> GPU0 -> mlx5_0 -> RDMA
+    Thread 17: GPU2 -> NVLink -> GPU1 -> mlx5_1 -> RDMA
+    Thread 18: GPU2 -> mlx5_2 -> RDMA
+    Thread 19: GPU2 -> NVLink -> GPU3 -> mlx5_4 -> RDMA
+    Thread 20: GPU2 -> NVLink -> GPU4 -> mlx5_5 -> RDMA
+    Thread 21: GPU2 -> NVLink -> GPU5 -> mlx5_6 -> RDMA
+    Thread 22: GPU2 -> NVLink -> GPU6 -> mlx5_7 -> RDMA
+    Thread 23: GPU2 -> NVLink -> GPU7 -> mlx5_8 -> RDMA
+  Source GPU 3:
+    Thread 24: GPU3 -> NVLink -> GPU0 -> mlx5_0 -> RDMA
+    Thread 25: GPU3 -> NVLink -> GPU1 -> mlx5_1 -> RDMA
+    Thread 26: GPU3 -> NVLink -> GPU2 -> mlx5_2 -> RDMA
+    Thread 27: GPU3 -> mlx5_4 -> RDMA
+    Thread 28: GPU3 -> NVLink -> GPU4 -> mlx5_5 -> RDMA
+    Thread 29: GPU3 -> NVLink -> GPU5 -> mlx5_6 -> RDMA
+    Thread 30: GPU3 -> NVLink -> GPU6 -> mlx5_7 -> RDMA
+    Thread 31: GPU3 -> NVLink -> GPU7 -> mlx5_8 -> RDMA
+
+Sender: posted 100 receive WQEs for signal-back from receiver
+Total elapsed time: 0.302961 seconds
+total_data: 512.00 MB (536870912 bytes)
+Average per iteration: 177.21 GB/s (0.003030 seconds)
+[0;32mTotal bandwidth: 177.21 GB/s[0m
+Latency (per iteration): 0.003030 s (3.030 ms)
+
+=== Verifying transferred data on QP buffers ===
+Sender: all-to-all reassembly - verifying source buffers (all sub-slices):
+  Source 0 (GPU 0) :
+ subslice 0,0 source 0 gpu_0
+ subslice 1,0 source 0 gpu_0
+ subslice 2,0 source 0 gpu_0
+ subslice 3,0 source 0 gpu_0
+ subslice 4,0 source 0 gpu_0
+ subslice 5,0 source 0 gpu_0
+ subslice 6,0 source 0 gpu_0
+ subslice 7,0 source 0 gpu_0
+ subslice 0,1 source 0 gpu_0
+ subslice 1,1 source 0 gpu_0
+ subslice 2,1 source 0 gpu_0
+ subslice 3,1 source 0 gpu_0
+ subslice 4,1 source 0 gpu_0
+ subslice 5,1 source 0 gpu_0
+ subslice 6,1 source 0 gpu_0
+ subslice 7,1 source 0 gpu_0
+ subslice 0,2 source 0 gpu_0
+ subslice 1,2 source 0 gpu_0
+ subslice 2,2 source 0 gpu_0
+ subslice 3,2 source 0 gpu_0
+ subslice 4,2 source 0 gpu_0
+ subslice 5,2 source 0 gpu_0
+ subslice 6,2 source 0 gpu_0
+ subslice 7,2 source 0 gpu_0
+ subslice 0,3 source 0 gpu_0
+ subslice 1,3 source 0 gpu_0
+ subslice 2,3 source 0 gpu_0
+ subslice 3,3 source 0 gpu_0
+ subslice 4,3 source 0 gpu_0
+ subslice 5,3 source 0 gpu_0
+ subslice 6,3 source 0 gpu_0
+ subslice 7,3 source 0 gpu_0
+ subslice 0,4 source 0 gpu_0
+ subslice 1,4 source 0 gpu_0
+ subslice 2,4 source 0 gpu_0
+ subslice 3,4 source 0 gpu_0
+ subslice 4,4 source 0 gpu_0
+ subslice 5,4 source 0 gpu_0
+ subslice 6,4 source 0 gpu_0
+ subslice 7,4 source 0 gpu_0
+ subslice 0,5 source 0 gpu_0
+ subslice 1,5 source 0 gpu_0
+ subslice 2,5 source 0 gpu_0
+ subslice 3,5 source 0 gpu_0
+ subslice 4,5 source 0 gpu_0
+ subslice 5,5 source 0 gpu_0
+ subslice 6,5 source 0 gpu_0
+ subslice 7,5 source 0 gpu_0
+ subslice 0,6 source 0 gpu_0
+ subslice 1,6 source 0 gpu_0
+ subslice 2,6 source 0 gpu_0
+ subslice 3,6 source 0 gpu_0
+ subslice 4,6 source 0 gpu_0
+ subslice 5,6 source 0 gpu_0
+ subslice 6,6 source 0 gpu_0
+ subslice 7,6 source 0 gpu_0
+ subslice 0,7 source 0 gpu_0
+ subslice 1,7 source 0 gpu_0
+ subslice 2,7 source 0 gpu_0
+ subslice 3,7 source 0 gpu_0
+ subslice 4,7 source 0 gpu_0
+ subslice 5,7 source 0 gpu_0
+ subslice 6,7 source 0 gpu_0
+ subslice 7,7 source 0 gpu_0
+  Source 1 (GPU 1) :
+ subslice 0,0 source 1 gpu_1
+ subslice 1,0 source 1 gpu_1
+ subslice 2,0 source 1 gpu_1
+ subslice 3,0 source 1 gpu_1
+ subslice 4,0 source 1 gpu_1
+ subslice 5,0 source 1 gpu_1
+ subslice 6,0 source 1 gpu_1
+ subslice 7,0 source 1 gpu_1
+ subslice 0,1 source 1 gpu_1
+ subslice 1,1 source 1 gpu_1
+ subslice 2,1 source 1 gpu_1
+ subslice 3,1 source 1 gpu_1
+ subslice 4,1 source 1 gpu_1
+ subslice 5,1 source 1 gpu_1
+ subslice 6,1 source 1 gpu_1
+ subslice 7,1 source 1 gpu_1
+ subslice 0,2 source 1 gpu_1
+ subslice 1,2 source 1 gpu_1
+ subslice 2,2 source 1 gpu_1
+ subslice 3,2 source 1 gpu_1
+ subslice 4,2 source 1 gpu_1
+ subslice 5,2 source 1 gpu_1
+ subslice 6,2 source 1 gpu_1
+ subslice 7,2 source 1 gpu_1
+ subslice 0,3 source 1 gpu_1
+ subslice 1,3 source 1 gpu_1
+ subslice 2,3 source 1 gpu_1
+ subslice 3,3 source 1 gpu_1
+ subslice 4,3 source 1 gpu_1
+ subslice 5,3 source 1 gpu_1
+ subslice 6,3 source 1 gpu_1
+ subslice 7,3 source 1 gpu_1
+ subslice 0,4 source 1 gpu_1
+ subslice 1,4 source 1 gpu_1
+ subslice 2,4 source 1 gpu_1
+ subslice 3,4 source 1 gpu_1
+ subslice 4,4 source 1 gpu_1
+ subslice 5,4 source 1 gpu_1
+ subslice 6,4 source 1 gpu_1
+ subslice 7,4 source 1 gpu_1
+ subslice 0,5 source 1 gpu_1
+ subslice 1,5 source 1 gpu_1
+ subslice 2,5 source 1 gpu_1
+ subslice 3,5 source 1 gpu_1
+ subslice 4,5 source 1 gpu_1
+ subslice 5,5 source 1 gpu_1
+ subslice 6,5 source 1 gpu_1
+ subslice 7,5 source 1 gpu_1
+ subslice 0,6 source 1 gpu_1
+ subslice 1,6 source 1 gpu_1
+ subslice 2,6 source 1 gpu_1
+ subslice 3,6 source 1 gpu_1
+ subslice 4,6 source 1 gpu_1
+ subslice 5,6 source 1 gpu_1
+ subslice 6,6 source 1 gpu_1
+ subslice 7,6 source 1 gpu_1
+ subslice 0,7 source 1 gpu_1
+ subslice 1,7 source 1 gpu_1
+ subslice 2,7 source 1 gpu_1
+ subslice 3,7 source 1 gpu_1
+ subslice 4,7 source 1 gpu_1
+ subslice 5,7 source 1 gpu_1
+ subslice 6,7 source 1 gpu_1
+ subslice 7,7 source 1 gpu_1
+  Source 2 (GPU 2) :
+ subslice 0,0 source 2 gpu_2
+ subslice 1,0 source 2 gpu_2
+ subslice 2,0 source 2 gpu_2
+ subslice 3,0 source 2 gpu_2
+ subslice 4,0 source 2 gpu_2
+ subslice 5,0 source 2 gpu_2
+ subslice 6,0 source 2 gpu_2
+ subslice 7,0 source 2 gpu_2
+ subslice 0,1 source 2 gpu_2
+ subslice 1,1 source 2 gpu_2
+ subslice 2,1 source 2 gpu_2
+ subslice 3,1 source 2 gpu_2
+ subslice 4,1 source 2 gpu_2
+ subslice 5,1 source 2 gpu_2
+ subslice 6,1 source 2 gpu_2
+ subslice 7,1 source 2 gpu_2
+ subslice 0,2 source 2 gpu_2
+ subslice 1,2 source 2 gpu_2
+ subslice 2,2 source 2 gpu_2
+ subslice 3,2 source 2 gpu_2
+ subslice 4,2 source 2 gpu_2
+ subslice 5,2 source 2 gpu_2
+ subslice 6,2 source 2 gpu_2
+ subslice 7,2 source 2 gpu_2
+ subslice 0,3 source 2 gpu_2
+ subslice 1,3 source 2 gpu_2
+ subslice 2,3 source 2 gpu_2
+ subslice 3,3 source 2 gpu_2
+ subslice 4,3 source 2 gpu_2
+ subslice 5,3 source 2 gpu_2
+ subslice 6,3 source 2 gpu_2
+ subslice 7,3 source 2 gpu_2
+ subslice 0,4 source 2 gpu_2
+ subslice 1,4 source 2 gpu_2
+ subslice 2,4 source 2 gpu_2
+ subslice 3,4 source 2 gpu_2
+ subslice 4,4 source 2 gpu_2
+ subslice 5,4 source 2 gpu_2
+ subslice 6,4 source 2 gpu_2
+ subslice 7,4 source 2 gpu_2
+ subslice 0,5 source 2 gpu_2
+ subslice 1,5 source 2 gpu_2
+ subslice 2,5 source 2 gpu_2
+ subslice 3,5 source 2 gpu_2
+ subslice 4,5 source 2 gpu_2
+ subslice 5,5 source 2 gpu_2
+ subslice 6,5 source 2 gpu_2
+ subslice 7,5 source 2 gpu_2
+ subslice 0,6 source 2 gpu_2
+ subslice 1,6 source 2 gpu_2
+ subslice 2,6 source 2 gpu_2
+ subslice 3,6 source 2 gpu_2
+ subslice 4,6 source 2 gpu_2
+ subslice 5,6 source 2 gpu_2
+ subslice 6,6 source 2 gpu_2
+ subslice 7,6 source 2 gpu_2
+ subslice 0,7 source 2 gpu_2
+ subslice 1,7 source 2 gpu_2
+ subslice 2,7 source 2 gpu_2
+ subslice 3,7 source 2 gpu_2
+ subslice 4,7 source 2 gpu_2
+ subslice 5,7 source 2 gpu_2
+ subslice 6,7 source 2 gpu_2
+ subslice 7,7 source 2 gpu_2
+  Source 3 (GPU 3) :
+ subslice 0,0 source 3 gpu_3
+ subslice 1,0 source 3 gpu_3
+ subslice 2,0 source 3 gpu_3
+ subslice 3,0 source 3 gpu_3
+ subslice 4,0 source 3 gpu_3
+ subslice 5,0 source 3 gpu_3
+ subslice 6,0 source 3 gpu_3
+ subslice 7,0 source 3 gpu_3
+ subslice 0,1 source 3 gpu_3
+ subslice 1,1 source 3 gpu_3
+ subslice 2,1 source 3 gpu_3
+ subslice 3,1 source 3 gpu_3
+ subslice 4,1 source 3 gpu_3
+ subslice 5,1 source 3 gpu_3
+ subslice 6,1 source 3 gpu_3
+ subslice 7,1 source 3 gpu_3
+ subslice 0,2 source 3 gpu_3
+ subslice 1,2 source 3 gpu_3
+ subslice 2,2 source 3 gpu_3
+ subslice 3,2 source 3 gpu_3
+ subslice 4,2 source 3 gpu_3
+ subslice 5,2 source 3 gpu_3
+ subslice 6,2 source 3 gpu_3
+ subslice 7,2 source 3 gpu_3
+ subslice 0,3 source 3 gpu_3
+ subslice 1,3 source 3 gpu_3
+ subslice 2,3 source 3 gpu_3
+ subslice 3,3 source 3 gpu_3
+ subslice 4,3 source 3 gpu_3
+ subslice 5,3 source 3 gpu_3
+ subslice 6,3 source 3 gpu_3
+ subslice 7,3 source 3 gpu_3
+ subslice 0,4 source 3 gpu_3
+ subslice 1,4 source 3 gpu_3
+ subslice 2,4 source 3 gpu_3
+ subslice 3,4 source 3 gpu_3
+ subslice 4,4 source 3 gpu_3
+ subslice 5,4 source 3 gpu_3
+ subslice 6,4 source 3 gpu_3
+ subslice 7,4 source 3 gpu_3
+ subslice 0,5 source 3 gpu_3
+ subslice 1,5 source 3 gpu_3
+ subslice 2,5 source 3 gpu_3
+ subslice 3,5 source 3 gpu_3
+ subslice 4,5 source 3 gpu_3
+ subslice 5,5 source 3 gpu_3
+ subslice 6,5 source 3 gpu_3
+ subslice 7,5 source 3 gpu_3
+ subslice 0,6 source 3 gpu_3
+ subslice 1,6 source 3 gpu_3
+ subslice 2,6 source 3 gpu_3
+ subslice 3,6 source 3 gpu_3
+ subslice 4,6 source 3 gpu_3
+ subslice 5,6 source 3 gpu_3
+ subslice 6,6 source 3 gpu_3
+ subslice 7,6 source 3 gpu_3
+ subslice 0,7 source 3 gpu_3
+ subslice 1,7 source 3 gpu_3
+ subslice 2,7 source 3 gpu_3
+ subslice 3,7 source 3 gpu_3
+ subslice 4,7 source 3 gpu_3
+ subslice 5,7 source 3 gpu_3
+ subslice 6,7 source 3 gpu_3
+ subslice 7,7 source 3 gpu_3
+=== Data verification complete ===
+
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 128M ---
+GpuFreq=control_disabled
+GpuFreq=control_disabled
+DEBUG [mlx5_0]: Port 1 - LID=11687, State=4, MTU=5, GID index=0
+DEBUG [mlx5_1]: Port 1 - LID=11656, State=4, MTU=5, GID index=0
+DEBUG [mlx5_2]: Port 1 - LID=11699, State=4, MTU=5, GID index=0
+DEBUG [mlx5_4]: Port 1 - LID=11606, State=4, MTU=5, GID index=0
+DEBUG [mlx5_5]: Port 1 - LID=11741, State=4, MTU=5, GID index=0
+DEBUG [mlx5_6]: Port 1 - LID=11821, State=4, MTU=5, GID index=0
+DEBUG [mlx5_7]: Port 1 - LID=11864, State=4, MTU=5, GID index=0
+DEBUG [mlx5_8]: Port 1 - LID=11759, State=4, MTU=5, GID index=0
+QP 0 buffer on target GPU 0 (for RDMA)
+QP 1 buffer on target GPU 1 (for RDMA)
+QP 2 buffer on target GPU 2 (for RDMA)
+QP 3 buffer on target GPU 3 (for RDMA)
+QP 4 buffer on target GPU 4 (for RDMA)
+QP 5 buffer on target GPU 5 (for RDMA)
+QP 6 buffer on target GPU 6 (for RDMA)
+QP 7 buffer on target GPU 7 (for RDMA)
+Allocating buffer on GPU 0
+Allocating buffer on GPU 1
+Allocating buffer on GPU 2
+Allocating buffer on GPU 3
+Allocating buffer on GPU 4
+Allocating buffer on GPU 5
+Allocating buffer on GPU 6
+Allocating buffer on GPU 7
+Allocated 4 slice buffers on GPU 0 (16777216 bytes each)
+Allocated 4 slice buffers on GPU 1 (16777216 bytes each)
+Allocated 4 slice buffers on GPU 2 (16777216 bytes each)
+Allocated 4 slice buffers on GPU 3 (16777216 bytes each)
+Allocated 4 slice buffers on GPU 4 (16777216 bytes each)
+Allocated 4 slice buffers on GPU 5 (16777216 bytes each)
+Allocated 4 slice buffers on GPU 6 (16777216 bytes each)
+Allocated 4 slice buffers on GPU 7 (16777216 bytes each)
+Creating NVLink contexts for all-to-all reassembly (QP GPU -> target GPU), K×M=8×8
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 1
+NVLink: Context initialized successfully
+Reassembly NVLink QP0->target1: GPU0 -> GPU1
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 2
+NVLink: Context initialized successfully
+Reassembly NVLink QP0->target2: GPU0 -> GPU2
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 3
+NVLink: Context initialized successfully
+Reassembly NVLink QP0->target3: GPU0 -> GPU3
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 4
+NVLink: Context initialized successfully
+Reassembly NVLink QP0->target4: GPU0 -> GPU4
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 5
+NVLink: Context initialized successfully
+Reassembly NVLink QP0->target5: GPU0 -> GPU5
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 6
+NVLink: Context initialized successfully
+Reassembly NVLink QP0->target6: GPU0 -> GPU6
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 7
+NVLink: Context initialized successfully
+Reassembly NVLink QP0->target7: GPU0 -> GPU7
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 0
+NVLink: Context initialized successfully
+Reassembly NVLink QP1->target0: GPU1 -> GPU0
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 2
+NVLink: Context initialized successfully
+Reassembly NVLink QP1->target2: GPU1 -> GPU2
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 3
+NVLink: Context initialized successfully
+Reassembly NVLink QP1->target3: GPU1 -> GPU3
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 4
+NVLink: Context initialized successfully
+Reassembly NVLink QP1->target4: GPU1 -> GPU4
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 5
+NVLink: Context initialized successfully
+Reassembly NVLink QP1->target5: GPU1 -> GPU5
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 6
+NVLink: Context initialized successfully
+Reassembly NVLink QP1->target6: GPU1 -> GPU6
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 7
+NVLink: Context initialized successfully
+Reassembly NVLink QP1->target7: GPU1 -> GPU7
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 0
+NVLink: Context initialized successfully
+Reassembly NVLink QP2->target0: GPU2 -> GPU0
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 1
+NVLink: Context initialized successfully
+Reassembly NVLink QP2->target1: GPU2 -> GPU1
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 3
+NVLink: Context initialized successfully
+Reassembly NVLink QP2->target3: GPU2 -> GPU3
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 4
+NVLink: Context initialized successfully
+Reassembly NVLink QP2->target4: GPU2 -> GPU4
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 5
+NVLink: Context initialized successfully
+Reassembly NVLink QP2->target5: GPU2 -> GPU5
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 6
+NVLink: Context initialized successfully
+Reassembly NVLink QP2->target6: GPU2 -> GPU6
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 7
+NVLink: Context initialized successfully
+Reassembly NVLink QP2->target7: GPU2 -> GPU7
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 0
+NVLink: Context initialized successfully
+Reassembly NVLink QP3->target0: GPU3 -> GPU0
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 1
+NVLink: Context initialized successfully
+Reassembly NVLink QP3->target1: GPU3 -> GPU1
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 2
+NVLink: Context initialized successfully
+Reassembly NVLink QP3->target2: GPU3 -> GPU2
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 4
+NVLink: Context initialized successfully
+Reassembly NVLink QP3->target4: GPU3 -> GPU4
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 5
+NVLink: Context initialized successfully
+Reassembly NVLink QP3->target5: GPU3 -> GPU5
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 6
+NVLink: Context initialized successfully
+Reassembly NVLink QP3->target6: GPU3 -> GPU6
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 7
+NVLink: Context initialized successfully
+Reassembly NVLink QP3->target7: GPU3 -> GPU7
+NVLink: Initializing context for GPU 4 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 4 to GPU 0
+NVLink: Context initialized successfully
+Reassembly NVLink QP4->target0: GPU4 -> GPU0
+NVLink: Initializing context for GPU 4 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 4 to GPU 1
+NVLink: Context initialized successfully
+Reassembly NVLink QP4->target1: GPU4 -> GPU1
+NVLink: Initializing context for GPU 4 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 4 to GPU 2
+NVLink: Context initialized successfully
+Reassembly NVLink QP4->target2: GPU4 -> GPU2
+NVLink: Initializing context for GPU 4 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 4 to GPU 3
+NVLink: Context initialized successfully
+Reassembly NVLink QP4->target3: GPU4 -> GPU3
+NVLink: Initializing context for GPU 4 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 4 to GPU 5
+NVLink: Context initialized successfully
+Reassembly NVLink QP4->target5: GPU4 -> GPU5
+NVLink: Initializing context for GPU 4 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 4 to GPU 6
+NVLink: Context initialized successfully
+Reassembly NVLink QP4->target6: GPU4 -> GPU6
+NVLink: Initializing context for GPU 4 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 4 to GPU 7
+NVLink: Context initialized successfully
+Reassembly NVLink QP4->target7: GPU4 -> GPU7
+NVLink: Initializing context for GPU 5 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 5 to GPU 0
+NVLink: Context initialized successfully
+Reassembly NVLink QP5->target0: GPU5 -> GPU0
+NVLink: Initializing context for GPU 5 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 5 to GPU 1
+NVLink: Context initialized successfully
+Reassembly NVLink QP5->target1: GPU5 -> GPU1
+NVLink: Initializing context for GPU 5 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 5 to GPU 2
+NVLink: Context initialized successfully
+Reassembly NVLink QP5->target2: GPU5 -> GPU2
+NVLink: Initializing context for GPU 5 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 5 to GPU 3
+NVLink: Context initialized successfully
+Reassembly NVLink QP5->target3: GPU5 -> GPU3
+NVLink: Initializing context for GPU 5 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 5 to GPU 4
+NVLink: Context initialized successfully
+Reassembly NVLink QP5->target4: GPU5 -> GPU4
+NVLink: Initializing context for GPU 5 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 5 to GPU 6
+NVLink: Context initialized successfully
+Reassembly NVLink QP5->target6: GPU5 -> GPU6
+NVLink: Initializing context for GPU 5 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 5 to GPU 7
+NVLink: Context initialized successfully
+Reassembly NVLink QP5->target7: GPU5 -> GPU7
+NVLink: Initializing context for GPU 6 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 6 to GPU 0
+NVLink: Context initialized successfully
+Reassembly NVLink QP6->target0: GPU6 -> GPU0
+NVLink: Initializing context for GPU 6 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 6 to GPU 1
+NVLink: Context initialized successfully
+Reassembly NVLink QP6->target1: GPU6 -> GPU1
+NVLink: Initializing context for GPU 6 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 6 to GPU 2
+NVLink: Context initialized successfully
+Reassembly NVLink QP6->target2: GPU6 -> GPU2
+NVLink: Initializing context for GPU 6 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 6 to GPU 3
+NVLink: Context initialized successfully
+Reassembly NVLink QP6->target3: GPU6 -> GPU3
+NVLink: Initializing context for GPU 6 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 6 to GPU 4
+NVLink: Context initialized successfully
+Reassembly NVLink QP6->target4: GPU6 -> GPU4
+NVLink: Initializing context for GPU 6 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 6 to GPU 5
+NVLink: Context initialized successfully
+Reassembly NVLink QP6->target5: GPU6 -> GPU5
+NVLink: Initializing context for GPU 6 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+DEBUG [QP 0 SERVER]: Listening on port 48515
+DEBUG [QP 1 SERVER]: Listening on port 48516
+DEBUG [QP 2 SERVER]: Listening on port 48517
+DEBUG [QP 3 SERVER]: Listening on port 48518
+DEBUG [QP 4 SERVER]: Listening on port 48519
+DEBUG [QP 5 SERVER]: Listening on port 48520
+DEBUG [QP 6 SERVER]: Listening on port 48521
+DEBUG [QP 7 SERVER]: Listening on port 48522
+DEBUG [QP 0 SERVER]: Accepting connection...
+DEBUG [QP 0 SERVER]: Accepted connection
+DEBUG [QP 0 SERVER]: Sending - QPN=95528, VADDR=23446562013184, LID=11687, PSN=552453, RKEY=244670, GID=fe80000000000000946dae03008b15b4
+DEBUG [QP 0 SERVER]: Received raw: 33003 23446562013184 10936 12476411 239319 fe80000000000000946dae03009174f2
+DEBUG [QP 0 SERVER]: Parsed 6 values - Remote QPN=33003, VADDR=23446562013184, LID=10936, PSN=12476411, RKEY=239319, GID=fe80000000000000946dae03009174f2
+DEBUG: Using LID-based addressing - Remote LID=10936
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=33003, Remote PSN=12476411, MTU=5
+DEBUG [QP 1 SERVER]: Accepting connection...
+DEBUG [QP 1 SERVER]: Accepted connection
+DEBUG [QP 1 SERVER]: Sending - QPN=88112, VADDR=23445823815680, LID=11656, PSN=7381136, RKEY=244746, GID=fe80000000000000946dae03008b156c
+DEBUG [QP 1 SERVER]: Received raw: 20173 23445823815680 10836 5884189 239493 fe80000000000000946dae0300919a52
+DEBUG [QP 1 SERVER]: Parsed 6 values - Remote QPN=20173, VADDR=23445823815680, LID=10836, PSN=5884189, RKEY=239493, GID=fe80000000000000946dae0300919a52
+DEBUG: Using LID-based addressing - Remote LID=10836
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=20173, Remote PSN=5884189, MTU=5
+DEBUG [QP 2 SERVER]: Accepting connection...
+DEBUG [QP 2 SERVER]: Accepted connection
+DEBUG [QP 2 SERVER]: Sending - QPN=85201, VADDR=23445152727040, LID=11699, PSN=10688901, RKEY=247562, GID=fe80000000000000946dae03008b13dc
+DEBUG [QP 2 SERVER]: Received raw: 19832 23445152727040 10872 3458907 240635 fe80000000000000946dae030091d7aa
+DEBUG [QP 2 SERVER]: Parsed 6 values - Remote QPN=19832, VADDR=23445152727040, LID=10872, PSN=3458907, RKEY=240635, GID=fe80000000000000946dae030091d7aa
+DEBUG: Using LID-based addressing - Remote LID=10872
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=19832, Remote PSN=3458907, MTU=5
+DEBUG [QP 3 SERVER]: Accepting connection...
+DEBUG [QP 3 SERVER]: Accepted connection
+DEBUG [QP 3 SERVER]: Sending - QPN=85294, VADDR=23444414529536, LID=11606, PSN=11283841, RKEY=239120, GID=fe80000000000000946dae03008b1504
+DEBUG [QP 3 SERVER]: Received raw: 17762 23444414529536 10809 9751390 242958 fe80000000000000946dae030091dd0a
+DEBUG [QP 3 SERVER]: Parsed 6 values - Remote QPN=17762, VADDR=23444414529536, LID=10809, PSN=9751390, RKEY=242958, GID=fe80000000000000946dae030091dd0a
+DEBUG: Using LID-based addressing - Remote LID=10809
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=17762, Remote PSN=9751390, MTU=5
+DEBUG [QP 4 SERVER]: Accepting connection...
+DEBUG [QP 4 SERVER]: Accepted connection
+DEBUG [QP 4 SERVER]: Sending - QPN=83320, VADDR=23443743440896, LID=11741, PSN=10837124, RKEY=242657, GID=fe80000000000000946dae03008b150c
+DEBUG [QP 4 SERVER]: Received raw: 28071 23443743440896 11032 9978028 239300 fe80000000000000946dae03009177ba
+DEBUG [QP 4 SERVER]: Parsed 6 values - Remote QPN=28071, VADDR=23443743440896, LID=11032, PSN=9978028, RKEY=239300, GID=fe80000000000000946dae03009177ba
+DEBUG: Using LID-based addressing - Remote LID=11032
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=28071, Remote PSN=9978028, MTU=5
+DEBUG [QP 5 SERVER]: Accepting connection...
+DEBUG [QP 5 SERVER]: Accepted connection
+DEBUG [QP 5 SERVER]: Sending - QPN=79549, VADDR=23443005243392, LID=11821, PSN=12708351, RKEY=236630, GID=fe80000000000000946dae03008b15a4
+DEBUG [QP 5 SERVER]: Received raw: 18745 23443005243392 10962 13978056 235779 fe80000000000000946dae030091dd22
+DEBUG [QP 5 SERVER]: Parsed 6 values - Remote QPN=18745, VADDR=23443005243392, LID=10962, PSN=13978056, RKEY=235779, GID=fe80000000000000946dae030091dd22
+DEBUG: Using LID-based addressing - Remote LID=10962
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=18745, Remote PSN=13978056, MTU=5
+DEBUG [QP 6 SERVER]: Accepting connection...
+DEBUG [QP 6 SERVER]: Accepted connection
+DEBUG [QP 6 SERVER]: Sending - QPN=80377, VADDR=23442300600320, LID=11864, PSN=8130579, RKEY=242736, GID=fe80000000000000946dae03008b1644
+DEBUG [QP 6 SERVER]: Received raw: 20407 23442300600320 11053 16509588 244503 fe80000000000000946dae030091ddd2
+DEBUG [QP 6 SERVER]: Parsed 6 values - Remote QPN=20407, VADDR=23442300600320, LID=11053, PSN=16509588, RKEY=244503, GID=fe80000000000000946dae030091ddd2
+DEBUG: Using LID-based addressing - Remote LID=11053
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=20407, Remote PSN=16509588, MTU=5
+DEBUG [QP 7 SERVER]: Accepting connection...
+DEBUG [QP 7 SERVER]: Accepted connection
+DEBUG [QP 7 SERVER]: Sending - QPN=73507, VADDR=23441595957248, LID=11759, PSN=11746681, RKEY=247295, GID=fe80000000000000946dae03008b1534
+DEBUG [QP 7 SERVER]: Received raw: 18093 23441595957248 11059 16450587 242909 fe80000000000000946dae03009174ea
+DEBUG [QP 7 SERVER]: Parsed 6 values - Remote QPN=18093, VADDR=23441595957248, LID=11059, PSN=16450587, RKEY=242909, GID=fe80000000000000946dae03009174ea
+DEBUG: Using LID-based addressing - Remote LID=11059
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=18093, Remote PSN=16450587, MTU=5
+NVLink: Peer access enabled from GPU 6 to GPU 7
+NVLink: Context initialized successfully
+Reassembly NVLink QP6->target7: GPU6 -> GPU7
+NVLink: Initializing context for GPU 7 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 7 to GPU 0
+NVLink: Context initialized successfully
+Reassembly NVLink QP7->target0: GPU7 -> GPU0
+NVLink: Initializing context for GPU 7 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 7 to GPU 1
+NVLink: Context initialized successfully
+Reassembly NVLink QP7->target1: GPU7 -> GPU1
+NVLink: Initializing context for GPU 7 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 7 to GPU 2
+NVLink: Context initialized successfully
+Reassembly NVLink QP7->target2: GPU7 -> GPU2
+NVLink: Initializing context for GPU 7 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 7 to GPU 3
+NVLink: Context initialized successfully
+Reassembly NVLink QP7->target3: GPU7 -> GPU3
+NVLink: Initializing context for GPU 7 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 7 to GPU 4
+NVLink: Context initialized successfully
+Reassembly NVLink QP7->target4: GPU7 -> GPU4
+NVLink: Initializing context for GPU 7 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 7 to GPU 5
+NVLink: Context initialized successfully
+Reassembly NVLink QP7->target5: GPU7 -> GPU5
+NVLink: Initializing context for GPU 7 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 7 to GPU 6
+NVLink: Context initialized successfully
+Reassembly NVLink QP7->target6: GPU7 -> GPU6
+
+=== Receiver: all-to-all QPs connected (8 QPs), ready for incoming writes ===
+
+Total elapsed time: 0.993680 seconds
+
+=== Verifying transferred data on QP buffers ===
+
+=== QP buffers after receive (before reassembly copy) - all 32 slots per QP (slot_size=2097152) ===
+QP 0 (GPU 0) slots 0..31:
+  slot 0: subslice 0,0 source 0 gpu_0
+  slot 1: subslice 0,1 source 0 gpu_0
+  slot 2: subslice 0,2 source 0 gpu_0
+  slot 3: subslice 0,3 source 0 gpu_0
+  slot 4: subslice 0,4 source 0 gpu_0
+  slot 5: subslice 0,5 source 0 gpu_0
+  slot 6: subslice 0,6 source 0 gpu_0
+  slot 7: subslice 0,7 source 0 gpu_0
+  slot 8: subslice 0,0 source 1 gpu_1
+  slot 9: subslice 0,1 source 1 gpu_1
+  slot 10: subslice 0,2 source 1 gpu_1
+  slot 11: subslice 0,3 source 1 gpu_1
+  slot 12: subslice 0,4 source 1 gpu_1
+  slot 13: subslice 0,5 source 1 gpu_1
+  slot 14: subslice 0,6 source 1 gpu_1
+  slot 15: subslice 0,7 source 1 gpu_1
+  slot 16: subslice 0,0 source 2 gpu_2
+  slot 17: subslice 0,1 source 2 gpu_2
+  slot 18: subslice 0,2 source 2 gpu_2
+  slot 19: subslice 0,3 source 2 gpu_2
+  slot 20: subslice 0,4 source 2 gpu_2
+  slot 21: subslice 0,5 source 2 gpu_2
+  slot 22: subslice 0,6 source 2 gpu_2
+  slot 23: subslice 0,7 source 2 gpu_2
+  slot 24: subslice 0,0 source 3 gpu_3
+  slot 25: subslice 0,1 source 3 gpu_3
+  slot 26: subslice 0,2 source 3 gpu_3
+  slot 27: subslice 0,3 source 3 gpu_3
+  slot 28: subslice 0,4 source 3 gpu_3
+  slot 29: subslice 0,5 source 3 gpu_3
+  slot 30: subslice 0,6 source 3 gpu_3
+  slot 31: subslice 0,7 source 3 gpu_3
+QP 1 (GPU 1) slots 0..31:
+  slot 0: subslice 1,0 source 0 gpu_0
+  slot 1: subslice 1,1 source 0 gpu_0
+  slot 2: subslice 1,2 source 0 gpu_0
+  slot 3: subslice 1,3 source 0 gpu_0
+  slot 4: subslice 1,4 source 0 gpu_0
+  slot 5: subslice 1,5 source 0 gpu_0
+  slot 6: subslice 1,6 source 0 gpu_0
+  slot 7: subslice 1,7 source 0 gpu_0
+  slot 8: subslice 1,0 source 1 gpu_1
+  slot 9: subslice 1,1 source 1 gpu_1
+  slot 10: subslice 1,2 source 1 gpu_1
+  slot 11: subslice 1,3 source 1 gpu_1
+  slot 12: subslice 1,4 source 1 gpu_1
+  slot 13: subslice 1,5 source 1 gpu_1
+  slot 14: subslice 1,6 source 1 gpu_1
+  slot 15: subslice 1,7 source 1 gpu_1
+  slot 16: subslice 1,0 source 2 gpu_2
+  slot 17: subslice 1,1 source 2 gpu_2
+  slot 18: subslice 1,2 source 2 gpu_2
+  slot 19: subslice 1,3 source 2 gpu_2
+  slot 20: subslice 1,4 source 2 gpu_2
+  slot 21: subslice 1,5 source 2 gpu_2
+  slot 22: subslice 1,6 source 2 gpu_2
+  slot 23: subslice 1,7 source 2 gpu_2
+  slot 24: subslice 1,0 source 3 gpu_3
+  slot 25: subslice 1,1 source 3 gpu_3
+  slot 26: subslice 1,2 source 3 gpu_3
+  slot 27: subslice 1,3 source 3 gpu_3
+  slot 28: subslice 1,4 source 3 gpu_3
+  slot 29: subslice 1,5 source 3 gpu_3
+  slot 30: subslice 1,6 source 3 gpu_3
+  slot 31: subslice 1,7 source 3 gpu_3
+QP 2 (GPU 2) slots 0..31:
+  slot 0: subslice 2,0 source 0 gpu_0
+  slot 1: subslice 2,1 source 0 gpu_0
+  slot 2: subslice 2,2 source 0 gpu_0
+  slot 3: subslice 2,3 source 0 gpu_0
+  slot 4: subslice 2,4 source 0 gpu_0
+  slot 5: subslice 2,5 source 0 gpu_0
+  slot 6: subslice 2,6 source 0 gpu_0
+  slot 7: subslice 2,7 source 0 gpu_0
+  slot 8: subslice 2,0 source 1 gpu_1
+  slot 9: subslice 2,1 source 1 gpu_1
+  slot 10: subslice 2,2 source 1 gpu_1
+  slot 11: subslice 2,3 source 1 gpu_1
+  slot 12: subslice 2,4 source 1 gpu_1
+  slot 13: subslice 2,5 source 1 gpu_1
+  slot 14: subslice 2,6 source 1 gpu_1
+  slot 15: subslice 2,7 source 1 gpu_1
+  slot 16: subslice 2,0 source 2 gpu_2
+  slot 17: subslice 2,1 source 2 gpu_2
+  slot 18: subslice 2,2 source 2 gpu_2
+  slot 19: subslice 2,3 source 2 gpu_2
+  slot 20: subslice 2,4 source 2 gpu_2
+  slot 21: subslice 2,5 source 2 gpu_2
+  slot 22: subslice 2,6 source 2 gpu_2
+  slot 23: subslice 2,7 source 2 gpu_2
+  slot 24: subslice 2,0 source 3 gpu_3
+  slot 25: subslice 2,1 source 3 gpu_3
+  slot 26: subslice 2,2 source 3 gpu_3
+  slot 27: subslice 2,3 source 3 gpu_3
+  slot 28: subslice 2,4 source 3 gpu_3
+  slot 29: subslice 2,5 source 3 gpu_3
+  slot 30: subslice 2,6 source 3 gpu_3
+  slot 31: subslice 2,7 source 3 gpu_3
+QP 3 (GPU 3) slots 0..31:
+  slot 0: subslice 3,0 source 0 gpu_0
+  slot 1: subslice 3,1 source 0 gpu_0
+  slot 2: subslice 3,2 source 0 gpu_0
+  slot 3: subslice 3,3 source 0 gpu_0
+  slot 4: subslice 3,4 source 0 gpu_0
+  slot 5: subslice 3,5 source 0 gpu_0
+  slot 6: subslice 3,6 source 0 gpu_0
+  slot 7: subslice 3,7 source 0 gpu_0
+  slot 8: subslice 3,0 source 1 gpu_1
+  slot 9: subslice 3,1 source 1 gpu_1
+  slot 10: subslice 3,2 source 1 gpu_1
+  slot 11: subslice 3,3 source 1 gpu_1
+  slot 12: subslice 3,4 source 1 gpu_1
+  slot 13: subslice 3,5 source 1 gpu_1
+  slot 14: subslice 3,6 source 1 gpu_1
+  slot 15: subslice 3,7 source 1 gpu_1
+  slot 16: subslice 3,0 source 2 gpu_2
+  slot 17: subslice 3,1 source 2 gpu_2
+  slot 18: subslice 3,2 source 2 gpu_2
+  slot 19: subslice 3,3 source 2 gpu_2
+  slot 20: subslice 3,4 source 2 gpu_2
+  slot 21: subslice 3,5 source 2 gpu_2
+  slot 22: subslice 3,6 source 2 gpu_2
+  slot 23: subslice 3,7 source 2 gpu_2
+  slot 24: subslice 3,0 source 3 gpu_3
+  slot 25: subslice 3,1 source 3 gpu_3
+  slot 26: subslice 3,2 source 3 gpu_3
+  slot 27: subslice 3,3 source 3 gpu_3
+  slot 28: subslice 3,4 source 3 gpu_3
+  slot 29: subslice 3,5 source 3 gpu_3
+  slot 30: subslice 3,6 source 3 gpu_3
+  slot 31: subslice 3,7 source 3 gpu_3
+QP 4 (GPU 4) slots 0..31:
+  slot 0: subslice 4,0 source 0 gpu_0
+  slot 1: subslice 4,1 source 0 gpu_0
+  slot 2: subslice 4,2 source 0 gpu_0
+  slot 3: subslice 4,3 source 0 gpu_0
+  slot 4: subslice 4,4 source 0 gpu_0
+  slot 5: subslice 4,5 source 0 gpu_0
+  slot 6: subslice 4,6 source 0 gpu_0
+  slot 7: subslice 4,7 source 0 gpu_0
+  slot 8: subslice 4,0 source 1 gpu_1
+  slot 9: subslice 4,1 source 1 gpu_1
+  slot 10: subslice 4,2 source 1 gpu_1
+  slot 11: subslice 4,3 source 1 gpu_1
+  slot 12: subslice 4,4 source 1 gpu_1
+  slot 13: subslice 4,5 source 1 gpu_1
+  slot 14: subslice 4,6 source 1 gpu_1
+  slot 15: subslice 4,7 source 1 gpu_1
+  slot 16: subslice 4,0 source 2 gpu_2
+  slot 17: subslice 4,1 source 2 gpu_2
+  slot 18: subslice 4,2 source 2 gpu_2
+  slot 19: subslice 4,3 source 2 gpu_2
+  slot 20: subslice 4,4 source 2 gpu_2
+  slot 21: subslice 4,5 source 2 gpu_2
+  slot 22: subslice 4,6 source 2 gpu_2
+  slot 23: subslice 4,7 source 2 gpu_2
+  slot 24: subslice 4,0 source 3 gpu_3
+  slot 25: subslice 4,1 source 3 gpu_3
+  slot 26: subslice 4,2 source 3 gpu_3
+  slot 27: subslice 4,3 source 3 gpu_3
+  slot 28: subslice 4,4 source 3 gpu_3
+  slot 29: subslice 4,5 source 3 gpu_3
+  slot 30: subslice 4,6 source 3 gpu_3
+  slot 31: subslice 4,7 source 3 gpu_3
+QP 5 (GPU 5) slots 0..31:
+  slot 0: subslice 5,0 source 0 gpu_0
+  slot 1: subslice 5,1 source 0 gpu_0
+  slot 2: subslice 5,2 source 0 gpu_0
+  slot 3: subslice 5,3 source 0 gpu_0
+  slot 4: subslice 5,4 source 0 gpu_0
+  slot 5: subslice 5,5 source 0 gpu_0
+  slot 6: subslice 5,6 source 0 gpu_0
+  slot 7: subslice 5,7 source 0 gpu_0
+  slot 8: subslice 5,0 source 1 gpu_1
+  slot 9: subslice 5,1 source 1 gpu_1
+  slot 10: subslice 5,2 source 1 gpu_1
+  slot 11: subslice 5,3 source 1 gpu_1
+  slot 12: subslice 5,4 source 1 gpu_1
+  slot 13: subslice 5,5 source 1 gpu_1
+  slot 14: subslice 5,6 source 1 gpu_1
+  slot 15: subslice 5,7 source 1 gpu_1
+  slot 16: subslice 5,0 source 2 gpu_2
+  slot 17: subslice 5,1 source 2 gpu_2
+  slot 18: subslice 5,2 source 2 gpu_2
+  slot 19: subslice 5,3 source 2 gpu_2
+  slot 20: subslice 5,4 source 2 gpu_2
+  slot 21: subslice 5,5 source 2 gpu_2
+  slot 22: subslice 5,6 source 2 gpu_2
+  slot 23: subslice 5,7 source 2 gpu_2
+  slot 24: subslice 5,0 source 3 gpu_3
+  slot 25: subslice 5,1 source 3 gpu_3
+  slot 26: subslice 5,2 source 3 gpu_3
+  slot 27: subslice 5,3 source 3 gpu_3
+  slot 28: subslice 5,4 source 3 gpu_3
+  slot 29: subslice 5,5 source 3 gpu_3
+  slot 30: subslice 5,6 source 3 gpu_3
+  slot 31: subslice 5,7 source 3 gpu_3
+QP 6 (GPU 6) slots 0..31:
+  slot 0: subslice 6,0 source 0 gpu_0
+  slot 1: subslice 6,1 source 0 gpu_0
+  slot 2: subslice 6,2 source 0 gpu_0
+  slot 3: subslice 6,3 source 0 gpu_0
+  slot 4: subslice 6,4 source 0 gpu_0
+  slot 5: subslice 6,5 source 0 gpu_0
+  slot 6: subslice 6,6 source 0 gpu_0
+  slot 7: subslice 6,7 source 0 gpu_0
+  slot 8: subslice 6,0 source 1 gpu_1
+  slot 9: subslice 6,1 source 1 gpu_1
+  slot 10: subslice 6,2 source 1 gpu_1
+  slot 11: subslice 6,3 source 1 gpu_1
+  slot 12: subslice 6,4 source 1 gpu_1
+  slot 13: subslice 6,5 source 1 gpu_1
+  slot 14: subslice 6,6 source 1 gpu_1
+  slot 15: subslice 6,7 source 1 gpu_1
+  slot 16: subslice 6,0 source 2 gpu_2
+  slot 17: subslice 6,1 source 2 gpu_2
+  slot 18: subslice 6,2 source 2 gpu_2
+  slot 19: subslice 6,3 source 2 gpu_2
+  slot 20: subslice 6,4 source 2 gpu_2
+  slot 21: subslice 6,5 source 2 gpu_2
+  slot 22: subslice 6,6 source 2 gpu_2
+  slot 23: subslice 6,7 source 2 gpu_2
+  slot 24: subslice 6,0 source 3 gpu_3
+  slot 25: subslice 6,1 source 3 gpu_3
+  slot 26: subslice 6,2 source 3 gpu_3
+  slot 27: subslice 6,3 source 3 gpu_3
+  slot 28: subslice 6,4 source 3 gpu_3
+  slot 29: subslice 6,5 source 3 gpu_3
+  slot 30: subslice 6,6 source 3 gpu_3
+  slot 31: subslice 6,7 source 3 gpu_3
+QP 7 (GPU 7) slots 0..31:
+  slot 0: subslice 7,0 source 0 gpu_0
+  slot 1: subslice 7,1 source 0 gpu_0
+  slot 2: subslice 7,2 source 0 gpu_0
+  slot 3: subslice 7,3 source 0 gpu_0
+  slot 4: subslice 7,4 source 0 gpu_0
+  slot 5: subslice 7,5 source 0 gpu_0
+  slot 6: subslice 7,6 source 0 gpu_0
+  slot 7: subslice 7,7 source 0 gpu_0
+  slot 8: subslice 7,0 source 1 gpu_1
+  slot 9: subslice 7,1 source 1 gpu_1
+  slot 10: subslice 7,2 source 1 gpu_1
+  slot 11: subslice 7,3 source 1 gpu_1
+  slot 12: subslice 7,4 source 1 gpu_1
+  slot 13: subslice 7,5 source 1 gpu_1
+  slot 14: subslice 7,6 source 1 gpu_1
+  slot 15: subslice 7,7 source 1 gpu_1
+  slot 16: subslice 7,0 source 2 gpu_2
+  slot 17: subslice 7,1 source 2 gpu_2
+  slot 18: subslice 7,2 source 2 gpu_2
+  slot 19: subslice 7,3 source 2 gpu_2
+  slot 20: subslice 7,4 source 2 gpu_2
+  slot 21: subslice 7,5 source 2 gpu_2
+  slot 22: subslice 7,6 source 2 gpu_2
+  slot 23: subslice 7,7 source 2 gpu_2
+  slot 24: subslice 7,0 source 3 gpu_3
+  slot 25: subslice 7,1 source 3 gpu_3
+  slot 26: subslice 7,2 source 3 gpu_3
+  slot 27: subslice 7,3 source 3 gpu_3
+  slot 28: subslice 7,4 source 3 gpu_3
+  slot 29: subslice 7,5 source 3 gpu_3
+  slot 30: subslice 7,6 source 3 gpu_3
+  slot 31: subslice 7,7 source 3 gpu_3
+
+=== Reassembled data: target m on GPU m (M=8 targets) ===
+Target m=0 on GPU 0 (reassembly_buffers_2d[*,0]):
+  subslice (i=0,m=0): subslice 0,0 source 0 gpu_0
+  subslice (i=1,m=0): subslice 1,0 source 0 gpu_0
+  subslice (i=2,m=0): subslice 2,0 source 0 gpu_0
+  subslice (i=3,m=0): subslice 3,0 source 0 gpu_0
+  subslice (i=4,m=0): subslice 4,0 source 0 gpu_0
+  subslice (i=5,m=0): subslice 5,0 source 0 gpu_0
+  subslice (i=6,m=0): subslice 6,0 source 0 gpu_0
+  subslice (i=7,m=0): subslice 7,0 source 0 gpu_0
+  subslice (i=0,m=0): subslice 0,0 source 1 gpu_1
+  subslice (i=1,m=0): subslice 1,0 source 1 gpu_1
+  subslice (i=2,m=0): subslice 2,0 source 1 gpu_1
+  subslice (i=3,m=0): subslice 3,0 source 1 gpu_1
+  subslice (i=4,m=0): subslice 4,0 source 1 gpu_1
+  subslice (i=5,m=0): subslice 5,0 source 1 gpu_1
+  subslice (i=6,m=0): subslice 6,0 source 1 gpu_1
+  subslice (i=7,m=0): subslice 7,0 source 1 gpu_1
+  subslice (i=0,m=0): subslice 0,0 source 2 gpu_2
+  subslice (i=1,m=0): subslice 1,0 source 2 gpu_2
+  subslice (i=2,m=0): subslice 2,0 source 2 gpu_2
+  subslice (i=3,m=0): subslice 3,0 source 2 gpu_2
+  subslice (i=4,m=0): subslice 4,0 source 2 gpu_2
+  subslice (i=5,m=0): subslice 5,0 source 2 gpu_2
+  subslice (i=6,m=0): subslice 6,0 source 2 gpu_2
+  subslice (i=7,m=0): subslice 7,0 source 2 gpu_2
+  subslice (i=0,m=0): subslice 0,0 source 3 gpu_3
+  subslice (i=1,m=0): subslice 1,0 source 3 gpu_3
+  subslice (i=2,m=0): subslice 2,0 source 3 gpu_3
+  subslice (i=3,m=0): subslice 3,0 source 3 gpu_3
+  subslice (i=4,m=0): subslice 4,0 source 3 gpu_3
+  subslice (i=5,m=0): subslice 5,0 source 3 gpu_3
+  subslice (i=6,m=0): subslice 6,0 source 3 gpu_3
+  subslice (i=7,m=0): subslice 7,0 source 3 gpu_3
+
+Target m=1 on GPU 1 (reassembly_buffers_2d[*,1]):
+  subslice (i=0,m=1): subslice 0,1 source 0 gpu_0
+  subslice (i=1,m=1): subslice 1,1 source 0 gpu_0
+  subslice (i=2,m=1): subslice 2,1 source 0 gpu_0
+  subslice (i=3,m=1): subslice 3,1 source 0 gpu_0
+  subslice (i=4,m=1): subslice 4,1 source 0 gpu_0
+  subslice (i=5,m=1): subslice 5,1 source 0 gpu_0
+  subslice (i=6,m=1): subslice 6,1 source 0 gpu_0
+  subslice (i=7,m=1): subslice 7,1 source 0 gpu_0
+  subslice (i=0,m=1): subslice 0,1 source 1 gpu_1
+  subslice (i=1,m=1): subslice 1,1 source 1 gpu_1
+  subslice (i=2,m=1): subslice 2,1 source 1 gpu_1
+  subslice (i=3,m=1): subslice 3,1 source 1 gpu_1
+  subslice (i=4,m=1): subslice 4,1 source 1 gpu_1
+  subslice (i=5,m=1): subslice 5,1 source 1 gpu_1
+  subslice (i=6,m=1): subslice 6,1 source 1 gpu_1
+  subslice (i=7,m=1): subslice 7,1 source 1 gpu_1
+  subslice (i=0,m=1): subslice 0,1 source 2 gpu_2
+  subslice (i=1,m=1): subslice 1,1 source 2 gpu_2
+  subslice (i=2,m=1): subslice 2,1 source 2 gpu_2
+  subslice (i=3,m=1): subslice 3,1 source 2 gpu_2
+  subslice (i=4,m=1): subslice 4,1 source 2 gpu_2
+  subslice (i=5,m=1): subslice 5,1 source 2 gpu_2
+  subslice (i=6,m=1): subslice 6,1 source 2 gpu_2
+  subslice (i=7,m=1): subslice 7,1 source 2 gpu_2
+  subslice (i=0,m=1): subslice 0,1 source 3 gpu_3
+  subslice (i=1,m=1): subslice 1,1 source 3 gpu_3
+  subslice (i=2,m=1): subslice 2,1 source 3 gpu_3
+  subslice (i=3,m=1): subslice 3,1 source 3 gpu_3
+  subslice (i=4,m=1): subslice 4,1 source 3 gpu_3
+  subslice (i=5,m=1): subslice 5,1 source 3 gpu_3
+  subslice (i=6,m=1): subslice 6,1 source 3 gpu_3
+  subslice (i=7,m=1): subslice 7,1 source 3 gpu_3
+
+Target m=2 on GPU 2 (reassembly_buffers_2d[*,2]):
+  subslice (i=0,m=2): subslice 0,2 source 0 gpu_0
+  subslice (i=1,m=2): subslice 1,2 source 0 gpu_0
+  subslice (i=2,m=2): subslice 2,2 source 0 gpu_0
+  subslice (i=3,m=2): subslice 3,2 source 0 gpu_0
+  subslice (i=4,m=2): subslice 4,2 source 0 gpu_0
+  subslice (i=5,m=2): subslice 5,2 source 0 gpu_0
+  subslice (i=6,m=2): subslice 6,2 source 0 gpu_0
+  subslice (i=7,m=2): subslice 7,2 source 0 gpu_0
+  subslice (i=0,m=2): subslice 0,2 source 1 gpu_1
+  subslice (i=1,m=2): subslice 1,2 source 1 gpu_1
+  subslice (i=2,m=2): subslice 2,2 source 1 gpu_1
+  subslice (i=3,m=2): subslice 3,2 source 1 gpu_1
+  subslice (i=4,m=2): subslice 4,2 source 1 gpu_1
+  subslice (i=5,m=2): subslice 5,2 source 1 gpu_1
+  subslice (i=6,m=2): subslice 6,2 source 1 gpu_1
+  subslice (i=7,m=2): subslice 7,2 source 1 gpu_1
+  subslice (i=0,m=2): subslice 0,2 source 2 gpu_2
+  subslice (i=1,m=2): subslice 1,2 source 2 gpu_2
+  subslice (i=2,m=2): subslice 2,2 source 2 gpu_2
+  subslice (i=3,m=2): subslice 3,2 source 2 gpu_2
+  subslice (i=4,m=2): subslice 4,2 source 2 gpu_2
+  subslice (i=5,m=2): subslice 5,2 source 2 gpu_2
+  subslice (i=6,m=2): subslice 6,2 source 2 gpu_2
+  subslice (i=7,m=2): subslice 7,2 source 2 gpu_2
+  subslice (i=0,m=2): subslice 0,2 source 3 gpu_3
+  subslice (i=1,m=2): subslice 1,2 source 3 gpu_3
+  subslice (i=2,m=2): subslice 2,2 source 3 gpu_3
+  subslice (i=3,m=2): subslice 3,2 source 3 gpu_3
+  subslice (i=4,m=2): subslice 4,2 source 3 gpu_3
+  subslice (i=5,m=2): subslice 5,2 source 3 gpu_3
+  subslice (i=6,m=2): subslice 6,2 source 3 gpu_3
+  subslice (i=7,m=2): subslice 7,2 source 3 gpu_3
+
+Target m=3 on GPU 3 (reassembly_buffers_2d[*,3]):
+  subslice (i=0,m=3): subslice 0,3 source 0 gpu_0
+  subslice (i=1,m=3): subslice 1,3 source 0 gpu_0
+  subslice (i=2,m=3): subslice 2,3 source 0 gpu_0
+  subslice (i=3,m=3): subslice 3,3 source 0 gpu_0
+  subslice (i=4,m=3): subslice 4,3 source 0 gpu_0
+  subslice (i=5,m=3): subslice 5,3 source 0 gpu_0
+  subslice (i=6,m=3): subslice 6,3 source 0 gpu_0
+  subslice (i=7,m=3): subslice 7,3 source 0 gpu_0
+  subslice (i=0,m=3): subslice 0,3 source 1 gpu_1
+  subslice (i=1,m=3): subslice 1,3 source 1 gpu_1
+  subslice (i=2,m=3): subslice 2,3 source 1 gpu_1
+  subslice (i=3,m=3): subslice 3,3 source 1 gpu_1
+  subslice (i=4,m=3): subslice 4,3 source 1 gpu_1
+  subslice (i=5,m=3): subslice 5,3 source 1 gpu_1
+  subslice (i=6,m=3): subslice 6,3 source 1 gpu_1
+  subslice (i=7,m=3): subslice 7,3 source 1 gpu_1
+  subslice (i=0,m=3): subslice 0,3 source 2 gpu_2
+  subslice (i=1,m=3): subslice 1,3 source 2 gpu_2
+  subslice (i=2,m=3): subslice 2,3 source 2 gpu_2
+  subslice (i=3,m=3): subslice 3,3 source 2 gpu_2
+  subslice (i=4,m=3): subslice 4,3 source 2 gpu_2
+  subslice (i=5,m=3): subslice 5,3 source 2 gpu_2
+  subslice (i=6,m=3): subslice 6,3 source 2 gpu_2
+  subslice (i=7,m=3): subslice 7,3 source 2 gpu_2
+  subslice (i=0,m=3): subslice 0,3 source 3 gpu_3
+  subslice (i=1,m=3): subslice 1,3 source 3 gpu_3
+  subslice (i=2,m=3): subslice 2,3 source 3 gpu_3
+  subslice (i=3,m=3): subslice 3,3 source 3 gpu_3
+  subslice (i=4,m=3): subslice 4,3 source 3 gpu_3
+  subslice (i=5,m=3): subslice 5,3 source 3 gpu_3
+  subslice (i=6,m=3): subslice 6,3 source 3 gpu_3
+  subslice (i=7,m=3): subslice 7,3 source 3 gpu_3
+
+Target m=4 on GPU 4 (reassembly_buffers_2d[*,4]):
+  subslice (i=0,m=4): subslice 0,4 source 0 gpu_0
+  subslice (i=1,m=4): subslice 1,4 source 0 gpu_0
+  subslice (i=2,m=4): subslice 2,4 source 0 gpu_0
+  subslice (i=3,m=4): subslice 3,4 source 0 gpu_0
+  subslice (i=4,m=4): subslice 4,4 source 0 gpu_0
+  subslice (i=5,m=4): subslice 5,4 source 0 gpu_0
+  subslice (i=6,m=4): subslice 6,4 source 0 gpu_0
+  subslice (i=7,m=4): subslice 7,4 source 0 gpu_0
+  subslice (i=0,m=4): subslice 0,4 source 1 gpu_1
+  subslice (i=1,m=4): subslice 1,4 source 1 gpu_1
+  subslice (i=2,m=4): subslice 2,4 source 1 gpu_1
+  subslice (i=3,m=4): subslice 3,4 source 1 gpu_1
+  subslice (i=4,m=4): subslice 4,4 source 1 gpu_1
+  subslice (i=5,m=4): subslice 5,4 source 1 gpu_1
+  subslice (i=6,m=4): subslice 6,4 source 1 gpu_1
+  subslice (i=7,m=4): subslice 7,4 source 1 gpu_1
+  subslice (i=0,m=4): subslice 0,4 source 2 gpu_2
+  subslice (i=1,m=4): subslice 1,4 source 2 gpu_2
+  subslice (i=2,m=4): subslice 2,4 source 2 gpu_2
+  subslice (i=3,m=4): subslice 3,4 source 2 gpu_2
+  subslice (i=4,m=4): subslice 4,4 source 2 gpu_2
+  subslice (i=5,m=4): subslice 5,4 source 2 gpu_2
+  subslice (i=6,m=4): subslice 6,4 source 2 gpu_2
+  subslice (i=7,m=4): subslice 7,4 source 2 gpu_2
+  subslice (i=0,m=4): subslice 0,4 source 3 gpu_3
+  subslice (i=1,m=4): subslice 1,4 source 3 gpu_3
+  subslice (i=2,m=4): subslice 2,4 source 3 gpu_3
+  subslice (i=3,m=4): subslice 3,4 source 3 gpu_3
+  subslice (i=4,m=4): subslice 4,4 source 3 gpu_3
+  subslice (i=5,m=4): subslice 5,4 source 3 gpu_3
+  subslice (i=6,m=4): subslice 6,4 source 3 gpu_3
+  subslice (i=7,m=4): subslice 7,4 source 3 gpu_3
+
+Target m=5 on GPU 5 (reassembly_buffers_2d[*,5]):
+  subslice (i=0,m=5): subslice 0,5 source 0 gpu_0
+  subslice (i=1,m=5): subslice 1,5 source 0 gpu_0
+  subslice (i=2,m=5): subslice 2,5 source 0 gpu_0
+  subslice (i=3,m=5): subslice 3,5 source 0 gpu_0
+  subslice (i=4,m=5): subslice 4,5 source 0 gpu_0
+  subslice (i=5,m=5): subslice 5,5 source 0 gpu_0
+  subslice (i=6,m=5): subslice 6,5 source 0 gpu_0
+  subslice (i=7,m=5): subslice 7,5 source 0 gpu_0
+  subslice (i=0,m=5): subslice 0,5 source 1 gpu_1
+  subslice (i=1,m=5): subslice 1,5 source 1 gpu_1
+  subslice (i=2,m=5): subslice 2,5 source 1 gpu_1
+  subslice (i=3,m=5): subslice 3,5 source 1 gpu_1
+  subslice (i=4,m=5): subslice 4,5 source 1 gpu_1
+  subslice (i=5,m=5): subslice 5,5 source 1 gpu_1
+  subslice (i=6,m=5): subslice 6,5 source 1 gpu_1
+  subslice (i=7,m=5): subslice 7,5 source 1 gpu_1
+  subslice (i=0,m=5): subslice 0,5 source 2 gpu_2
+  subslice (i=1,m=5): subslice 1,5 source 2 gpu_2
+  subslice (i=2,m=5): subslice 2,5 source 2 gpu_2
+  subslice (i=3,m=5): subslice 3,5 source 2 gpu_2
+  subslice (i=4,m=5): subslice 4,5 source 2 gpu_2
+  subslice (i=5,m=5): subslice 5,5 source 2 gpu_2
+  subslice (i=6,m=5): subslice 6,5 source 2 gpu_2
+  subslice (i=7,m=5): subslice 7,5 source 2 gpu_2
+  subslice (i=0,m=5): subslice 0,5 source 3 gpu_3
+  subslice (i=1,m=5): subslice 1,5 source 3 gpu_3
+  subslice (i=2,m=5): subslice 2,5 source 3 gpu_3
+  subslice (i=3,m=5): subslice 3,5 source 3 gpu_3
+  subslice (i=4,m=5): subslice 4,5 source 3 gpu_3
+  subslice (i=5,m=5): subslice 5,5 source 3 gpu_3
+  subslice (i=6,m=5): subslice 6,5 source 3 gpu_3
+  subslice (i=7,m=5): subslice 7,5 source 3 gpu_3
+
+Target m=6 on GPU 6 (reassembly_buffers_2d[*,6]):
+  subslice (i=0,m=6): subslice 0,6 source 0 gpu_0
+  subslice (i=1,m=6): subslice 1,6 source 0 gpu_0
+  subslice (i=2,m=6): subslice 2,6 source 0 gpu_0
+  subslice (i=3,m=6): subslice 3,6 source 0 gpu_0
+  subslice (i=4,m=6): subslice 4,6 source 0 gpu_0
+  subslice (i=5,m=6): subslice 5,6 source 0 gpu_0
+  subslice (i=6,m=6): subslice 6,6 source 0 gpu_0
+  subslice (i=7,m=6): subslice 7,6 source 0 gpu_0
+  subslice (i=0,m=6): subslice 0,6 source 1 gpu_1
+  subslice (i=1,m=6): subslice 1,6 source 1 gpu_1
+  subslice (i=2,m=6): subslice 2,6 source 1 gpu_1
+  subslice (i=3,m=6): subslice 3,6 source 1 gpu_1
+  subslice (i=4,m=6): subslice 4,6 source 1 gpu_1
+  subslice (i=5,m=6): subslice 5,6 source 1 gpu_1
+  subslice (i=6,m=6): subslice 6,6 source 1 gpu_1
+  subslice (i=7,m=6): subslice 7,6 source 1 gpu_1
+  subslice (i=0,m=6): subslice 0,6 source 2 gpu_2
+  subslice (i=1,m=6): subslice 1,6 source 2 gpu_2
+  subslice (i=2,m=6): subslice 2,6 source 2 gpu_2
+  subslice (i=3,m=6): subslice 3,6 source 2 gpu_2
+  subslice (i=4,m=6): subslice 4,6 source 2 gpu_2
+  subslice (i=5,m=6): subslice 5,6 source 2 gpu_2
+  subslice (i=6,m=6): subslice 6,6 source 2 gpu_2
+  subslice (i=7,m=6): subslice 7,6 source 2 gpu_2
+  subslice (i=0,m=6): subslice 0,6 source 3 gpu_3
+  subslice (i=1,m=6): subslice 1,6 source 3 gpu_3
+  subslice (i=2,m=6): subslice 2,6 source 3 gpu_3
+  subslice (i=3,m=6): subslice 3,6 source 3 gpu_3
+  subslice (i=4,m=6): subslice 4,6 source 3 gpu_3
+  subslice (i=5,m=6): subslice 5,6 source 3 gpu_3
+  subslice (i=6,m=6): subslice 6,6 source 3 gpu_3
+  subslice (i=7,m=6): subslice 7,6 source 3 gpu_3
+
+Target m=7 on GPU 7 (reassembly_buffers_2d[*,7]):
+  subslice (i=0,m=7): subslice 0,7 source 0 gpu_0
+  subslice (i=1,m=7): subslice 1,7 source 0 gpu_0
+  subslice (i=2,m=7): subslice 2,7 source 0 gpu_0
+  subslice (i=3,m=7): subslice 3,7 source 0 gpu_0
+  subslice (i=4,m=7): subslice 4,7 source 0 gpu_0
+  subslice (i=5,m=7): subslice 5,7 source 0 gpu_0
+  subslice (i=6,m=7): subslice 6,7 source 0 gpu_0
+  subslice (i=7,m=7): subslice 7,7 source 0 gpu_0
+  subslice (i=0,m=7): subslice 0,7 source 1 gpu_1
+  subslice (i=1,m=7): subslice 1,7 source 1 gpu_1
+  subslice (i=2,m=7): subslice 2,7 source 1 gpu_1
+  subslice (i=3,m=7): subslice 3,7 source 1 gpu_1
+  subslice (i=4,m=7): subslice 4,7 source 1 gpu_1
+  subslice (i=5,m=7): subslice 5,7 source 1 gpu_1
+  subslice (i=6,m=7): subslice 6,7 source 1 gpu_1
+  subslice (i=7,m=7): subslice 7,7 source 1 gpu_1
+  subslice (i=0,m=7): subslice 0,7 source 2 gpu_2
+  subslice (i=1,m=7): subslice 1,7 source 2 gpu_2
+  subslice (i=2,m=7): subslice 2,7 source 2 gpu_2
+  subslice (i=3,m=7): subslice 3,7 source 2 gpu_2
+  subslice (i=4,m=7): subslice 4,7 source 2 gpu_2
+  subslice (i=5,m=7): subslice 5,7 source 2 gpu_2
+  subslice (i=6,m=7): subslice 6,7 source 2 gpu_2
+  subslice (i=7,m=7): subslice 7,7 source 2 gpu_2
+  subslice (i=0,m=7): subslice 0,7 source 3 gpu_3
+  subslice (i=1,m=7): subslice 1,7 source 3 gpu_3
+  subslice (i=2,m=7): subslice 2,7 source 3 gpu_3
+  subslice (i=3,m=7): subslice 3,7 source 3 gpu_3
+  subslice (i=4,m=7): subslice 4,7 source 3 gpu_3
+  subslice (i=5,m=7): subslice 5,7 source 3 gpu_3
+  subslice (i=6,m=7): subslice 6,7 source 3 gpu_3
+  subslice (i=7,m=7): subslice 7,7 source 3 gpu_3
+
+=== Data verification complete ===
+
+DEBUG [mlx5_0]: Port 1 - LID=10936, State=4, MTU=5, GID index=0
+DEBUG [mlx5_1]: Port 1 - LID=10836, State=4, MTU=5, GID index=0
+DEBUG [mlx5_2]: Port 1 - LID=10872, State=4, MTU=5, GID index=0
+DEBUG [mlx5_4]: Port 1 - LID=10809, State=4, MTU=5, GID index=0
+DEBUG [mlx5_5]: Port 1 - LID=11032, State=4, MTU=5, GID index=0
+DEBUG [mlx5_6]: Port 1 - LID=10962, State=4, MTU=5, GID index=0
+DEBUG [mlx5_7]: Port 1 - LID=11053, State=4, MTU=5, GID index=0
+DEBUG [mlx5_8]: Port 1 - LID=11059, State=4, MTU=5, GID index=0
+DEBUG [QP 0 CLIENT]: Connecting to 100.126.37.100:48515...
+DEBUG [QP 0 CLIENT]: Connected
+DEBUG [QP 1 CLIENT]: Connecting to 100.126.37.100:48516...
+DEBUG [QP 1 CLIENT]: Connected
+DEBUG [QP 2 CLIENT]: Connecting to 100.126.37.100:48517...
+DEBUG [QP 2 CLIENT]: Connected
+DEBUG [QP 3 CLIENT]: Connecting to 100.126.37.100:48518...
+DEBUG [QP 3 CLIENT]: Connected
+DEBUG [QP 4 CLIENT]: Connecting to 100.126.37.100:48519...
+DEBUG [QP 4 CLIENT]: Connected
+DEBUG [QP 5 CLIENT]: Connecting to 100.126.37.100:48520...
+DEBUG [QP 5 CLIENT]: Connected
+DEBUG [QP 6 CLIENT]: Connecting to 100.126.37.100:48521...
+DEBUG [QP 6 CLIENT]: Connected
+DEBUG [QP 7 CLIENT]: Connecting to 100.126.37.100:48522...
+DEBUG [QP 7 CLIENT]: Connected
+DEBUG [QP 0 CLIENT]: Sending - QPN=33003, VADDR=23446562013184, LID=10936, PSN=12476411, RKEY=239319, GID=fe80000000000000946dae03009174f2
+DEBUG [QP 0 CLIENT]: Received raw: 95528 23446562013184 11687 552453 244670 fe80000000000000946dae03008b15b4
+DEBUG [QP 0 CLIENT]: Parsed 6 values - Remote QPN=95528, VADDR=23446562013184, LID=11687, PSN=552453, RKEY=244670, GID=fe80000000000000946dae03008b15b4
+DEBUG: Using LID-based addressing - Remote LID=11687
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=95528, Remote PSN=552453, MTU=5
+DEBUG [QP 1 CLIENT]: Sending - QPN=20173, VADDR=23445823815680, LID=10836, PSN=5884189, RKEY=239493, GID=fe80000000000000946dae0300919a52
+DEBUG [QP 1 CLIENT]: Received raw: 88112 23445823815680 11656 7381136 244746 fe80000000000000946dae03008b156c
+DEBUG [QP 1 CLIENT]: Parsed 6 values - Remote QPN=88112, VADDR=23445823815680, LID=11656, PSN=7381136, RKEY=244746, GID=fe80000000000000946dae03008b156c
+DEBUG: Using LID-based addressing - Remote LID=11656
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=88112, Remote PSN=7381136, MTU=5
+DEBUG [QP 2 CLIENT]: Sending - QPN=19832, VADDR=23445152727040, LID=10872, PSN=3458907, RKEY=240635, GID=fe80000000000000946dae030091d7aa
+DEBUG [QP 2 CLIENT]: Received raw: 85201 23445152727040 11699 10688901 247562 fe80000000000000946dae03008b13dc
+DEBUG [QP 2 CLIENT]: Parsed 6 values - Remote QPN=85201, VADDR=23445152727040, LID=11699, PSN=10688901, RKEY=247562, GID=fe80000000000000946dae03008b13dc
+DEBUG: Using LID-based addressing - Remote LID=11699
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=85201, Remote PSN=10688901, MTU=5
+DEBUG [QP 3 CLIENT]: Sending - QPN=17762, VADDR=23444414529536, LID=10809, PSN=9751390, RKEY=242958, GID=fe80000000000000946dae030091dd0a
+DEBUG [QP 3 CLIENT]: Received raw: 85294 23444414529536 11606 11283841 239120 fe80000000000000946dae03008b1504
+DEBUG [QP 3 CLIENT]: Parsed 6 values - Remote QPN=85294, VADDR=23444414529536, LID=11606, PSN=11283841, RKEY=239120, GID=fe80000000000000946dae03008b1504
+DEBUG: Using LID-based addressing - Remote LID=11606
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=85294, Remote PSN=11283841, MTU=5
+DEBUG [QP 4 CLIENT]: Sending - QPN=28071, VADDR=23443743440896, LID=11032, PSN=9978028, RKEY=239300, GID=fe80000000000000946dae03009177ba
+DEBUG [QP 4 CLIENT]: Received raw: 83320 23443743440896 11741 10837124 242657 fe80000000000000946dae03008b150c
+DEBUG [QP 4 CLIENT]: Parsed 6 values - Remote QPN=83320, VADDR=23443743440896, LID=11741, PSN=10837124, RKEY=242657, GID=fe80000000000000946dae03008b150c
+DEBUG: Using LID-based addressing - Remote LID=11741
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=83320, Remote PSN=10837124, MTU=5
+DEBUG [QP 5 CLIENT]: Sending - QPN=18745, VADDR=23443005243392, LID=10962, PSN=13978056, RKEY=235779, GID=fe80000000000000946dae030091dd22
+DEBUG [QP 5 CLIENT]: Received raw: 79549 23443005243392 11821 12708351 236630 fe80000000000000946dae03008b15a4
+DEBUG [QP 5 CLIENT]: Parsed 6 values - Remote QPN=79549, VADDR=23443005243392, LID=11821, PSN=12708351, RKEY=236630, GID=fe80000000000000946dae03008b15a4
+DEBUG: Using LID-based addressing - Remote LID=11821
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=79549, Remote PSN=12708351, MTU=5
+DEBUG [QP 6 CLIENT]: Sending - QPN=20407, VADDR=23442300600320, LID=11053, PSN=16509588, RKEY=244503, GID=fe80000000000000946dae030091ddd2
+DEBUG [QP 6 CLIENT]: Received raw: 80377 23442300600320 11864 8130579 242736 fe80000000000000946dae03008b1644
+DEBUG [QP 6 CLIENT]: Parsed 6 values - Remote QPN=80377, VADDR=23442300600320, LID=11864, PSN=8130579, RKEY=242736, GID=fe80000000000000946dae03008b1644
+DEBUG: Using LID-based addressing - Remote LID=11864
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=80377, Remote PSN=8130579, MTU=5
+DEBUG [QP 7 CLIENT]: Sending - QPN=18093, VADDR=23441595957248, LID=11059, PSN=16450587, RKEY=242909, GID=fe80000000000000946dae03009174ea
+DEBUG [QP 7 CLIENT]: Received raw: 73507 23441595957248 11759 11746681 247295 fe80000000000000946dae03008b1534
+DEBUG [QP 7 CLIENT]: Parsed 6 values - Remote QPN=73507, VADDR=23441595957248, LID=11759, PSN=11746681, RKEY=247295, GID=fe80000000000000946dae03008b1534
+DEBUG: Using LID-based addressing - Remote LID=11759
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=73507, Remote PSN=11746681, MTU=5
+All-to-all NVLink reassembly: 4 × 8 × 8 = 256 sender threads (N×K×M)
+QP 0 buffer on target GPU 0 (for RDMA)
+QP 1 buffer on target GPU 1 (for RDMA)
+QP 2 buffer on target GPU 2 (for RDMA)
+QP 3 buffer on target GPU 3 (for RDMA)
+QP 4 buffer on target GPU 4 (for RDMA)
+QP 5 buffer on target GPU 5 (for RDMA)
+QP 6 buffer on target GPU 6 (for RDMA)
+QP 7 buffer on target GPU 7 (for RDMA)
+Allocating buffer on GPU 0
+Allocating buffer on GPU 1
+Allocating buffer on GPU 2
+Allocating buffer on GPU 3
+Allocating buffer on GPU 4
+Allocating buffer on GPU 5
+Allocating buffer on GPU 6
+Allocating buffer on GPU 7
+Initialized 8 QP mutexes for serialized RDMA access
+Creating NVLink contexts for all-to-all reassembly: 256 threads (N×K×M=4×8×8)
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 1
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 2
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 3
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 4
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 5
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 6
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 7
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 0
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 2
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 3
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 4
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 5
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 6
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 7
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 0
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 1
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 3
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 4
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 5
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 6
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 2 to GPU 7
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 2 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 0
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 1
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 2
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 4
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 4 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 5
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 5 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 6
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 6 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 3 to GPU 7
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink: Initializing context for GPU 3 (NVIDIA H100 80GB HBM3) and GPU 7 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access already enabled
+NVLink: Context initialized successfully
+NVLink all-to-all: 256 contexts created (one per thread, no sharing)
+Paths:
+  Source GPU 0:
+    Thread 0: GPU0 -> mlx5_0 -> RDMA
+    Thread 1: GPU0 -> NVLink -> GPU1 -> mlx5_1 -> RDMA
+    Thread 2: GPU0 -> NVLink -> GPU2 -> mlx5_2 -> RDMA
+    Thread 3: GPU0 -> NVLink -> GPU3 -> mlx5_4 -> RDMA
+    Thread 4: GPU0 -> NVLink -> GPU4 -> mlx5_5 -> RDMA
+    Thread 5: GPU0 -> NVLink -> GPU5 -> mlx5_6 -> RDMA
+    Thread 6: GPU0 -> NVLink -> GPU6 -> mlx5_7 -> RDMA
+    Thread 7: GPU0 -> NVLink -> GPU7 -> mlx5_8 -> RDMA
+  Source GPU 1:
+    Thread 8: GPU1 -> NVLink -> GPU0 -> mlx5_0 -> RDMA
+    Thread 9: GPU1 -> mlx5_1 -> RDMA
+    Thread 10: GPU1 -> NVLink -> GPU2 -> mlx5_2 -> RDMA
+    Thread 11: GPU1 -> NVLink -> GPU3 -> mlx5_4 -> RDMA
+    Thread 12: GPU1 -> NVLink -> GPU4 -> mlx5_5 -> RDMA
+    Thread 13: GPU1 -> NVLink -> GPU5 -> mlx5_6 -> RDMA
+    Thread 14: GPU1 -> NVLink -> GPU6 -> mlx5_7 -> RDMA
+    Thread 15: GPU1 -> NVLink -> GPU7 -> mlx5_8 -> RDMA
+  Source GPU 2:
+    Thread 16: GPU2 -> NVLink -> GPU0 -> mlx5_0 -> RDMA
+    Thread 17: GPU2 -> NVLink -> GPU1 -> mlx5_1 -> RDMA
+    Thread 18: GPU2 -> mlx5_2 -> RDMA
+    Thread 19: GPU2 -> NVLink -> GPU3 -> mlx5_4 -> RDMA
+    Thread 20: GPU2 -> NVLink -> GPU4 -> mlx5_5 -> RDMA
+    Thread 21: GPU2 -> NVLink -> GPU5 -> mlx5_6 -> RDMA
+    Thread 22: GPU2 -> NVLink -> GPU6 -> mlx5_7 -> RDMA
+    Thread 23: GPU2 -> NVLink -> GPU7 -> mlx5_8 -> RDMA
+  Source GPU 3:
+    Thread 24: GPU3 -> NVLink -> GPU0 -> mlx5_0 -> RDMA
+    Thread 25: GPU3 -> NVLink -> GPU1 -> mlx5_1 -> RDMA
+    Thread 26: GPU3 -> NVLink -> GPU2 -> mlx5_2 -> RDMA
+    Thread 27: GPU3 -> mlx5_4 -> RDMA
+    Thread 28: GPU3 -> NVLink -> GPU4 -> mlx5_5 -> RDMA
+    Thread 29: GPU3 -> NVLink -> GPU5 -> mlx5_6 -> RDMA
+    Thread 30: GPU3 -> NVLink -> GPU6 -> mlx5_7 -> RDMA
+    Thread 31: GPU3 -> NVLink -> GPU7 -> mlx5_8 -> RDMA
+
+Sender: posted 100 receive WQEs for signal-back from receiver
+Total elapsed time: 0.300384 seconds
+total_data: 512.00 MB (536870912 bytes)
+Average per iteration: 178.73 GB/s (0.003004 seconds)
+[0;32mTotal bandwidth: 178.73 GB/s[0m
+Latency (per iteration): 0.003004 s (3.004 ms)
+
+=== Verifying transferred data on QP buffers ===
+Sender: all-to-all reassembly - verifying source buffers (all sub-slices):
+  Source 0 (GPU 0) :
+ subslice 0,0 source 0 gpu_0
+ subslice 1,0 source 0 gpu_0
+ subslice 2,0 source 0 gpu_0
+ subslice 3,0 source 0 gpu_0
+ subslice 4,0 source 0 gpu_0
+ subslice 5,0 source 0 gpu_0
+ subslice 6,0 source 0 gpu_0
+ subslice 7,0 source 0 gpu_0
+ subslice 0,1 source 0 gpu_0
+ subslice 1,1 source 0 gpu_0
+ subslice 2,1 source 0 gpu_0
+ subslice 3,1 source 0 gpu_0
+ subslice 4,1 source 0 gpu_0
+ subslice 5,1 source 0 gpu_0
+ subslice 6,1 source 0 gpu_0
+ subslice 7,1 source 0 gpu_0
+ subslice 0,2 source 0 gpu_0
+ subslice 1,2 source 0 gpu_0
+ subslice 2,2 source 0 gpu_0
+ subslice 3,2 source 0 gpu_0
+ subslice 4,2 source 0 gpu_0
+ subslice 5,2 source 0 gpu_0
+ subslice 6,2 source 0 gpu_0
+ subslice 7,2 source 0 gpu_0
+ subslice 0,3 source 0 gpu_0
+ subslice 1,3 source 0 gpu_0
+ subslice 2,3 source 0 gpu_0
+ subslice 3,3 source 0 gpu_0
+ subslice 4,3 source 0 gpu_0
+ subslice 5,3 source 0 gpu_0
+ subslice 6,3 source 0 gpu_0
+ subslice 7,3 source 0 gpu_0
+ subslice 0,4 source 0 gpu_0
+ subslice 1,4 source 0 gpu_0
+ subslice 2,4 source 0 gpu_0
+ subslice 3,4 source 0 gpu_0
+ subslice 4,4 source 0 gpu_0
+ subslice 5,4 source 0 gpu_0
+ subslice 6,4 source 0 gpu_0
+ subslice 7,4 source 0 gpu_0
+ subslice 0,5 source 0 gpu_0
+ subslice 1,5 source 0 gpu_0
+ subslice 2,5 source 0 gpu_0
+ subslice 3,5 source 0 gpu_0
+ subslice 4,5 source 0 gpu_0
+ subslice 5,5 source 0 gpu_0
+ subslice 6,5 source 0 gpu_0
+ subslice 7,5 source 0 gpu_0
+ subslice 0,6 source 0 gpu_0
+ subslice 1,6 source 0 gpu_0
+ subslice 2,6 source 0 gpu_0
+ subslice 3,6 source 0 gpu_0
+ subslice 4,6 source 0 gpu_0
+ subslice 5,6 source 0 gpu_0
+ subslice 6,6 source 0 gpu_0
+ subslice 7,6 source 0 gpu_0
+ subslice 0,7 source 0 gpu_0
+ subslice 1,7 source 0 gpu_0
+ subslice 2,7 source 0 gpu_0
+ subslice 3,7 source 0 gpu_0
+ subslice 4,7 source 0 gpu_0
+ subslice 5,7 source 0 gpu_0
+ subslice 6,7 source 0 gpu_0
+ subslice 7,7 source 0 gpu_0
+  Source 1 (GPU 1) :
+ subslice 0,0 source 1 gpu_1
+ subslice 1,0 source 1 gpu_1
+ subslice 2,0 source 1 gpu_1
+ subslice 3,0 source 1 gpu_1
+ subslice 4,0 source 1 gpu_1
+ subslice 5,0 source 1 gpu_1
+ subslice 6,0 source 1 gpu_1
+ subslice 7,0 source 1 gpu_1
+ subslice 0,1 source 1 gpu_1
+ subslice 1,1 source 1 gpu_1
+ subslice 2,1 source 1 gpu_1
+ subslice 3,1 source 1 gpu_1
+ subslice 4,1 source 1 gpu_1
+ subslice 5,1 source 1 gpu_1
+ subslice 6,1 source 1 gpu_1
+ subslice 7,1 source 1 gpu_1
+ subslice 0,2 source 1 gpu_1
+ subslice 1,2 source 1 gpu_1
+ subslice 2,2 source 1 gpu_1
+ subslice 3,2 source 1 gpu_1
+ subslice 4,2 source 1 gpu_1
+ subslice 5,2 source 1 gpu_1
+ subslice 6,2 source 1 gpu_1
+ subslice 7,2 source 1 gpu_1
+ subslice 0,3 source 1 gpu_1
+ subslice 1,3 source 1 gpu_1
+ subslice 2,3 source 1 gpu_1
+ subslice 3,3 source 1 gpu_1
+ subslice 4,3 source 1 gpu_1
+ subslice 5,3 source 1 gpu_1
+ subslice 6,3 source 1 gpu_1
+ subslice 7,3 source 1 gpu_1
+ subslice 0,4 source 1 gpu_1
+ subslice 1,4 source 1 gpu_1
+ subslice 2,4 source 1 gpu_1
+ subslice 3,4 source 1 gpu_1
+ subslice 4,4 source 1 gpu_1
+ subslice 5,4 source 1 gpu_1
+ subslice 6,4 source 1 gpu_1
+ subslice 7,4 source 1 gpu_1
+ subslice 0,5 source 1 gpu_1
+ subslice 1,5 source 1 gpu_1
+ subslice 2,5 source 1 gpu_1
+ subslice 3,5 source 1 gpu_1
+ subslice 4,5 source 1 gpu_1
+ subslice 5,5 source 1 gpu_1
+ subslice 6,5 source 1 gpu_1
+ subslice 7,5 source 1 gpu_1
+ subslice 0,6 source 1 gpu_1
+ subslice 1,6 source 1 gpu_1
+ subslice 2,6 source 1 gpu_1
+ subslice 3,6 source 1 gpu_1
+ subslice 4,6 source 1 gpu_1
+ subslice 5,6 source 1 gpu_1
+ subslice 6,6 source 1 gpu_1
+ subslice 7,6 source 1 gpu_1
+ subslice 0,7 source 1 gpu_1
+ subslice 1,7 source 1 gpu_1
+ subslice 2,7 source 1 gpu_1
+ subslice 3,7 source 1 gpu_1
+ subslice 4,7 source 1 gpu_1
+ subslice 5,7 source 1 gpu_1
+ subslice 6,7 source 1 gpu_1
+ subslice 7,7 source 1 gpu_1
+  Source 2 (GPU 2) :
+ subslice 0,0 source 2 gpu_2
+ subslice 1,0 source 2 gpu_2
+ subslice 2,0 source 2 gpu_2
+ subslice 3,0 source 2 gpu_2
+ subslice 4,0 source 2 gpu_2
+ subslice 5,0 source 2 gpu_2
+ subslice 6,0 source 2 gpu_2
+ subslice 7,0 source 2 gpu_2
+ subslice 0,1 source 2 gpu_2
+ subslice 1,1 source 2 gpu_2
+ subslice 2,1 source 2 gpu_2
+ subslice 3,1 source 2 gpu_2
+ subslice 4,1 source 2 gpu_2
+ subslice 5,1 source 2 gpu_2
+ subslice 6,1 source 2 gpu_2
+ subslice 7,1 source 2 gpu_2
+ subslice 0,2 source 2 gpu_2
+ subslice 1,2 source 2 gpu_2
+ subslice 2,2 source 2 gpu_2
+ subslice 3,2 source 2 gpu_2
+ subslice 4,2 source 2 gpu_2
+ subslice 5,2 source 2 gpu_2
+ subslice 6,2 source 2 gpu_2
+ subslice 7,2 source 2 gpu_2
+ subslice 0,3 source 2 gpu_2
+ subslice 1,3 source 2 gpu_2
+ subslice 2,3 source 2 gpu_2
+ subslice 3,3 source 2 gpu_2
+ subslice 4,3 source 2 gpu_2
+ subslice 5,3 source 2 gpu_2
+ subslice 6,3 source 2 gpu_2
+ subslice 7,3 source 2 gpu_2
+ subslice 0,4 source 2 gpu_2
+ subslice 1,4 source 2 gpu_2
+ subslice 2,4 source 2 gpu_2
+ subslice 3,4 source 2 gpu_2
+ subslice 4,4 source 2 gpu_2
+ subslice 5,4 source 2 gpu_2
+ subslice 6,4 source 2 gpu_2
+ subslice 7,4 source 2 gpu_2
+ subslice 0,5 source 2 gpu_2
+ subslice 1,5 source 2 gpu_2
+ subslice 2,5 source 2 gpu_2
+ subslice 3,5 source 2 gpu_2
+ subslice 4,5 source 2 gpu_2
+ subslice 5,5 source 2 gpu_2
+ subslice 6,5 source 2 gpu_2
+ subslice 7,5 source 2 gpu_2
+ subslice 0,6 source 2 gpu_2
+ subslice 1,6 source 2 gpu_2
+ subslice 2,6 source 2 gpu_2
+ subslice 3,6 source 2 gpu_2
+ subslice 4,6 source 2 gpu_2
+ subslice 5,6 source 2 gpu_2
+ subslice 6,6 source 2 gpu_2
+ subslice 7,6 source 2 gpu_2
+ subslice 0,7 source 2 gpu_2
+ subslice 1,7 source 2 gpu_2
+ subslice 2,7 source 2 gpu_2
+ subslice 3,7 source 2 gpu_2
+ subslice 4,7 source 2 gpu_2
+ subslice 5,7 source 2 gpu_2
+ subslice 6,7 source 2 gpu_2
+ subslice 7,7 source 2 gpu_2
+  Source 3 (GPU 3) :
+ subslice 0,0 source 3 gpu_3
+ subslice 1,0 source 3 gpu_3
+ subslice 2,0 source 3 gpu_3
+ subslice 3,0 source 3 gpu_3
+ subslice 4,0 source 3 gpu_3
+ subslice 5,0 source 3 gpu_3
+ subslice 6,0 source 3 gpu_3
+ subslice 7,0 source 3 gpu_3
+ subslice 0,1 source 3 gpu_3
+ subslice 1,1 source 3 gpu_3
+ subslice 2,1 source 3 gpu_3
+ subslice 3,1 source 3 gpu_3
+ subslice 4,1 source 3 gpu_3
+ subslice 5,1 source 3 gpu_3
+ subslice 6,1 source 3 gpu_3
+ subslice 7,1 source 3 gpu_3
+ subslice 0,2 source 3 gpu_3
+ subslice 1,2 source 3 gpu_3
+ subslice 2,2 source 3 gpu_3
+ subslice 3,2 source 3 gpu_3
+ subslice 4,2 source 3 gpu_3
+ subslice 5,2 source 3 gpu_3
+ subslice 6,2 source 3 gpu_3
+ subslice 7,2 source 3 gpu_3
+ subslice 0,3 source 3 gpu_3
+ subslice 1,3 source 3 gpu_3
+ subslice 2,3 source 3 gpu_3
+ subslice 3,3 source 3 gpu_3
+ subslice 4,3 source 3 gpu_3
+ subslice 5,3 source 3 gpu_3
+ subslice 6,3 source 3 gpu_3
+ subslice 7,3 source 3 gpu_3
+ subslice 0,4 source 3 gpu_3
+ subslice 1,4 source 3 gpu_3
+ subslice 2,4 source 3 gpu_3
+ subslice 3,4 source 3 gpu_3
+ subslice 4,4 source 3 gpu_3
+ subslice 5,4 source 3 gpu_3
+ subslice 6,4 source 3 gpu_3
+ subslice 7,4 source 3 gpu_3
+ subslice 0,5 source 3 gpu_3
+ subslice 1,5 source 3 gpu_3
+ subslice 2,5 source 3 gpu_3
+ subslice 3,5 source 3 gpu_3
+ subslice 4,5 source 3 gpu_3
+ subslice 5,5 source 3 gpu_3
+ subslice 6,5 source 3 gpu_3
+ subslice 7,5 source 3 gpu_3
+ subslice 0,6 source 3 gpu_3
+ subslice 1,6 source 3 gpu_3
+ subslice 2,6 source 3 gpu_3
+ subslice 3,6 source 3 gpu_3
+ subslice 4,6 source 3 gpu_3
+ subslice 5,6 source 3 gpu_3
+ subslice 6,6 source 3 gpu_3
+ subslice 7,6 source 3 gpu_3
+ subslice 0,7 source 3 gpu_3
+ subslice 1,7 source 3 gpu_3
+ subslice 2,7 source 3 gpu_3
+ subslice 3,7 source 3 gpu_3
+ subslice 4,7 source 3 gpu_3
+ subslice 5,7 source 3 gpu_3
+ subslice 6,7 source 3 gpu_3
+ subslice 7,7 source 3 gpu_3
+=== Data verification complete ===
+
+
+=== Results table (source_gpus x mode -> BW in GB/s, latency in ms per iteration) ===
+=== Bandwidth (GB/s) ===
+ source_gpus     |       direct | direct_alltoall | allow_nvlink_8M | allow_nvlink_16M | allow_nvlink_32M | allow_nvlink_64M | allow_nvlink_128M | allow_nvlink_reassembly_8M | allow_nvlink_reassembly_16M | allow_nvlink_reassembly_32M | allow_nvlink_reassembly_64M | allow_nvlink_reassembly_128M | allow_nvlink_reassembly_alltoall_8M | allow_nvlink_reassembly_alltoall_16M | allow_nvlink_reassembly_alltoall_32M | allow_nvlink_reassembly_alltoall_64M | allow_nvlink_reassembly_alltoall_128M
+-----------------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------
+ 0,              |        43.35 |        48.18 |       200.12 |       172.61 |       168.43 |       167.98 |       163.40 |       172.12 |       161.00 |       165.95 |       155.52 |       165.27 |        79.92 |       110.71 |       111.41 |       113.48 |       117.44
+ 0,1,            |        89.72 |        95.83 |       232.34 |       237.03 |       241.63 |       197.18 |       226.25 |       228.89 |       200.24 |       223.93 |       231.87 |       196.30 |        57.53 |       105.26 |       175.15 |       175.10 |       166.11
+ 0,1,2,          |       143.23 |       143.14 |       242.04 |       269.07 |       253.27 |       217.64 |       226.66 |       202.56 |       230.48 |       259.15 |       251.08 |       250.21 |        37.73 |        92.66 |       168.65 |       186.98 |       178.67
+ 0,1,2,3         |       136.49 |       190.24 |       249.98 |       269.47 |       270.06 |       265.64 |       263.31 |       231.56 |       214.48 |       249.23 |       223.81 |       260.91 |        32.68 |        78.65 |       177.13 |       177.21 |       178.73
+
+All values in GB/s.
+
+=== Latency (ms per iteration) ===
+ source_gpus     |       direct | direct_alltoall | allow_nvlink_8M | allow_nvlink_16M | allow_nvlink_32M | allow_nvlink_64M | allow_nvlink_128M | allow_nvlink_reassembly_8M | allow_nvlink_reassembly_16M | allow_nvlink_reassembly_32M | allow_nvlink_reassembly_64M | allow_nvlink_reassembly_128M | allow_nvlink_reassembly_alltoall_8M | allow_nvlink_reassembly_alltoall_16M | allow_nvlink_reassembly_alltoall_32M | allow_nvlink_reassembly_alltoall_64M | allow_nvlink_reassembly_alltoall_128M
+-----------------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------
+ 0,              |        3.096 |        2.786 |        0.671 |        0.778 |        0.797 |        0.799 |        0.821 |        0.780 |        0.834 |        0.809 |        0.863 |        0.812 |        1.679 |        1.212 |        1.205 |        1.183 |        1.143
+ 0,1,            |        2.992 |        2.801 |        1.155 |        1.132 |        1.111 |        1.361 |        1.186 |        1.173 |        1.341 |        1.199 |        1.158 |        1.368 |        4.666 |        2.550 |        1.533 |        1.533 |        1.616
+ 0,1,2,          |        2.811 |        2.813 |        1.664 |        1.496 |        1.590 |        1.850 |        1.776 |        1.988 |        1.747 |        1.554 |        1.604 |        1.609 |       10.671 |        4.345 |        2.388 |        2.154 |        2.254
+ 0,1,2,3         |        3.933 |        2.822 |        2.148 |        1.992 |        1.988 |        2.021 |        2.039 |        2.318 |        2.503 |        2.154 |        2.399 |        2.058 |       16.427 |        6.826 |        3.031 |        3.030 |        3.004
+
+All values in ms per iteration.
+
+Done. Full log: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_/rdma_tests_full_9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_.log  Results: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_/rdma_tests_results_9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_.txt
