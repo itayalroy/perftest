@@ -5,8 +5,8 @@ Usage: python plot_rdma_results.py <result_file1> [result_file2 ...] [-o output_
 
 Creates:
 - One image per source_gpus count
-- Graph 1: Direct and Reassembly (direct, direct_alltoall, allow_nvlink_reassembly, allow_nvlink_reassembly_alltoall)
-- Graph 2: All-to-all and allow_nvlink without reassembly (direct_alltoall, allow_nvlink)
+- Graph 1: All-to-all + allow_nvlink (direct_alltoall, allow_nvlink_reassembly_alltoall, allow_nvlink)
+- Graph 2: Direct + allow_nvlink_reassembly (direct, allow_nvlink_reassembly)
 - X axis: transport buffer size (8M, 16M, 32M, 64M, 128M, full)
 - Y axis: Bandwidth (GB/s) or Latency (ms)
 """
@@ -15,11 +15,10 @@ import argparse
 import re
 import os
 import matplotlib.pyplot as plt
-import numpy as np
 
-# Transport buffer sizes in MB (full = 256 for display)
-TB_SIZES = [8, 16, 32, 64, 128, 256]  # 256 represents "full"
-TB_LABELS = ["8M", "16M", "32M", "64M", "128M", "full"]
+# Transport buffer sizes in MB (full = 1 GB)
+TB_SIZES = [8, 16, 32, 64, 128, 1024]
+TB_LABELS = ["8M", "16M", "32M", "64M", "128M", "1G"]
 
 # Column name -> (mode, tb_index or -1 for direct)
 COL_MAP = {
@@ -45,11 +44,11 @@ COL_MAP = {
     "allow_nvlink_reassembly_alltoall_full": ("allow_nvlink_reassembly_alltoall", 5),
 }
 
-# Graph 1: Direct and Reassembly
-MODES_DIRECT_REASSEMBLY = ["direct", "direct_alltoall", "allow_nvlink_reassembly", "allow_nvlink_reassembly_alltoall"]
+# Graph 1: All-to-all options + allow_nvlink
+MODES_ALLTOALL = ["direct_alltoall", "allow_nvlink_reassembly_alltoall", "allow_nvlink"]
 
-# Graph 2: All-to-all and allow_nvlink without reassembly
-MODES_ALLTOALL_NVLINK = ["direct_alltoall", "allow_nvlink"]
+# Graph 2: Direct + allow_nvlink_reassembly
+MODES_DIRECT_REASSEMBLY = ["direct", "allow_nvlink_reassembly"]
 
 COLORS = {
     "direct": "tab:blue",
@@ -171,58 +170,54 @@ def plot_one_source(merged, src_gpus, output_dir, ngpus):
     fig, axes = plt.subplots(2, 2, figsize=(12, 9), sharex="col")
     fig.suptitle(f"RDMA: {ngpus} source GPU(s) — {src_gpus}")
 
+    def setup_axis(ax, xlabel=None):
+        """X axis: transport buffer sizes 8, 16, 32, 64, 128 MB, full (1 GB)."""
+        ax.set_xscale("log", base=2)
+        ax.set_xticks(TB_SIZES)
+        ax.set_xticklabels(TB_LABELS)
+        ax.set_xlim(6, 1200)
+        if xlabel:
+            ax.set_xlabel(xlabel)
+        ax.grid(True, alpha=0.3)
+
     # Row 0: Bandwidth
-    # Col 0: Direct and Reassembly
+    # Col 0: All-to-all + allow_nvlink
     ax = axes[0, 0]
+    series = get_series(merged, src_gpus, "bw", MODES_ALLTOALL, False)
+    for mode, (xs, ys) in series.items():
+        ax.plot(xs, ys, color=COLORS.get(mode, "gray"), marker="o", alpha=0.8, label=mode)
+    setup_axis(ax)
+    ax.set_ylabel("Bandwidth (GB/s)")
+    ax.set_title("All-to-all & allow_nvlink")
+    ax.legend(fontsize=8)
+
+    # Col 1: Direct + allow_nvlink_reassembly
+    ax = axes[0, 1]
     series = get_series(merged, src_gpus, "bw", MODES_DIRECT_REASSEMBLY, True)
     for mode, (xs, ys) in series.items():
         ax.plot(xs, ys, color=COLORS.get(mode, "gray"), marker="o", alpha=0.8, label=mode)
-    ax.set_xscale("log", base=2)
-    ax.set_xticks(TB_SIZES)
-    ax.set_xticklabels(TB_LABELS)
+    setup_axis(ax)
     ax.set_ylabel("Bandwidth (GB/s)")
-    ax.set_title("Direct & Reassembly")
-    ax.grid(True, alpha=0.3)
-    ax.legend(fontsize=8)
-
-    # Col 1: All-to-all and allow_nvlink
-    ax = axes[0, 1]
-    series = get_series(merged, src_gpus, "bw", MODES_ALLTOALL_NVLINK, False)
-    for mode, (xs, ys) in series.items():
-        ax.plot(xs, ys, color=COLORS.get(mode, "gray"), marker="o", alpha=0.8, label=mode)
-    ax.set_xscale("log", base=2)
-    ax.set_xticks(TB_SIZES)
-    ax.set_xticklabels(TB_LABELS)
-    ax.set_ylabel("Bandwidth (GB/s)")
-    ax.set_title("All-to-all & allow_nvlink (no reassembly)")
-    ax.grid(True, alpha=0.3)
+    ax.set_title("Direct & allow_nvlink_reassembly")
     ax.legend(fontsize=8)
 
     # Row 1: Latency
     ax = axes[1, 0]
-    series = get_series(merged, src_gpus, "lat", MODES_DIRECT_REASSEMBLY, True)
+    series = get_series(merged, src_gpus, "lat", MODES_ALLTOALL, False)
     for mode, (xs, ys) in series.items():
         ax.plot(xs, ys, color=COLORS.get(mode, "gray"), marker="o", alpha=0.8, label=mode)
-    ax.set_xscale("log", base=2)
-    ax.set_xticks(TB_SIZES)
-    ax.set_xticklabels(TB_LABELS)
-    ax.set_xlabel("Transport buffer size")
+    setup_axis(ax, "Transport buffer size (MB)")
     ax.set_ylabel("Latency (ms / iteration)")
-    ax.set_title("Direct & Reassembly")
-    ax.grid(True, alpha=0.3)
+    ax.set_title("All-to-all & allow_nvlink")
     ax.legend(fontsize=8)
 
     ax = axes[1, 1]
-    series = get_series(merged, src_gpus, "lat", MODES_ALLTOALL_NVLINK, False)
+    series = get_series(merged, src_gpus, "lat", MODES_DIRECT_REASSEMBLY, True)
     for mode, (xs, ys) in series.items():
         ax.plot(xs, ys, color=COLORS.get(mode, "gray"), marker="o", alpha=0.8, label=mode)
-    ax.set_xscale("log", base=2)
-    ax.set_xticks(TB_SIZES)
-    ax.set_xticklabels(TB_LABELS)
-    ax.set_xlabel("Transport buffer size")
+    setup_axis(ax, "Transport buffer size (MB)")
     ax.set_ylabel("Latency (ms / iteration)")
-    ax.set_title("All-to-all & allow_nvlink (no reassembly)")
-    ax.grid(True, alpha=0.3)
+    ax.set_title("Direct & allow_nvlink_reassembly")
     ax.legend(fontsize=8)
 
     fig.tight_layout(rect=[0, 0, 1, 0.94])
