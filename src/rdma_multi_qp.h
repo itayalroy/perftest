@@ -40,6 +40,8 @@ struct rdma_multi_qp_config {
     bool all_to_all;           /* Spread from each source to every target (N*M QPs); with --direct or --allow-nvlink --reassembly */
     void **external_buffers;   /* Optional: per-QP buffer pointers (e.g. slices of source buffer); if set, no allocation, caller owns memory */
     size_t transport_buffer_size; /* 0 = use full slice size (no piping); otherwise QP buffer size per GPU */
+    bool debug;                   /* Print verbose output (iteration, pipe progress, etc.) */
+    int num_targets;              /* M: logical target count; 0 = use num_qps (M=K, default) */
 };
 
 /**

@@ -10,6 +10,7 @@
 #SBATCH --account=network_research_advdev
 
 # Run all RDMA sender/receiver tests: for each source-gpus option, run 5 modes.
+# For non-direct modes (allow_nvlink*), also sweeps transport buffer: 8M, 16M, 32M, 64M, 128M, and full (default).
 # Uses srun: receiver on first node, sender on second node.
 #
 #
@@ -157,6 +158,10 @@ SOURCE_GPUS_LIST=("0" "0,1" "0,1,2" "0,1,2,3" "0,1,2,3,4" "0,1,2,3,4,5" "0,1,2,3
 # Mode names (for table columns)
 MODES=("direct" "direct_alltoall" "allow_nvlink" "allow_nvlink_reassembly" "allow_nvlink_reassembly_alltoall")
 
+# Transport buffer sizes for non-direct modes (8, 16, 32, 64, 128 MB and default full buffer)
+# Empty string = default (no --transport-buffer, full buffer). Not used for direct modes.
+TRANSPORT_BUFFER_SIZES=("8M" "16M" "32M" "64M" "128M" "")
+
 # Temp dir for per-test output only (staged here then appended to LOG_FILE; deleted at exit)
 RESULTS_DIR=$(mktemp -d)
 RESULTS_TAB=""
@@ -165,6 +170,7 @@ trap 'rm -rf "$RESULTS_DIR" ${RESULTS_TAB:+"$RESULTS_TAB"}' EXIT
 run_one_test() {
   local src_gpus="$1"
   local mode="$2"
+  local transport_buf="${3:-}"
   local recv_args="" send_args=""
   case "$mode" in
     direct)
@@ -190,13 +196,21 @@ run_one_test() {
     *) echo "Unknown mode: $mode"; return 1 ;;
   esac
 
-  local outfile="$RESULTS_DIR/${src_gpus}_${mode}.out"
+  # Add transport-buffer for non-direct modes when specified
+  if [[ -n "$transport_buf" ]] && [[ "$mode" != "direct" ]] && [[ "$mode" != "direct_alltoall" ]]; then
+    recv_args="${recv_args} --transport-buffer ${transport_buf}"
+    send_args="${send_args} --transport-buffer ${transport_buf}"
+  fi
+
+  local tb_suffix=""
+  [[ -n "$transport_buf" ]] && tb_suffix="_T${transport_buf}" || tb_suffix="_Tfull"
+  local outfile="$RESULTS_DIR/${src_gpus}_${mode}${tb_suffix}.out"
   local bw=""
   local lat=""
 
   if [[ "${USE_SINGLE_SRUN_STEP:-0}" = "1" ]]; then
     # One srun with two tasks so only one job step (avoids receiver step being killed when second srun starts)
-    local step_suffix=$(echo "${src_gpus}_${mode}" | tr ',' '_' | tr -c '[:alnum:]_.-' '_')
+    local step_suffix=$(echo "${src_gpus}_${mode}${tb_suffix}" | tr ',' '_' | tr -c '[:alnum:]_.-' '_')
     local step_outfile_host="$BINDIR/.rdma_out_$$_${step_suffix}.out"
     local step_outfile_inside="${CONTAINER_WORKDIR:-$BINDIR}/.rdma_out_$$_${step_suffix}.out"
     if [[ -n "$CONTAINER_IMAGE" ]]; then
@@ -274,12 +288,25 @@ run_one_test() {
   echo "$bw	$lat"
 }
 
+# Build column headers: direct modes get 1 col each; allow_nvlink modes get 6 cols (8M, 16M, 32M, 64M, 128M, full)
+COL_HEADERS="source_gpus"
+for mode in "${MODES[@]}"; do
+  if [[ "$mode" == "direct" ]] || [[ "$mode" == "direct_alltoall" ]]; then
+    COL_HEADERS="${COL_HEADERS}	${mode}"
+  else
+    for tb in "${TRANSPORT_BUFFER_SIZES[@]}"; do
+      [[ -n "$tb" ]] && col="${mode}_${tb}" || col="${mode}_full"
+      COL_HEADERS="${COL_HEADERS}	${col}"
+    done
+  fi
+done
+
 # Table header for results (tab-separated; we format to a bordered table below)
 RESULTS_TAB=$(mktemp)
 RESULTS_TAB_LAT=$(mktemp)
 trap 'rm -rf "$RESULTS_DIR" ${RESULTS_TAB:+"$RESULTS_TAB"} ${RESULTS_TAB_LAT:+"$RESULTS_TAB_LAT"}' EXIT
-echo "source_gpus	direct	direct_alltoall	allow_nvlink	allow_nvlink_reassembly	allow_nvlink_reassembly_alltoall" > "$RESULTS_TAB"
-echo "source_gpus	direct	direct_alltoall	allow_nvlink	allow_nvlink_reassembly	allow_nvlink_reassembly_alltoall" > "$RESULTS_TAB_LAT"
+echo "$COL_HEADERS" > "$RESULTS_TAB"
+echo "$COL_HEADERS" > "$RESULTS_TAB_LAT"
 
 for src_gpus in "${SOURCE_GPUS_LIST[@]}"; do
   echo "" | tee -a "$LOG_FILE"
@@ -287,33 +314,62 @@ for src_gpus in "${SOURCE_GPUS_LIST[@]}"; do
   row="$src_gpus"
   row_lat="$src_gpus"
   for mode in "${MODES[@]}"; do
-    echo "  --- mode: $mode ---" | tee -a "$LOG_FILE"
-    result=$(run_one_test "$src_gpus" "$mode" || echo "")
-    bw=$(echo "$result" | cut -f1)
-    lat=$(echo "$result" | cut -f2)
-    row="${row}	${bw:-}"
-    row_lat="${row_lat}	${lat:-}"
+    if [[ "$mode" == "direct" ]] || [[ "$mode" == "direct_alltoall" ]]; then
+      echo "  --- mode: $mode ---" | tee -a "$LOG_FILE"
+      result=$(run_one_test "$src_gpus" "$mode" "" || echo "")
+      bw=$(echo "$result" | cut -f1)
+      lat=$(echo "$result" | cut -f2)
+      row="${row}	${bw:-}"
+      row_lat="${row_lat}	${lat:-}"
+    else
+      for tb in "${TRANSPORT_BUFFER_SIZES[@]}"; do
+        [[ -n "$tb" ]] && tb_label="$tb" || tb_label="full"
+        echo "  --- mode: $mode transport-buffer: $tb_label ---" | tee -a "$LOG_FILE"
+        result=$(run_one_test "$src_gpus" "$mode" "$tb" || echo "")
+        bw=$(echo "$result" | cut -f1)
+        lat=$(echo "$result" | cut -f2)
+        row="${row}	${bw:-}"
+        row_lat="${row_lat}	${lat:-}"
+      done
+    fi
   done
   echo "$row" >> "$RESULTS_TAB"
   echo "$row_lat" >> "$RESULTS_TAB_LAT"
 done
 
 # Format tab-separated table as bordered table (columns with | and separator line)
+# Handles variable number of columns; col width 10 for data, 16 for source_gpus
 format_results_table() {
   local f="$1"
   local unit="$2"
   {
-    local w1=16 w2=9 w3=16 w4=13 w5=24 w6=30
-    local sep="-----------------+----------+-----------------+--------------+-------------------------+----------------------------------"
     read -r line
-    IFS=$'\t' read -r c1 c2 c3 c4 c5 c6 <<< "$line"
-    printf " %-*s | %*s | %*s | %*s | %*s | %*s\n" $((w1-1)) "$c1" "$w2" "$c2" "$w3" "$c3" "$w4" "$c4" "$w5" "$c5" "$w6" "$c6"
+    IFS=$'\t' read -ra COLS <<< "$line"
+    local ncol=${#COLS[@]}
+    local w1=16
+    local w=12
+    local fmt=""
+    local sep=""
+    for ((i=0; i<ncol; i++)); do
+      [[ $i -eq 0 ]] && fmt=" %-*s" && sep="-----------------" || { fmt="${fmt} | %*s"; sep="${sep}+----------"; }
+    done
+    fmt="${fmt}\n"
+    # Print header
+    printf " %-*s" $((w1-1)) "${COLS[0]}"
+    for ((i=1; i<ncol; i++)); do
+      printf " | %*s" "$w" "${COLS[$i]}"
+    done
+    printf "\n"
     echo "$sep"
-    while IFS=$'\t' read -r c1 c2 c3 c4 c5 c6; do
-      [[ -z "$c1" ]] && continue
-      [[ -z "$c2" ]] && c2="—"; [[ -z "$c3" ]] && c3="—"; [[ -z "$c4" ]] && c4="—"
-      [[ -z "$c5" ]] && c5="—"; [[ -z "$c6" ]] && c6="—"
-      printf " %-*s | %*s | %*s | %*s | %*s | %*s\n" $((w1-1)) "$c1" "$w2" "$c2" "$w3" "$c3" "$w4" "$c4" "$w5" "$c5" "$w6" "$c6"
+    # Print data rows
+    while IFS=$'\t' read -ra COLS; do
+      [[ -z "${COLS[0]}" ]] && continue
+      printf " %-*s" $((w1-1)) "${COLS[0]}"
+      for ((i=1; i<ncol; i++)); do
+        local val="${COLS[$i]:---}"
+        printf " | %*s" "$w" "$val"
+      done
+      printf "\n"
     done
     echo ""
     echo "All values in $unit."

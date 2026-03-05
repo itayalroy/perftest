@@ -1,0 +1,120 @@
+OUTPUT_DIR (logs/results): /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_
+BINDIR (scripts, container mount): /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest
+TEST_NAME (in filenames): transport_buffer_clc_128MB
+LOG_FILE: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_/rdma_tests_full_9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_.log
+RESULTS_FILE: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_/rdma_tests_results_9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_.txt
+SLURM stdout: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_/rdma_tests_9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_.out
+SLURM stderr: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_/rdma_tests_9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_.err
+=== RDMA multi-QP test suite ===
+First node (receiver): pool0-00286
+Second node (sender):  pool0-00638
+Receiver IP:           100.126.46.228
+Partition:             <default>
+Account (group):       <default>
+Container:             /lustre/fsw/portfolios/network/users/eflorentzkon/elastic-ep-sglan_image.sqsh
+Container workdir:     /workdir
+Bind mounts:           <none>
+Log file:              /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_/rdma_tests_full_9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_.log
+Results file:          /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_/rdma_tests_results_9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_.txt
+Use single srun step:  1
+Sender delay (s):      10
+
+
+========== source-gpus: 0,1,2,3,4 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink transport-buffer: 8M ---
+  --- mode: allow_nvlink transport-buffer: 16M ---
+  --- mode: allow_nvlink transport-buffer: 32M ---
+  --- mode: allow_nvlink transport-buffer: 64M ---
+  --- mode: allow_nvlink transport-buffer: 128M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 8M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 16M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 32M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 64M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 128M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 8M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 16M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 32M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 64M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 128M ---
+
+========== source-gpus: 0,1,2,3,4,5 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink transport-buffer: 8M ---
+  --- mode: allow_nvlink transport-buffer: 16M ---
+  --- mode: allow_nvlink transport-buffer: 32M ---
+  --- mode: allow_nvlink transport-buffer: 64M ---
+  --- mode: allow_nvlink transport-buffer: 128M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 8M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 16M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 32M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 64M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 128M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 8M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 16M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 32M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 64M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 128M ---
+
+========== source-gpus: 0,1,2,3,4,5,6 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink transport-buffer: 8M ---
+  --- mode: allow_nvlink transport-buffer: 16M ---
+  --- mode: allow_nvlink transport-buffer: 32M ---
+  --- mode: allow_nvlink transport-buffer: 64M ---
+  --- mode: allow_nvlink transport-buffer: 128M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 8M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 16M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 32M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 64M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 128M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 8M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 16M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 32M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 64M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 128M ---
+
+========== source-gpus: 0,1,2,3,4,5,6,7 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink transport-buffer: 8M ---
+  --- mode: allow_nvlink transport-buffer: 16M ---
+  --- mode: allow_nvlink transport-buffer: 32M ---
+  --- mode: allow_nvlink transport-buffer: 64M ---
+  --- mode: allow_nvlink transport-buffer: 128M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 8M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 16M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 32M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 64M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 128M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 8M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 16M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 32M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 64M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 128M ---
+
+=== Results table (source_gpus x mode -> BW in GB/s, latency in ms per iteration) ===
+=== Bandwidth (GB/s) ===
+ source_gpus     |       direct | direct_alltoall | allow_nvlink_8M | allow_nvlink_16M | allow_nvlink_32M | allow_nvlink_64M | allow_nvlink_128M | allow_nvlink_reassembly_8M | allow_nvlink_reassembly_16M | allow_nvlink_reassembly_32M | allow_nvlink_reassembly_64M | allow_nvlink_reassembly_128M | allow_nvlink_reassembly_alltoall_8M | allow_nvlink_reassembly_alltoall_16M | allow_nvlink_reassembly_alltoall_32M | allow_nvlink_reassembly_alltoall_64M | allow_nvlink_reassembly_alltoall_128M
+-----------------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------
+ 0,1,2,3,4       |       202.24 |       237.09 |       222.86 |       249.54 |       278.76 |       274.57 |       261.88 |       188.25 |       223.38 |       242.44 |       252.96 |       257.25 |        28.98 |        67.38 |       130.68 |       168.34 |       174.90
+ 0,1,2,3,4,5     |       250.16 |       282.42 |       194.51 |       148.67 |       252.60 |       289.56 |       305.86 |       185.49 |       238.22 |       266.64 |       273.12 |       288.38 |        27.32 |        58.76 |        98.72 |       164.03 |       177.48
+ 0,1,2,3,4,5,6   |       321.13 |       329.33 |       204.90 |       243.51 |       276.79 |       305.82 |       333.38 |       188.53 |       217.28 |       273.60 |       295.82 |       251.14 |        21.55 |        52.45 |        92.13 |       169.77 |       180.80
+ 0,1,2,3,4,5,6,7 |       315.43 |       370.86 |       196.82 |       228.63 |       261.70 |       279.66 |       270.46 |       178.81 |       228.72 |       244.14 |       300.10 |       265.49 |        22.39 |        41.54 |        77.07 |       161.81 |       185.76
+
+All values in GB/s.
+
+=== Latency (ms per iteration) ===
+ source_gpus     |       direct | direct_alltoall | allow_nvlink_8M | allow_nvlink_16M | allow_nvlink_32M | allow_nvlink_64M | allow_nvlink_128M | allow_nvlink_reassembly_8M | allow_nvlink_reassembly_16M | allow_nvlink_reassembly_32M | allow_nvlink_reassembly_64M | allow_nvlink_reassembly_128M | allow_nvlink_reassembly_alltoall_8M | allow_nvlink_reassembly_alltoall_16M | allow_nvlink_reassembly_alltoall_32M | allow_nvlink_reassembly_alltoall_64M | allow_nvlink_reassembly_alltoall_128M
+-----------------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------
+ 0,1,2,3,4       |        3.318 |        2.831 |        3.011 |        2.689 |        2.407 |        2.444 |        2.563 |        3.565 |        3.004 |        2.768 |        2.653 |        2.609 |       23.155 |        9.960 |        5.135 |        3.986 |        3.837
+ 0,1,2,3,4,5     |        3.219 |        2.851 |        4.140 |        5.417 |        3.188 |        2.781 |        2.633 |        4.341 |        3.380 |        3.020 |        2.949 |        2.792 |       29.472 |       13.705 |        8.157 |        4.909 |        4.538
+ 0,1,2,3,4,5,6   |        2.926 |        2.853 |        4.585 |        3.858 |        3.394 |        3.072 |        2.818 |        4.983 |        4.324 |        3.434 |        3.176 |        3.741 |       43.602 |       17.914 |       10.198 |        5.534 |        5.197
+ 0,1,2,3,4,5,6,7 |        3.404 |        2.895 |        5.455 |        4.696 |        4.103 |        3.839 |        3.970 |        6.005 |        4.695 |        4.398 |        3.578 |        4.044 |       47.948 |       25.849 |       13.933 |        6.636 |        5.780
+
+All values in ms per iteration.
+
+Done. Full log: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_/rdma_tests_full_9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_.log  Results: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_/rdma_tests_results_9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_.txt

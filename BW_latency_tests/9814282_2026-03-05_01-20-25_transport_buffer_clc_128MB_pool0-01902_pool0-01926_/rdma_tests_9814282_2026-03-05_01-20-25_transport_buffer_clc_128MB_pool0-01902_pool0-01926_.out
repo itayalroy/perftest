@@ -1,0 +1,96 @@
+OUTPUT_DIR (logs/results): /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_
+BINDIR (scripts, container mount): /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest
+TEST_NAME (in filenames): transport_buffer_clc_128MB
+LOG_FILE: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_/rdma_tests_full_9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_.log
+RESULTS_FILE: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_/rdma_tests_results_9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_.txt
+SLURM stdout: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_/rdma_tests_9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_.out
+SLURM stderr: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_/rdma_tests_9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_.err
+=== RDMA multi-QP test suite ===
+First node (receiver): pool0-01902
+Second node (sender):  pool0-01926
+Receiver IP:           100.126.37.100
+Partition:             <default>
+Account (group):       <default>
+Container:             /lustre/fsw/portfolios/network/users/eflorentzkon/elastic-ep-sglan_image.sqsh
+Container workdir:     /workdir
+Bind mounts:           <none>
+Log file:              /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_/rdma_tests_full_9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_.log
+Results file:          /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_/rdma_tests_results_9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_.txt
+Use single srun step:  1
+Sender delay (s):      10
+
+
+========== source-gpus: 0, ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink transport-buffer: 8M ---
+  --- mode: allow_nvlink transport-buffer: 16M ---
+  --- mode: allow_nvlink transport-buffer: 32M ---
+  --- mode: allow_nvlink transport-buffer: 64M ---
+  --- mode: allow_nvlink transport-buffer: 128M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 8M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 16M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 32M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 64M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 128M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 8M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 16M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 32M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 64M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 128M ---
+
+========== source-gpus: 0,1, ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink transport-buffer: 8M ---
+  --- mode: allow_nvlink transport-buffer: 16M ---
+  --- mode: allow_nvlink transport-buffer: 32M ---
+  --- mode: allow_nvlink transport-buffer: 64M ---
+  --- mode: allow_nvlink transport-buffer: 128M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 8M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 16M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 32M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 64M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 128M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 8M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 16M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 32M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 64M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 128M ---
+
+========== source-gpus: 0,1,2, ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink transport-buffer: 8M ---
+  --- mode: allow_nvlink transport-buffer: 16M ---
+  --- mode: allow_nvlink transport-buffer: 32M ---
+  --- mode: allow_nvlink transport-buffer: 64M ---
+  --- mode: allow_nvlink transport-buffer: 128M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 8M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 16M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 32M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 64M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 128M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 8M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 16M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 32M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 64M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 128M ---
+
+========== source-gpus: 0,1,2,3 ==========
+  --- mode: direct ---
+  --- mode: direct_alltoall ---
+  --- mode: allow_nvlink transport-buffer: 8M ---
+  --- mode: allow_nvlink transport-buffer: 16M ---
+  --- mode: allow_nvlink transport-buffer: 32M ---
+  --- mode: allow_nvlink transport-buffer: 64M ---
+  --- mode: allow_nvlink transport-buffer: 128M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 8M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 16M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 32M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 64M ---
+  --- mode: allow_nvlink_reassembly transport-buffer: 128M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 8M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 16M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 32M ---
+  --- mode: allow_nvlink_reassembly_alltoall transport-buffer: 64M ---

@@ -16,6 +16,7 @@ ALL_TO_ALL=0
 SOURCE_GPUS=""
 UTILIZE_NIC=""
 TRANSPORT_BUFFER=""
+TARGET_COUNT=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -47,6 +48,10 @@ while [[ $# -gt 0 ]]; do
             TRANSPORT_BUFFER="$2"
             shift 2
             ;;
+        --target-count)
+            TARGET_COUNT="$2"
+            shift 2
+            ;;
         --help|-h)
             echo "Usage: $0 [OPTIONS]"
             echo ""
@@ -60,6 +65,8 @@ while [[ $# -gt 0 ]]; do
             echo "                         - In NVLink mode: multiple source GPUs (e.g., '0,1')"
             echo "  --utilize-nic <NIC>    Run extra QP on this NIC for background load (must be in -n list)"
             echo "  --transport-buffer <SIZE>  QP transport buffer size per GPU (e.g. 32M, 1G); enables piping. Not valid with --direct or --nics-only."
+            echo "  --target-count <M>     Number of logical targets M (decouples M from NIC count K)."
+            echo "                         Requires --allow-nvlink --reassembly --all-to-all. Not valid with --direct."
             echo "  --help, -h             Show this help message"
             echo ""
             echo "Examples:"
@@ -70,6 +77,7 @@ while [[ $# -gt 0 ]]; do
             echo "  $0 --direct --source-gpus 0                # Only GPU 0 receives via mlx5_0"
             echo "  $0 --direct --source-gpus 0,1,2            # GPU 0,1,2 via mlx5_0,3,4"
             echo "  $0 --direct --all-to-all --source-gpus 0,1 # All-to-all receive (match sender)"
+            echo "  $0 --allow-nvlink --reassembly --all-to-all --source-gpus 0,1 --target-count 4  # M=4 targets, K=8 NICs"
             exit 0
             ;;
         *)
@@ -88,6 +96,18 @@ if [[ $ALL_TO_ALL -eq 1 ]]; then
     fi
     if [[ -z "$SOURCE_GPUS" ]]; then
         echo "Error: --all-to-all requires --source-gpus"
+        exit 1
+    fi
+fi
+
+# Validate --target-count: requires NVLink reassembly all-to-all, not valid with --direct
+if [[ -n "$TARGET_COUNT" ]]; then
+    if [[ $DIRECT_MODE -eq 1 ]]; then
+        echo "Error: --target-count is not supported in direct mode"
+        exit 1
+    fi
+    if [[ $ALL_TO_ALL -eq 0 || $REASSEMBLY -eq 0 || $USE_NVLINK -eq 0 ]]; then
+        echo "Error: --target-count requires --allow-nvlink --reassembly --all-to-all"
         exit 1
     fi
 fi
@@ -156,6 +176,9 @@ if [[ -n "$UTILIZE_NIC" ]]; then
 fi
 if [[ -n "$TRANSPORT_BUFFER" ]]; then
     CMD="${CMD} --transport-buffer ${TRANSPORT_BUFFER}"
+fi
+if [[ -n "$TARGET_COUNT" ]]; then
+    CMD="${CMD} --target-count ${TARGET_COUNT}"
 fi
 
 # Execute

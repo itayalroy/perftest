@@ -1,0 +1,269 @@
+#!/usr/bin/env python3
+"""
+Plot RDMA test results from rdma_tests_results_*.txt files.
+Usage: python plot_rdma_results.py <result_file1> [result_file2 ...] [-o output_dir]
+
+Creates:
+- One image per source_gpus count
+- Graph 1: Direct and Reassembly (direct, direct_alltoall, allow_nvlink_reassembly, allow_nvlink_reassembly_alltoall)
+- Graph 2: All-to-all and allow_nvlink without reassembly (direct_alltoall, allow_nvlink)
+- X axis: transport buffer size (8M, 16M, 32M, 64M, 128M, full)
+- Y axis: Bandwidth (GB/s) or Latency (ms)
+"""
+
+import argparse
+import re
+import os
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Transport buffer sizes in MB (full = 256 for display)
+TB_SIZES = [8, 16, 32, 64, 128, 256]  # 256 represents "full"
+TB_LABELS = ["8M", "16M", "32M", "64M", "128M", "full"]
+
+# Column name -> (mode, tb_index or -1 for direct)
+COL_MAP = {
+    "direct": ("direct", -1),
+    "direct_alltoall": ("direct_alltoall", -1),
+    "allow_nvlink_8M": ("allow_nvlink", 0),
+    "allow_nvlink_16M": ("allow_nvlink", 1),
+    "allow_nvlink_32M": ("allow_nvlink", 2),
+    "allow_nvlink_64M": ("allow_nvlink", 3),
+    "allow_nvlink_128M": ("allow_nvlink", 4),
+    "allow_nvlink_full": ("allow_nvlink", 5),
+    "allow_nvlink_reassembly_8M": ("allow_nvlink_reassembly", 0),
+    "allow_nvlink_reassembly_16M": ("allow_nvlink_reassembly", 1),
+    "allow_nvlink_reassembly_32M": ("allow_nvlink_reassembly", 2),
+    "allow_nvlink_reassembly_64M": ("allow_nvlink_reassembly", 3),
+    "allow_nvlink_reassembly_128M": ("allow_nvlink_reassembly", 4),
+    "allow_nvlink_reassembly_full": ("allow_nvlink_reassembly", 5),
+    "allow_nvlink_reassembly_alltoall_8M": ("allow_nvlink_reassembly_alltoall", 0),
+    "allow_nvlink_reassembly_alltoall_16M": ("allow_nvlink_reassembly_alltoall", 1),
+    "allow_nvlink_reassembly_alltoall_32M": ("allow_nvlink_reassembly_alltoall", 2),
+    "allow_nvlink_reassembly_alltoall_64M": ("allow_nvlink_reassembly_alltoall", 3),
+    "allow_nvlink_reassembly_alltoall_128M": ("allow_nvlink_reassembly_alltoall", 4),
+    "allow_nvlink_reassembly_alltoall_full": ("allow_nvlink_reassembly_alltoall", 5),
+}
+
+# Graph 1: Direct and Reassembly
+MODES_DIRECT_REASSEMBLY = ["direct", "direct_alltoall", "allow_nvlink_reassembly", "allow_nvlink_reassembly_alltoall"]
+
+# Graph 2: All-to-all and allow_nvlink without reassembly
+MODES_ALLTOALL_NVLINK = ["direct_alltoall", "allow_nvlink"]
+
+COLORS = {
+    "direct": "tab:blue",
+    "direct_alltoall": "tab:orange",
+    "allow_nvlink": "tab:green",
+    "allow_nvlink_reassembly": "tab:red",
+    "allow_nvlink_reassembly_alltoall": "tab:purple",
+}
+
+
+def parse_result_file(path):
+    """Parse rdma_tests_results_*.txt and return {source_gpus: {metric: {mode: [vals] or scalar}}}"""
+    with open(path) as f:
+        content = f.read()
+
+    data = {}
+    # Split by section
+    bw_section = content.split("=== Bandwidth (GB/s) ===")[1].split("=== Latency")[0]
+    lat_section = content.split("=== Latency (ms per iteration) ===")[1].split("All values")[0]
+
+    def parse_section(section):
+        lines = [l.strip() for l in section.strip().split("\n") if l.strip()]
+        if not lines:
+            return {}
+        header = lines[0]
+        # Parse header: source_gpus | col1 | col2 | ...
+        cols = [c.strip() for c in header.split("|")]
+        col_names = [re.sub(r"\s+", "_", c) for c in cols]
+        result = {}
+        for line in lines[1:]:
+            if line.startswith("-"):
+                continue
+            parts = [p.strip() for p in line.split("|")]
+            if len(parts) < 2:
+                continue
+            src_gpus = parts[0].strip()
+            result[src_gpus] = {}
+            for i, name in enumerate(col_names[1:], 1):
+                if i >= len(parts):
+                    break
+                val_str = parts[i].strip()
+                if val_str == "--" or val_str == "":
+                    continue
+                try:
+                    val = float(val_str)
+                except ValueError:
+                    continue
+                if name in COL_MAP:
+                    mode, tb_idx = COL_MAP[name]
+                    if mode not in result[src_gpus]:
+                        result[src_gpus][mode] = {}
+                    if tb_idx >= 0:
+                        result[src_gpus][mode][tb_idx] = val
+                    else:
+                        result[src_gpus][mode]["direct"] = val
+        return result
+
+    bw_data = parse_section(bw_section)
+    lat_data = parse_section(lat_section)
+
+    for src in bw_data:
+        if src not in data:
+            data[src] = {"bw": {}, "lat": {}}
+        data[src]["bw"] = bw_data[src]
+    for src in lat_data:
+        if src not in data:
+            data[src] = {"bw": {}, "lat": {}}
+        data[src]["lat"] = lat_data[src]
+
+    return data
+
+
+def merge_data(all_data):
+    """Merge multiple parsed files. Later files override earlier for same source_gpus."""
+    merged = {}
+    for d in all_data:
+        for src, metrics in d.items():
+            if src not in merged:
+                merged[src] = {"bw": {}, "lat": {}}
+            for mode, vals in metrics.get("bw", {}).items():
+                merged[src]["bw"][mode] = vals
+            for mode, vals in metrics.get("lat", {}).items():
+                merged[src]["lat"][mode] = vals
+    return merged
+
+
+def get_series(merged, src_gpus, metric, modes, is_direct_graph):
+    """Get (x_vals, y_vals) per mode for plotting."""
+    series = {}
+    src_data = merged.get(src_gpus, {})
+    m_data = src_data.get("bw" if metric == "bw" else "lat", {})
+
+    for mode in modes:
+        if mode not in m_data:
+            continue
+        mode_data = m_data[mode]
+        if "direct" in mode_data:
+            # direct or direct_alltoall: single value, show as horizontal line
+            val = mode_data["direct"]
+            if is_direct_graph and mode in ("direct", "direct_alltoall"):
+                series[mode] = (TB_SIZES, [val] * len(TB_SIZES))
+            elif not is_direct_graph and mode == "direct_alltoall":
+                series[mode] = (TB_SIZES, [val] * len(TB_SIZES))
+            else:
+                series[mode] = (TB_SIZES, [val] * len(TB_SIZES))
+        else:
+            xs, ys = [], []
+            for i, tb in enumerate(TB_SIZES):
+                if i in mode_data:
+                    xs.append(tb)
+                    ys.append(mode_data[i])
+            if xs:
+                series[mode] = (xs, ys)
+    return series
+
+
+def plot_one_source(merged, src_gpus, output_dir, ngpus):
+    """Create one figure per source_gpus: 2 rows (BW, Lat) x 2 cols (direct+reassembly, alltoall+nvlink)."""
+    fig, axes = plt.subplots(2, 2, figsize=(12, 9), sharex="col")
+    fig.suptitle(f"RDMA: {ngpus} source GPU(s) — {src_gpus}")
+
+    # Row 0: Bandwidth
+    # Col 0: Direct and Reassembly
+    ax = axes[0, 0]
+    series = get_series(merged, src_gpus, "bw", MODES_DIRECT_REASSEMBLY, True)
+    for mode, (xs, ys) in series.items():
+        ax.plot(xs, ys, color=COLORS.get(mode, "gray"), marker="o", alpha=0.8, label=mode)
+    ax.set_xscale("log", base=2)
+    ax.set_xticks(TB_SIZES)
+    ax.set_xticklabels(TB_LABELS)
+    ax.set_ylabel("Bandwidth (GB/s)")
+    ax.set_title("Direct & Reassembly")
+    ax.grid(True, alpha=0.3)
+    ax.legend(fontsize=8)
+
+    # Col 1: All-to-all and allow_nvlink
+    ax = axes[0, 1]
+    series = get_series(merged, src_gpus, "bw", MODES_ALLTOALL_NVLINK, False)
+    for mode, (xs, ys) in series.items():
+        ax.plot(xs, ys, color=COLORS.get(mode, "gray"), marker="o", alpha=0.8, label=mode)
+    ax.set_xscale("log", base=2)
+    ax.set_xticks(TB_SIZES)
+    ax.set_xticklabels(TB_LABELS)
+    ax.set_ylabel("Bandwidth (GB/s)")
+    ax.set_title("All-to-all & allow_nvlink (no reassembly)")
+    ax.grid(True, alpha=0.3)
+    ax.legend(fontsize=8)
+
+    # Row 1: Latency
+    ax = axes[1, 0]
+    series = get_series(merged, src_gpus, "lat", MODES_DIRECT_REASSEMBLY, True)
+    for mode, (xs, ys) in series.items():
+        ax.plot(xs, ys, color=COLORS.get(mode, "gray"), marker="o", alpha=0.8, label=mode)
+    ax.set_xscale("log", base=2)
+    ax.set_xticks(TB_SIZES)
+    ax.set_xticklabels(TB_LABELS)
+    ax.set_xlabel("Transport buffer size")
+    ax.set_ylabel("Latency (ms / iteration)")
+    ax.set_title("Direct & Reassembly")
+    ax.grid(True, alpha=0.3)
+    ax.legend(fontsize=8)
+
+    ax = axes[1, 1]
+    series = get_series(merged, src_gpus, "lat", MODES_ALLTOALL_NVLINK, False)
+    for mode, (xs, ys) in series.items():
+        ax.plot(xs, ys, color=COLORS.get(mode, "gray"), marker="o", alpha=0.8, label=mode)
+    ax.set_xscale("log", base=2)
+    ax.set_xticks(TB_SIZES)
+    ax.set_xticklabels(TB_LABELS)
+    ax.set_xlabel("Transport buffer size")
+    ax.set_ylabel("Latency (ms / iteration)")
+    ax.set_title("All-to-all & allow_nvlink (no reassembly)")
+    ax.grid(True, alpha=0.3)
+    ax.legend(fontsize=8)
+
+    fig.tight_layout(rect=[0, 0, 1, 0.94])
+    outpath = os.path.join(output_dir, f"rdma_bw_lat_{ngpus}gpu_{src_gpus.replace(',', '_')}.png")
+    fig.savefig(outpath, dpi=150)
+    plt.close(fig)
+    return outpath
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Plot RDMA test results")
+    ap.add_argument("files", nargs="+", help="rdma_tests_results_*.txt files")
+    ap.add_argument("-o", "--output", default=".", help="Output directory for PNGs")
+    args = ap.parse_args()
+
+    all_data = []
+    for f in args.files:
+        if not os.path.isfile(f):
+            print(f"Warning: {f} not found, skipping")
+            continue
+        all_data.append(parse_result_file(f))
+
+    if not all_data:
+        print("No valid result files.")
+        return 1
+
+    merged = merge_data(all_data)
+    os.makedirs(args.output, exist_ok=True)
+
+    # Sort source_gpus by number of GPUs
+    def sort_key(s):
+        return len(s.split(","))
+
+    for src_gpus in sorted(merged.keys(), key=sort_key):
+        ngpus = sort_key(src_gpus)
+        outpath = plot_one_source(merged, src_gpus, args.output, ngpus)
+        print(f"Saved {outpath}")
+
+    print(f"Done. Output in {args.output}")
+    return 0
+
+
+if __name__ == "__main__":
+    exit(main())
