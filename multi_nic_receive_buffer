@@ -13,10 +13,12 @@ USE_NVLINK=0
 DIRECT_MODE=0
 REASSEMBLY=0
 ALL_TO_ALL=0
+DEBUG=0
 SOURCE_GPUS=""
 UTILIZE_NIC=""
 TRANSPORT_BUFFER=""
 TARGET_COUNT=""
+DOUBLE_BUFFER=0
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -52,6 +54,14 @@ while [[ $# -gt 0 ]]; do
             TARGET_COUNT="$2"
             shift 2
             ;;
+        --double-buffer)
+            DOUBLE_BUFFER=1
+            shift
+            ;;
+        --debug|-d)
+            DEBUG=1
+            shift
+            ;;
         --help|-h)
             echo "Usage: $0 [OPTIONS]"
             echo ""
@@ -67,6 +77,9 @@ while [[ $# -gt 0 ]]; do
             echo "  --transport-buffer <SIZE>  QP transport buffer size per GPU (e.g. 32M, 1G); enables piping. Not valid with --direct or --nics-only."
             echo "  --target-count <M>     Number of logical targets M (decouples M from NIC count K)."
             echo "                         Requires --allow-nvlink --reassembly --all-to-all. Not valid with --direct."
+            echo "  --double-buffer        Allocate 2 transport buffers per QP; interleave NVLink fill with RDMA send."
+            echo "                         Requires --transport-buffer. Not valid with --direct or --nics-only."
+            echo "  --debug, -d            Print verbose output (iteration timing, pipe progress, etc.)"
             echo "  --help, -h             Show this help message"
             echo ""
             echo "Examples:"
@@ -179,6 +192,12 @@ if [[ -n "$TRANSPORT_BUFFER" ]]; then
 fi
 if [[ -n "$TARGET_COUNT" ]]; then
     CMD="${CMD} --target-count ${TARGET_COUNT}"
+fi
+if [[ $DEBUG -eq 1 ]]; then
+    CMD="${CMD} --debug"
+fi
+if [[ $DOUBLE_BUFFER -eq 1 ]]; then
+    CMD="${CMD} --double-buffer"
 fi
 
 # Execute
