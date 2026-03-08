@@ -1,0 +1,741 @@
+<mxfile host="65bd71144e">
+    <diagram name="1 - Direct Mode" id="direct-mode">
+        <mxGraphModel dx="1100" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="950" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="Mode 1 — Direct: Each GPU sends via its own paired NIC" style="text;html=1;strokeColor=#333;fillColor=#FFD700;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=20;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="150" y="15" width="1200" height="40" as="geometry"/>
+                </mxCell>
+
+                <!-- SENDER NODE BOX -->
+                <mxCell id="snd-node" value="SENDER NODE" style="text;html=1;strokeColor=#B22222;fillColor=#FFF0F0;align=center;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=15;fontStyle=1;strokeWidth=3;spacingTop=8;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="20" y="75" width="490" height="740" as="geometry"/>
+                </mxCell>
+
+                <!-- GPU source buffers + NICs (8 rows, 85px spacing) -->
+                <!-- Row 0 -->
+                <mxCell id="d-g0" value="&lt;b&gt;GPU 0&lt;/b&gt;&lt;br&gt;Source Buffer: 1 GB&lt;br&gt;&lt;font color=&#39;#000&#39;&gt;(MR registered)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ECDC4;strokeColor=#007080;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="50" y="130" width="185" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-n0" value="&lt;b&gt;NIC mlx5_0&lt;/b&gt;&lt;br&gt;PCIe-paired" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFA07A;strokeColor=#8B3000;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="295" y="130" width="130" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-a0" value="PCIe DMA" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#007080;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="d-g0" target="d-n0" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- Row 1 -->
+                <mxCell id="d-g1" value="&lt;b&gt;GPU 1&lt;/b&gt;&lt;br&gt;Source Buffer: 1 GB&lt;br&gt;&lt;font color=&#39;#000&#39;&gt;(MR registered)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ECDC4;strokeColor=#007080;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="50" y="215" width="185" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-n1" value="&lt;b&gt;NIC mlx5_1&lt;/b&gt;&lt;br&gt;PCIe-paired" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFA07A;strokeColor=#8B3000;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="295" y="215" width="130" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-a1" value="PCIe DMA" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#007080;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="d-g1" target="d-n1" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- Row 2 -->
+                <mxCell id="d-g2" value="&lt;b&gt;GPU 2&lt;/b&gt;&lt;br&gt;Source Buffer: 1 GB&lt;br&gt;&lt;font color=&#39;#000&#39;&gt;(MR registered)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ECDC4;strokeColor=#007080;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="50" y="300" width="185" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-n2" value="&lt;b&gt;NIC mlx5_2&lt;/b&gt;&lt;br&gt;PCIe-paired" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFA07A;strokeColor=#8B3000;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="295" y="300" width="130" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-a2" value="PCIe DMA" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#007080;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="d-g2" target="d-n2" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- Rows 3-6 condensed -->
+                <mxCell id="d-dots" value="GPU 3 · GPU 4 · GPU 5 · GPU 6   (identical pattern: 1 GB each → paired NIC)" style="text;html=1;strokeColor=#aaa;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="50" y="385" width="375" height="40" as="geometry"/>
+                </mxCell>
+                <!-- Row 7 -->
+                <mxCell id="d-g7" value="&lt;b&gt;GPU 7&lt;/b&gt;&lt;br&gt;Source Buffer: 1 GB&lt;br&gt;&lt;font color=&#39;#000&#39;&gt;(MR registered)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ECDC4;strokeColor=#007080;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="50" y="450" width="185" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-n7" value="&lt;b&gt;NIC mlx5_7&lt;/b&gt;&lt;br&gt;PCIe-paired" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFA07A;strokeColor=#8B3000;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="295" y="450" width="130" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-a7" value="PCIe DMA" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#007080;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="d-g7" target="d-n7" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- Key -->
+                <mxCell id="d-key" value="&lt;b&gt;Buffer layout (Sender):&lt;/b&gt;&lt;br&gt;• 8 source buffers — one per GPU (GPU-local memory)&lt;br&gt;• Each: 1 GB, registered as RDMA Memory Region (MR)&lt;br&gt;• NIC reads buffer directly via PCIe DMA (GPUDirect)&lt;br&gt;• No NVLink used — each GPU works independently&lt;br&gt;&lt;br&gt;&lt;b&gt;Buffer layout (Receiver):&lt;/b&gt;&lt;br&gt;• 8 QP buffers — one per GPU (GPU-local memory)&lt;br&gt;• Each: 1 GB, registered as RDMA MR (RDMA writes here)&lt;br&gt;• GPU k receives exactly what GPU k on sender sent" style="text;html=1;strokeColor=#333;fillColor=#FFFDE7;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=12;strokeWidth=2;spacingLeft=10;spacingTop=8;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="30" y="540" width="460" height="255" as="geometry"/>
+                </mxCell>
+
+                <!-- NETWORK -->
+                <mxCell id="d-net" value="&lt;b&gt;Network&lt;/b&gt;&lt;br&gt;(RDMA fabric)" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#C0C0C0;strokeColor=#333;fontSize=14;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="570" y="310" width="220" height="130" as="geometry"/>
+                </mxCell>
+                <!-- RDMA arrows to network -->
+                <mxCell id="d-r0" value="RDMA write" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.15;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="d-n0" target="d-net" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-r1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="d-n1" target="d-net" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-r2" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="d-n2" target="d-net" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-r7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.85;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="d-n7" target="d-net" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- RECEIVER NODE -->
+                <mxCell id="rcv-node" value="RECEIVER NODE" style="text;html=1;strokeColor=#006600;fillColor=#F0FFF0;align=center;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=15;fontStyle=1;strokeWidth=3;spacingTop=8;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="870" y="75" width="580" height="545" as="geometry"/>
+                </mxCell>
+                <!-- Receiver QP buffers -->
+                <mxCell id="d-rb0" value="&lt;b&gt;GPU 0 — QP Buffer&lt;/b&gt;&lt;br&gt;1 GB  ← RDMA target&lt;br&gt;Holds: data from sender GPU 0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="920" y="130" width="250" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-rb1" value="&lt;b&gt;GPU 1 — QP Buffer&lt;/b&gt;&lt;br&gt;1 GB  ← RDMA target&lt;br&gt;Holds: data from sender GPU 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="920" y="215" width="250" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-rb2" value="&lt;b&gt;GPU 2 — QP Buffer&lt;/b&gt;&lt;br&gt;1 GB  ← RDMA target&lt;br&gt;Holds: data from sender GPU 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="920" y="300" width="250" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-rdots" value="GPU 3 · GPU 4 · GPU 5 · GPU 6   (identical: 1 GB each)" style="text;html=1;strokeColor=#aaa;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="920" y="385" width="250" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-rb7" value="&lt;b&gt;GPU 7 — QP Buffer&lt;/b&gt;&lt;br&gt;1 GB  ← RDMA target&lt;br&gt;Holds: data from sender GPU 7" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="920" y="450" width="250" height="60" as="geometry"/>
+                </mxCell>
+                <!-- recv arrows -->
+                <mxCell id="d-ra0" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.15;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="d-net" target="d-rb0" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-ra1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.3;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="d-net" target="d-rb1" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-ra2" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="d-net" target="d-rb2" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-ra7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.85;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="d-net" target="d-rb7" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- Stats banner -->
+                <mxCell id="d-stats" value="Total data / iteration: 8 × 1 GB = 8 GB    |    Threads: 8 (1 per GPU/NIC pair)    |    No NVLink" style="text;html=1;strokeColor=#555;fillColor=#E8E8FF;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=13;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="150" y="840" width="1200" height="40" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+
+    <diagram name="2 - NICs-Only Mode" id="nics-only-mode">
+        <mxGraphModel dx="1100" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="950" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="Mode 2 — NICs-Only: All NICs stream from a single GPU (GPU 0)" style="text;html=1;strokeColor=#333;fillColor=#FFD700;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=20;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="150" y="15" width="1200" height="40" as="geometry"/>
+                </mxCell>
+
+                <!-- SENDER NODE -->
+                <mxCell id="snd-node" value="SENDER NODE" style="text;html=1;strokeColor=#B22222;fillColor=#FFF0F0;align=center;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=15;fontStyle=1;strokeWidth=3;spacingTop=8;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="20" y="75" width="490" height="740" as="geometry"/>
+                </mxCell>
+
+                <!-- GPU 0 — the only source -->
+                <mxCell id="no-g0" value="&lt;b&gt;GPU 0 — Source Buffer: 1 GB (total)&lt;/b&gt;&lt;br&gt;Divided into 8 slices × 128 MB each&lt;br&gt;All slices registered as a single RDMA MR" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ECDC4;strokeColor=#007080;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="55" y="130" width="330" height="65" as="geometry"/>
+                </mxCell>
+
+                <!-- 8 slices visual -->
+                <mxCell id="no-s0" value="Slice 0&#10;128 MB" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#B2EBF2;strokeColor=#007080;fontSize=10;fontStyle=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="55" y="215" width="75" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-s1" value="Slice 1&#10;128 MB" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#B2EBF2;strokeColor=#007080;fontSize=10;fontStyle=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="133" y="215" width="75" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-s2" value="Slice 2&#10;128 MB" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#B2EBF2;strokeColor=#007080;fontSize=10;fontStyle=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="211" y="215" width="75" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-sdots" value="· · ·" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="289" y="215" width="40" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-s7" value="Slice 7&#10;128 MB" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#B2EBF2;strokeColor=#007080;fontSize=10;fontStyle=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="332" y="215" width="75" height="45" as="geometry"/>
+                </mxCell>
+
+                <!-- 8 NICs -->
+                <mxCell id="no-n0" value="NIC mlx5_0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFA07A;strokeColor=#8B3000;fontSize=12;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="295" y="300" width="130" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-n1" value="NIC mlx5_1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFA07A;strokeColor=#8B3000;fontSize=12;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="295" y="360" width="130" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-n2" value="NIC mlx5_2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFA07A;strokeColor=#8B3000;fontSize=12;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="295" y="420" width="130" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-ndots" value="NIC mlx5_3 ··· mlx5_6" style="text;html=1;strokeColor=#aaa;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="295" y="480" width="130" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-n7" value="NIC mlx5_7" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFA07A;strokeColor=#8B3000;fontSize=12;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="295" y="540" width="130" height="45" as="geometry"/>
+                </mxCell>
+
+                <!-- Arrows GPU0 → NICs (all 8 from same source) -->
+                <mxCell id="no-a0" value="slice 0" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#007080;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="no-g0" target="no-n0" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-a1" value="slice 1" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#007080;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="no-g0" target="no-n1" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-a2" value="slice 2" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#007080;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="no-g0" target="no-n2" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-a7" value="slice 7" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#007080;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="no-g0" target="no-n7" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- Key -->
+                <mxCell id="no-key" value="&lt;b&gt;Buffer layout (Sender):&lt;/b&gt;&lt;br&gt;• Only GPU 0 is used — 1 GB total, one MR&lt;br&gt;• Buffer logically partitioned: 8 slices × 128 MB&lt;br&gt;• Each NIC DMAs its own slice from GPU 0 memory&lt;br&gt;• GPUs 1-7 are idle&lt;br&gt;&lt;br&gt;&lt;b&gt;Buffer layout (Receiver):&lt;/b&gt;&lt;br&gt;• 8 QP buffers of 128 MB each (on any GPU)&lt;br&gt;• Each QP receives its own 128 MB slice&lt;br&gt;&lt;br&gt;&lt;b&gt;Use case:&lt;/b&gt; Measures peak NIC aggregate BW&lt;br&gt;without NVLink — if BW matches Direct mode,&lt;br&gt;PCIe bandwidth to GPU 0 is the bottleneck." style="text;html=1;strokeColor=#333;fillColor=#FFFDE7;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=12;strokeWidth=2;spacingLeft=10;spacingTop=8;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="30" y="610" width="460" height="185" as="geometry"/>
+                </mxCell>
+
+                <!-- Network -->
+                <mxCell id="no-net" value="&lt;b&gt;Network&lt;/b&gt;&lt;br&gt;(RDMA fabric)" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#C0C0C0;strokeColor=#333;fontSize=14;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="570" y="360" width="220" height="120" as="geometry"/>
+                </mxCell>
+                <!-- RDMA arrows -->
+                <mxCell id="no-r0" value="RDMA" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.2;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="no-n0" target="no-net" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-r1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.35;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="no-n1" target="no-net" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-r2" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="no-n2" target="no-net" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-r7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="no-n7" target="no-net" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- RECEIVER NODE -->
+                <mxCell id="rcv-node" value="RECEIVER NODE" style="text;html=1;strokeColor=#006600;fillColor=#F0FFF0;align=center;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=15;fontStyle=1;strokeWidth=3;spacingTop=8;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="870" y="75" width="580" height="500" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-rb0" value="&lt;b&gt;QP Buffer 0 — 128 MB&lt;/b&gt;&lt;br&gt;Receives slice 0 from sender GPU 0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="920" y="130" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-rb1" value="&lt;b&gt;QP Buffer 1 — 128 MB&lt;/b&gt;&lt;br&gt;Receives slice 1 from sender GPU 0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="920" y="200" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-rb2" value="&lt;b&gt;QP Buffer 2 — 128 MB&lt;/b&gt;&lt;br&gt;Receives slice 2 from sender GPU 0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="920" y="270" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-rbdots" value="QP Buffer 3 · 4 · 5 · 6   (128 MB each)" style="text;html=1;strokeColor=#aaa;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="920" y="340" width="280" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-rb7" value="&lt;b&gt;QP Buffer 7 — 128 MB&lt;/b&gt;&lt;br&gt;Receives slice 7 from sender GPU 0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="920" y="400" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <!-- recv arrows -->
+                <mxCell id="no-ra0" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.2;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="no-net" target="no-rb0" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-ra1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.35;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="no-net" target="no-rb1" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-ra2" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="no-net" target="no-rb2" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-ra7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.8;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="no-net" target="no-rb7" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="no-stats" value="Total data / iteration: 1 GB    |    Threads: 8 (all from GPU 0)    |    No NVLink" style="text;html=1;strokeColor=#555;fillColor=#E8E8FF;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=13;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="150" y="840" width="1200" height="40" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+
+    <diagram name="3 - NVLink No Reassembly" id="nvlink-mode">
+        <mxGraphModel dx="1100" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="Mode 3 — NVLink, No Reassembly: N source GPUs scatter data across K QP buffers via NVLink" style="text;html=1;strokeColor=#333;fillColor=#FFD700;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=19;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="100" y="15" width="1400" height="40" as="geometry"/>
+                </mxCell>
+
+                <!-- SENDER NODE -->
+                <mxCell id="snd-node" value="SENDER NODE" style="text;html=1;strokeColor=#B22222;fillColor=#FFF0F0;align=center;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=15;fontStyle=1;strokeWidth=3;spacingTop=8;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="15" y="75" width="730" height="830" as="geometry"/>
+                </mxCell>
+
+                <!-- Source buffers (left column) -->
+                <mxCell id="nv-sg0" value="&lt;b&gt;GPU 0 — Source Buffer: 1 GB&lt;/b&gt;&lt;br&gt;[ S0:128M | S1:128M | S2:128M | ··· | S7:128M ]&lt;br&gt;&lt;font color=&#39;#000&#39;&gt;8 slices, one per QP destination&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ECDC4;strokeColor=#007080;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="40" y="130" width="290" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-sg1" value="&lt;b&gt;GPU 1 — Source Buffer: 1 GB&lt;/b&gt;&lt;br&gt;[ S0:128M | S1:128M | S2:128M | ··· | S7:128M ]&lt;br&gt;&lt;font color=&#39;#000&#39;&gt;8 slices, one per QP destination&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ECDC4;strokeColor=#007080;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="40" y="220" width="290" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-sg2" value="&lt;b&gt;GPU 2 — Source Buffer: 1 GB&lt;/b&gt;&lt;br&gt;[ S0:128M | ··· | S7:128M ]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ECDC4;strokeColor=#007080;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="40" y="310" width="290" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-sgdots" value="GPU 3 · GPU 4 · GPU 5 · GPU 6   (same: 1 GB, 8 slices each)" style="text;html=1;strokeColor=#aaa;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="40" y="378" width="290" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-sg7" value="&lt;b&gt;GPU 7 — Source Buffer: 1 GB&lt;/b&gt;&lt;br&gt;[ S0:128M | S1:128M | ··· | S7:128M ]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ECDC4;strokeColor=#007080;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="40" y="436" width="290" height="50" as="geometry"/>
+                </mxCell>
+
+                <!-- QP buffers (right column in sender node) -->
+                <!-- Each QP buffer shows its GPU and all 8 source contributions -->
+                <mxCell id="nv-qp0" value="&lt;b&gt;QP 0 Buffer — GPU 0 — 1 GB&lt;/b&gt;&lt;br&gt;[ G0:128M | G1:128M | G2:128M | ··· | G7:128M ]&lt;br&gt;&lt;font color=&#39;#000&#39;&gt;← filled via NVLink from each source GPU&lt;/font&gt;&lt;br&gt;→ NIC mlx5_0 RDMA-writes this entire buffer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE66D;strokeColor=#B8860B;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="400" y="130" width="330" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-qp1" value="&lt;b&gt;QP 1 Buffer — GPU 1 — 1 GB&lt;/b&gt;&lt;br&gt;[ G0:128M | G1:128M | G2:128M | ··· | G7:128M ]&lt;br&gt;&lt;font color=&#39;#000&#39;&gt;← filled via NVLink from each source GPU&lt;/font&gt;&lt;br&gt;→ NIC mlx5_1 RDMA-writes this entire buffer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE66D;strokeColor=#B8860B;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="400" y="220" width="330" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-qp2" value="&lt;b&gt;QP 2 Buffer — GPU 2 — 1 GB&lt;/b&gt;&lt;br&gt;[ G0:128M | ··· | G7:128M ] ← NVLink fill" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE66D;strokeColor=#B8860B;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="400" y="310" width="330" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-qpdots" value="QP 3 · QP 4 · QP 5 · QP 6   (1 GB each, same layout)" style="text;html=1;strokeColor=#aaa;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="400" y="378" width="330" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-qp7" value="&lt;b&gt;QP 7 Buffer — GPU 7 — 1 GB&lt;/b&gt;&lt;br&gt;[ G0:128M | G1:128M | ··· | G7:128M ] ← NVLink fill" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE66D;strokeColor=#B8860B;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="400" y="436" width="330" height="55" as="geometry"/>
+                </mxCell>
+
+                <!-- NVLink arrows (source → QP) — show representative ones -->
+                <!-- GPU0 slice 0 → QP0 (local copy) -->
+                <mxCell id="nv-l00" value="local copy (slice 0)" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#0055BB;dashed=1;fontSize=9;fontStyle=1;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="nv-sg0" target="nv-qp0" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- GPU0 slice 1 → QP1 via NVLink -->
+                <mxCell id="nv-l01" value="NVLink (slice 1)" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#0055BB;dashed=1;fontSize=9;fontStyle=1;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="nv-sg0" target="nv-qp1" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- GPU1 slice 0 → QP0 via NVLink -->
+                <mxCell id="nv-l10" value="NVLink (slice 0)" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#0055BB;dashed=1;fontSize=9;fontStyle=1;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="nv-sg1" target="nv-qp0" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- GPU1 slice 1 → QP1 local -->
+                <mxCell id="nv-l11" value="local copy (slice 1)" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#0055BB;dashed=1;fontSize=9;fontStyle=1;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="nv-sg1" target="nv-qp1" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- GPU7 slice 7 → QP7 local -->
+                <mxCell id="nv-l77" value="local copy (slice 7)" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#0055BB;dashed=1;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="nv-sg7" target="nv-qp7" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- NVLink label -->
+                <mxCell id="nv-lbl" value="NVLink copies:&#10;Each source GPU N copies&#10;its Slice K into QP K buffer&#10;(NVLink if N≠K, local if N=K)" style="text;html=1;strokeColor=#0055BB;fillColor=#E3F2FD;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="100" y="540" width="260" height="80" as="geometry"/>
+                </mxCell>
+
+                <!-- Sender summary -->
+                <mxCell id="nv-key" value="&lt;b&gt;Buffer layout (Sender):&lt;/b&gt;&lt;br&gt;• 8 source buffers on GPUs 0-7 (1 GB each)&lt;br&gt;• Each source buffer split into 8 slices × 128 MB&lt;br&gt;• Slice K from source N is NVLink-copied to QP K buffer&lt;br&gt;• QP K buffer is on GPU K (PCIe-paired with NIC mlx5_K)&lt;br&gt;• QP K buffer holds contributions from ALL 8 sources:&lt;br&gt;  [ G0_slice_K | G1_slice_K | ··· | G7_slice_K ] = 1 GB&lt;br&gt;• RDMA thread then sends the full QP buffer via its NIC" style="text;html=1;strokeColor=#333;fillColor=#FFFDE7;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=12;strokeWidth=2;spacingLeft=10;spacingTop=8;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="30" y="640" width="700" height="195" as="geometry"/>
+                </mxCell>
+
+                <!-- Network -->
+                <mxCell id="nv-net" value="&lt;b&gt;Network&lt;/b&gt;&lt;br&gt;(RDMA fabric)" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#C0C0C0;strokeColor=#333;fontSize=14;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="810" y="330" width="210" height="120" as="geometry"/>
+                </mxCell>
+                <!-- RDMA arrows from QP bufs -->
+                <mxCell id="nv-r0" value="RDMA write&#10;(1 GB)" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.1;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="nv-qp0" target="nv-net" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-r1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="nv-qp1" target="nv-net" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-r2" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="nv-qp2" target="nv-net" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-r7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.9;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="nv-qp7" target="nv-net" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- RECEIVER NODE -->
+                <mxCell id="rcv-node" value="RECEIVER NODE  (passive — threads sleeping during transfer)" style="text;html=1;strokeColor=#006600;fillColor=#F0FFF0;align=center;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1;strokeWidth=3;spacingTop=8;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1080" y="75" width="500" height="570" as="geometry"/>
+                </mxCell>
+
+                <!-- Receiver QP buffers — data arrives dispersed -->
+                <mxCell id="nv-rb0" value="&lt;b&gt;QP 0 Buffer — GPU 0 — 1 GB&lt;/b&gt;&lt;br&gt;[ G0:128M | G1:128M | ··· | G7:128M ]&lt;br&gt;&lt;font color=&#39;#000&#39;&gt;Data is DISPERSED — not reassembled&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1110" y="130" width="420" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-rb1" value="&lt;b&gt;QP 1 Buffer — GPU 1 — 1 GB&lt;/b&gt;&lt;br&gt;[ G0:128M | G1:128M | ··· | G7:128M ]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1110" y="210" width="420" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-rb2" value="&lt;b&gt;QP 2 Buffer — GPU 2 — 1 GB&lt;/b&gt;&lt;br&gt;[ G0:128M | ··· | G7:128M ]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1110" y="285" width="420" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-rbdots" value="QP 3 · QP 4 · QP 5 · QP 6   (1 GB each, same layout)" style="text;html=1;strokeColor=#aaa;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1110" y="348" width="420" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-rb7" value="&lt;b&gt;QP 7 Buffer — GPU 7 — 1 GB&lt;/b&gt;&lt;br&gt;[ G0:128M | G1:128M | ··· | G7:128M ]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1110" y="397" width="420" height="50" as="geometry"/>
+                </mxCell>
+
+                <!-- recv note -->
+                <mxCell id="nv-rcv-note" value="&lt;b&gt;Receiver buffer layout:&lt;/b&gt;&lt;br&gt;QP K buffer holds slices from ALL 8 sources.&lt;br&gt;Data for source N is at offset N×128MB in QP K.&lt;br&gt;No reassembly — data stays dispersed." style="text;html=1;strokeColor=#333;fillColor=#FFFDE7;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=11;strokeWidth=2;spacingLeft=8;spacingTop=6;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1100" y="470" width="460" height="90" as="geometry"/>
+                </mxCell>
+
+                <!-- recv arrows from network -->
+                <mxCell id="nv-ra0" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="nv-net" target="nv-rb0" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-ra1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.3;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="nv-net" target="nv-rb1" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-ra2" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="nv-net" target="nv-rb2" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-ra7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.9;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="nv-net" target="nv-rb7" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="nv-stats" value="Total data / iteration: 8 × 1 GB = 8 GB    |    Threads (each side): N×K = 64    |    Receiver: passive (no reassembly)" style="text;html=1;strokeColor=#555;fillColor=#E8E8FF;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=13;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="100" y="920" width="1400" height="40" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+
+    <diagram name="4 - NVLink + Reassembly" id="reassembly-mode">
+        <mxGraphModel dx="1100" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1050" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="Mode 4 — NVLink + Reassembly: Receiver NVLink-copies each received slice into a per-source reassembly buffer" style="text;html=1;strokeColor=#333;fillColor=#FFD700;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=19;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="100" y="15" width="1500" height="40" as="geometry"/>
+                </mxCell>
+
+                <!-- SENDER NODE -->
+                <mxCell id="snd-node" value="SENDER NODE" style="text;html=1;strokeColor=#B22222;fillColor=#FFF0F0;align=center;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=15;fontStyle=1;strokeWidth=3;spacingTop=8;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="15" y="75" width="740" height="850" as="geometry"/>
+                </mxCell>
+
+                <!-- Source buffers -->
+                <mxCell id="ra-sg0" value="&lt;b&gt;GPU 0 — Source Buffer: 1 GB&lt;/b&gt;&lt;br&gt;[ S0:128M | S1:128M | ··· | S7:128M ]&lt;br&gt;&lt;font color=&#39;#000&#39;&gt;full data — 8 slices, one per QP&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ECDC4;strokeColor=#007080;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="35" y="130" width="290" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-sg1" value="&lt;b&gt;GPU 1 — Source Buffer: 1 GB&lt;/b&gt;&lt;br&gt;[ S0:128M | S1:128M | ··· | S7:128M ]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ECDC4;strokeColor=#007080;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="35" y="220" width="290" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-sgdots" value="GPU 2 · GPU 3 · ··· · GPU 6   (1 GB each, same layout)" style="text;html=1;strokeColor=#aaa;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="35" y="290" width="290" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-sg7" value="&lt;b&gt;GPU 7 — Source Buffer: 1 GB&lt;/b&gt;&lt;br&gt;[ S0:128M | S1:128M | ··· | S7:128M ]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ECDC4;strokeColor=#007080;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="35" y="342" width="290" height="55" as="geometry"/>
+                </mxCell>
+
+                <!-- QP transport buffers (small, with transport-buffer option) -->
+                <mxCell id="ra-tb-hdr" value="QP Transport Buffers (with --transport-buffer 32M)" style="text;html=1;strokeColor=#B8860B;fillColor=#FFF9C4;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="400" y="105" width="330" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-qp0" value="&lt;b&gt;QP 0 Transport Buffer — GPU 0&lt;/b&gt;&lt;br&gt;32 MB (1 pipe: 4 MB × 8 sources)&lt;br&gt;NVLink-fills 4MB from each source → RDMA → reuse" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE66D;strokeColor=#B8860B;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="400" y="140" width="330" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-qp1" value="&lt;b&gt;QP 1 Transport Buffer — GPU 1&lt;/b&gt;&lt;br&gt;32 MB — same pipeline as QP 0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE66D;strokeColor=#B8860B;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="400" y="220" width="330" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-qpdots" value="QP 2 · QP 3 · ··· · QP 6   (32 MB each)" style="text;html=1;strokeColor=#aaa;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="400" y="282" width="330" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-qp7" value="&lt;b&gt;QP 7 Transport Buffer — GPU 7&lt;/b&gt;&lt;br&gt;32 MB — same pipeline as QP 0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE66D;strokeColor=#B8860B;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="400" y="330" width="330" height="50" as="geometry"/>
+                </mxCell>
+
+                <!-- NVLink arrows source → transport bufs -->
+                <mxCell id="ra-l00" value="NVLink fill (4MB/pipe)" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#0055BB;dashed=1;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="ra-sg0" target="ra-qp0" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-l11" value="NVLink fill (4MB/pipe)" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#0055BB;dashed=1;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="ra-sg1" target="ra-qp1" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-l77" value="NVLink fill (4MB/pipe)" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#0055BB;dashed=1;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="ra-sg7" target="ra-qp7" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- Pipe loop explanation -->
+                <mxCell id="ra-pipe-lbl" value="&lt;b&gt;Pipe loop (per QP per source):&lt;/b&gt;&lt;br&gt;slice_size=128MB, transport_buf=32MB→4 pipes&lt;br&gt;1. NVLink copy 32MB into transport buf&lt;br&gt;2. RDMA write 32MB (write_with_imm on last pipe)&lt;br&gt;3. Receiver reassembles; signals back&lt;br&gt;4. Reuse transport buf (or alternate if --double-buffer)" style="text;html=1;strokeColor=#0055BB;fillColor=#E3F2FD;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=1;strokeWidth=2;spacingLeft=8;spacingTop=6;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="35" y="435" width="450" height="130" as="geometry"/>
+                </mxCell>
+
+                <!-- Signal-back arrow -->
+                <mxCell id="ra-sigback" value="write_with_imm signal-back&#10;(receiver → sender after reassembly)" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=4;strokeColor=#FF9900;fontSize=11;fontStyle=1;dashed=1;fontColor=#000000" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="730" y="860" as="sourcePoint"/>
+                        <mxPoint x="1100" y="860" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+
+                <!-- Sender key -->
+                <mxCell id="ra-key" value="&lt;b&gt;Buffer layout (Sender):&lt;/b&gt;&lt;br&gt;• 8 source buffers on GPUs 0-7 (1 GB each)&lt;br&gt;• Each divided into 8 slices × 128 MB (one per QP)&lt;br&gt;• 8 QP transport buffers (32 MB each = total 256 MB)&lt;br&gt;  (vs 1 GB each without --transport-buffer)&lt;br&gt;• Each pipe: NVLink 32MB → RDMA 32MB → wait for signal&lt;br&gt;• 4 pipes per QP per source = 128 MB transferred&lt;br&gt;• --double-buffer: allocate 2×32MB, overlap NVLink+RDMA" style="text;html=1;strokeColor=#333;fillColor=#FFFDE7;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=12;strokeWidth=2;spacingLeft=10;spacingTop=8;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="30" y="590" width="700" height="200" as="geometry"/>
+                </mxCell>
+
+                <!-- Network -->
+                <mxCell id="ra-net" value="&lt;b&gt;Network&lt;/b&gt;&lt;br&gt;(RDMA fabric)" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#C0C0C0;strokeColor=#333;fontSize=14;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="820" y="260" width="210" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-r0" value="RDMA write&#10;(32MB/pipe)" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.1;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="ra-qp0" target="ra-net" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-r1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.35;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="ra-qp1" target="ra-net" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-r7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.85;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="ra-qp7" target="ra-net" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- RECEIVER NODE -->
+                <mxCell id="rcv-node" value="RECEIVER NODE  (active — polls CQs and reassembles)" style="text;html=1;strokeColor=#006600;fillColor=#F0FFF0;align=center;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1;strokeWidth=3;spacingTop=8;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1100" y="75" width="580" height="850" as="geometry"/>
+                </mxCell>
+
+                <!-- Receiver QP (small transport) buffers -->
+                <mxCell id="ra-rqp-hdr" value="QP Buffers (small — = transport_buf_size = 32MB)" style="text;html=1;strokeColor=#3700B3;fillColor=#EDE7F6;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="110" width="380" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-rb0" value="&lt;b&gt;QP 0 Buffer — 32 MB&lt;/b&gt;&lt;br&gt;Receives one pipe (all-sources, 4MB each)&lt;br&gt;Drained to reassembly after each pipe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="145" width="380" height="58" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-rb1" value="&lt;b&gt;QP 1 Buffer — 32 MB&lt;/b&gt;&lt;br&gt;Receives one pipe → reassembly" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="218" width="380" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-rbdots" value="QP 2 · ··· · QP 6   (32 MB each)" style="text;html=1;strokeColor=#aaa;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="280" width="380" height="33" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-rb7" value="&lt;b&gt;QP 7 Buffer — 32 MB&lt;/b&gt;&lt;br&gt;Receives one pipe → reassembly" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="325" width="380" height="50" as="geometry"/>
+                </mxCell>
+
+                <!-- Reassembly buffers -->
+                <mxCell id="ra-reasm-hdr" value="Reassembly Buffers (1 per source GPU, GPU-local)" style="text;html=1;strokeColor=#006600;fillColor=#C8E6C9;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="420" width="380" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-rsm0" value="&lt;b&gt;Reassembly Buffer — Source GPU 0 — 1 GB&lt;/b&gt;&lt;br&gt;[ QP0_chunk | QP1_chunk | ··· | QP7_chunk ]&lt;br&gt;128 MB per chunk, assembled in-order via NVLink" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#2E7D32;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="455" width="380" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-rsm1" value="&lt;b&gt;Reassembly Buffer — Source GPU 1 — 1 GB&lt;/b&gt;&lt;br&gt;[ QP0_chunk | QP1_chunk | ··· | QP7_chunk ]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#2E7D32;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="535" width="380" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-rsmdots" value="Source GPU 2 · ··· · Source GPU 6   (1 GB each)" style="text;html=1;strokeColor=#aaa;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="602" width="380" height="33" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-rsm7" value="&lt;b&gt;Reassembly Buffer — Source GPU 7 — 1 GB&lt;/b&gt;&lt;br&gt;[ QP0_chunk | QP1_chunk | ··· | QP7_chunk ]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#2E7D32;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="645" width="380" height="55" as="geometry"/>
+                </mxCell>
+
+                <!-- NVLink reassembly arrows QP buf → reassembly buf -->
+                <mxCell id="ra-reasm0" value="NVLink copy (per pipe)" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#2E7D32;fontSize=9;fontStyle=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="ra-rb0" target="ra-rsm0" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1310" y="400"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+
+                <!-- Recv network arrows -->
+                <mxCell id="ra-ra0" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="ra-net" target="ra-rb0" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-ra1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.35;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="ra-net" target="ra-rb1" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-ra7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.85;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="ra-net" target="ra-rb7" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- Receiver key -->
+                <mxCell id="ra-rcv-key" value="&lt;b&gt;Receiver buffer layout:&lt;/b&gt;&lt;br&gt;• 8 small QP buffers (32 MB each = 256 MB total)&lt;br&gt;• Each pipe: RDMA lands in QP buf; thread NVLink-copies&lt;br&gt;  each source's 4MB chunk into its reassembly buffer&lt;br&gt;• 8 reassembly buffers (1 GB each = 8 GB total)&lt;br&gt;• Reassembly buf N: [ QP0_data | QP1_data | ··· | QP7_data ]&lt;br&gt;  = complete 1 GB of source GPU N&apos;s original data" style="text;html=1;strokeColor=#333;fillColor=#FFFDE7;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=12;strokeWidth=2;spacingLeft=10;spacingTop=8;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1115" y="730" width="555" height="175" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="ra-stats" value="Total data / iteration: 8 × 1 GB = 8 GB    |    Threads sender: 64    |    Threads receiver: 8 (1 per QP)    |    Signal-back per pipe" style="text;html=1;strokeColor=#555;fillColor=#E8E8FF;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=13;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="100" y="960" width="1500" height="40" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+
+    <diagram name="5 - All-to-All Reassembly" id="all-to-all-mode">
+        <mxGraphModel dx="1100" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="Mode 5 — All-to-All NVLink Reassembly: Every source GPU sends a slice to every target GPU (N=K=M=8)" style="text;html=1;strokeColor=#333;fillColor=#FFD700;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=19;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="100" y="15" width="1500" height="40" as="geometry"/>
+                </mxCell>
+
+                <!-- Params box -->
+                <mxCell id="aa-params" value="Parameters: N=8 sources · K=8 QP/NICs · M=8 targets&lt;br&gt;sub_slice = 1GB / (M×K) = 16 MB  |  slice_per_target = 1GB/M = 128 MB  |  QP buf = N×(1GB/K) = 1 GB" style="text;html=1;strokeColor=#555;fillColor=#FFF9C4;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=13;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="100" y="65" width="1500" height="40" as="geometry"/>
+                </mxCell>
+
+                <!-- SENDER NODE -->
+                <mxCell id="snd-node" value="SENDER NODE" style="text;html=1;strokeColor=#B22222;fillColor=#FFF0F0;align=center;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=15;fontStyle=1;strokeWidth=3;spacingTop=8;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="15" y="120" width="740" height="830" as="geometry"/>
+                </mxCell>
+
+                <!-- Source buffers (N=8) — each divided into M target slices, each of which is split into K sub-slices -->
+                <mxCell id="aa-sg0" value="&lt;b&gt;GPU 0 — Source Buffer: 1 GB&lt;/b&gt;&lt;br&gt;Divided into M=8 target slices × 128 MB each&lt;br&gt;Each target slice split into K=8 sub-slices × 16 MB (one per QP)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ECDC4;strokeColor=#007080;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="35" y="175" width="330" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-sg1" value="&lt;b&gt;GPU 1 — Source Buffer: 1 GB&lt;/b&gt;&lt;br&gt;Same layout: M×K sub-slices of 16 MB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ECDC4;strokeColor=#007080;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="35" y="265" width="330" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-sgdots" value="GPU 2 · GPU 3 · ··· · GPU 6   (same layout)" style="text;html=1;strokeColor=#aaa;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="35" y="328" width="330" height="33" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-sg7" value="&lt;b&gt;GPU 7 — Source Buffer: 1 GB&lt;/b&gt;&lt;br&gt;Same layout: M×K sub-slices of 16 MB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ECDC4;strokeColor=#007080;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="35" y="373" width="330" height="50" as="geometry"/>
+                </mxCell>
+
+                <!-- QP buffers (K=8) — each holds N×M = 64 sub-slices -->
+                <mxCell id="aa-qp-hdr" value="QP Buffers (K=8, 1 per NIC)" style="text;html=1;strokeColor=#B8860B;fillColor=#FFF9C4;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="430" y="155" width="305" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-qp0" value="&lt;b&gt;QP 0 Buffer — GPU 0 — 1 GB&lt;/b&gt;&lt;br&gt;N×M = 64 slots × 16 MB each&lt;br&gt;Slot (n,m): sub-slice for source n, target m via QP 0&lt;br&gt;Layout: [(n=0,m=0)|(n=0,m=1)|···|(n=7,m=7)]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE66D;strokeColor=#B8860B;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="430" y="188" width="305" height="75" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-qp1" value="&lt;b&gt;QP 1 Buffer — GPU 1 — 1 GB&lt;/b&gt;&lt;br&gt;64 slots × 16 MB — same structure" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE66D;strokeColor=#B8860B;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="430" y="278" width="305" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-qpdots" value="QP 2 · QP 3 · ··· · QP 6   (1 GB each, 64 slots)" style="text;html=1;strokeColor=#aaa;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="430" y="340" width="305" height="33" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-qp7" value="&lt;b&gt;QP 7 Buffer — GPU 7 — 1 GB&lt;/b&gt;&lt;br&gt;64 slots × 16 MB — same structure" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE66D;strokeColor=#B8860B;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="430" y="385" width="305" height="50" as="geometry"/>
+                </mxCell>
+
+                <!-- NVLink arrows -->
+                <mxCell id="aa-l00" value="NVLink: src0→tgt0/QP0" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#0055BB;dashed=1;fontSize=9;fontStyle=1;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="aa-sg0" target="aa-qp0" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-l01" value="src0→tgt1/QP0" style="endArrow=classic;html=1;strokeWidth=1;strokeColor=#0055BB;dashed=1;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="aa-sg0" target="aa-qp0" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-l10" value="NVLink: src1→QP0" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#0055BB;dashed=1;fontSize=9;fontStyle=1;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="aa-sg1" target="aa-qp0" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-l77" value="NVLink: src7→QP7" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#0055BB;dashed=1;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="aa-sg7" target="aa-qp7" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- Thread model explanation -->
+                <mxCell id="aa-threads" value="&lt;b&gt;Sender thread model:&lt;/b&gt;&lt;br&gt;N×K×M = 8×8×8 = 512 threads total&lt;br&gt;Thread (n, k, m): copies sub-slice for (src=n, target=m) into QP k buf at slot (n×M+m), then RDMA-writes it" style="text;html=1;strokeColor=#0055BB;fillColor=#E3F2FD;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=1;strokeWidth=2;spacingLeft=8;spacingTop=6;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="35" y="470" width="440" height="90" as="geometry"/>
+                </mxCell>
+
+                <!-- Sender key -->
+                <mxCell id="aa-key" value="&lt;b&gt;Buffer layout (Sender):&lt;/b&gt;&lt;br&gt;• 8 source buffers × 1 GB each = 8 GB total&lt;br&gt;• Source N buffer: M=8 target slices × 128 MB each&lt;br&gt;  Each target slice: K=8 sub-slices × 16 MB (one per QP)&lt;br&gt;• 8 QP buffers × 1 GB each (one per NIC/GPU pair)&lt;br&gt;  QP K buffer: 64 slots (8 sources × 8 targets) × 16 MB&lt;br&gt;• Thread (n,k,m) fills slot (n×M+m) in QP k from source n&lt;br&gt;• qp_mutex serializes RDMA when multiple sources share a QP" style="text;html=1;strokeColor=#333;fillColor=#FFFDE7;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=12;strokeWidth=2;spacingLeft=10;spacingTop=8;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="30" y="590" width="700" height="210" as="geometry"/>
+                </mxCell>
+
+                <!-- Network -->
+                <mxCell id="aa-net" value="&lt;b&gt;Network&lt;/b&gt;&lt;br&gt;(RDMA fabric)" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#C0C0C0;strokeColor=#333;fontSize=14;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="820" y="270" width="210" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-r0" value="RDMA write&#10;(1 GB per QP)" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.1;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="aa-qp0" target="aa-net" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-r1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.35;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="aa-qp1" target="aa-net" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-r7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.9;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="aa-qp7" target="aa-net" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- RECEIVER NODE -->
+                <mxCell id="rcv-node" value="RECEIVER NODE  (K=8 threads, one per QP — polls N×M completions each)" style="text;html=1;strokeColor=#006600;fillColor=#F0FFF0;align=center;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1;strokeWidth=3;spacingTop=8;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1100" y="120" width="580" height="830" as="geometry"/>
+                </mxCell>
+
+                <!-- Receiver QP buffers -->
+                <mxCell id="aa-rqp-hdr" value="QP Buffers (1 per NIC — 1 GB, 64 slots)" style="text;html=1;strokeColor=#3700B3;fillColor=#EDE7F6;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="160" width="380" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-rb0" value="&lt;b&gt;QP 0 Buffer — 1 GB&lt;/b&gt;&lt;br&gt;64 slots × 16 MB: [(n=0,m=0)|···|(n=7,m=7)]&lt;br&gt;Thread polls N×M=64 completions, then reassembles" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="193" width="380" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-rb1" value="&lt;b&gt;QP 1 Buffer — 1 GB&lt;/b&gt;&lt;br&gt;64 slots × 16 MB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="272" width="380" height="48" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-rbdots" value="QP 2 · ··· · QP 6   (1 GB each, 64 slots)" style="text;html=1;strokeColor=#aaa;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="332" width="380" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-rb7" value="&lt;b&gt;QP 7 Buffer — 1 GB&lt;/b&gt;&lt;br&gt;64 slots × 16 MB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=11;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="375" width="380" height="48" as="geometry"/>
+                </mxCell>
+
+                <!-- Reassembly buffers 2D: N×M = 8×8 = 64 buffers, grouped by target m -->
+                <mxCell id="aa-rsm-hdr" value="Reassembly Buffers: N×M = 64 total (grouped by target GPU m)" style="text;html=1;strokeColor=#006600;fillColor=#C8E6C9;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="460" width="380" height="28" as="geometry"/>
+                </mxCell>
+
+                <!-- Target GPU 0 reassembly buffers -->
+                <mxCell id="aa-tgt0-box" value="Target GPU 0 — 8 buffers × 128 MB = 1 GB total" style="text;html=1;strokeColor=#1B5E20;fillColor=#E8F5E9;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="493" width="380" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-tgt0-0" value="reassembly_2d[0×8+0]&#10;src=0, tgt=0: 128MB&#10;[QP0|QP1|···|QP7]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#2E7D32;fontSize=10;strokeWidth=1;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="520" width="115" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-tgt0-1" value="reassembly_2d[1×8+0]&#10;src=1, tgt=0: 128MB&#10;[QP0|QP1|···|QP7]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#2E7D32;fontSize=10;strokeWidth=1;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1238" y="520" width="115" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-tgt0-dots" value="··· src=2..6 ···" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1358" y="520" width="70" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-tgt0-7" value="reassembly_2d[7×8+0]&#10;src=7, tgt=0: 128MB&#10;[QP0|···|QP7]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#2E7D32;fontSize=10;strokeWidth=1;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1430" y="520" width="115" height="55" as="geometry"/>
+                </mxCell>
+
+                <!-- Target GPUs 1-6 condensed -->
+                <mxCell id="aa-tgt16" value="Target GPUs 1 – 6   (each: 8 reassembly buffers × 128 MB = 1 GB per target)" style="text;html=1;strokeColor=#aaa;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="588" width="530" height="33" as="geometry"/>
+                </mxCell>
+
+                <!-- Target GPU 7 -->
+                <mxCell id="aa-tgt7-box" value="Target GPU 7 — 8 buffers × 128 MB = 1 GB total" style="text;html=1;strokeColor=#1B5E20;fillColor=#E8F5E9;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="630" width="380" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-tgt7-0" value="reassembly_2d[0×8+7]&#10;src=0, tgt=7: 128MB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#2E7D32;fontSize=10;strokeWidth=1;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="658" width="115" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-tgt7-dots" value="··· src=1..6 ···" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1238" y="658" width="160" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-tgt7-7" value="reassembly_2d[7×8+7]&#10;src=7, tgt=7: 128MB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#2E7D32;fontSize=10;strokeWidth=1;align=center;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1400" y="658" width="130" height="45" as="geometry"/>
+                </mxCell>
+
+                <!-- NVLink reassembly arrows -->
+                <mxCell id="aa-reasm-arr" value="NVLink copy: QP k sub-slice (n,m) → reassembly_2d[n×M+m] at offset k×16MB" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#2E7D32;fontSize=10;fontStyle=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="aa-rb0" target="aa-tgt0-0" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- recv from network -->
+                <mxCell id="aa-ra0" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="aa-net" target="aa-rb0" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-ra1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.35;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="aa-net" target="aa-rb1" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-ra7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.9;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="aa-net" target="aa-rb7" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- Receiver key -->
+                <mxCell id="aa-rcv-key" value="&lt;b&gt;Result after reassembly:&lt;/b&gt;&lt;br&gt;M=8 logical targets, each with N=8 contribution buffers&lt;br&gt;reassembly_2d[n×M+m] on GPU m: contribution from source n to target m&lt;br&gt;= 128 MB, assembled from K=8 QP sub-slices (16 MB each)&lt;br&gt;&lt;br&gt;Total reassembly memory: N×M × 128MB = 64 × 128MB = 8 GB" style="text;html=1;strokeColor=#333;fillColor=#FFFDE7;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=12;strokeWidth=2;spacingLeft=10;spacingTop=8;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="1115" y="730" width="555" height="130" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="aa-stats" value="Total data / iteration: 8 × 1 GB = 8 GB    |    Sender threads: N×K×M = 512    |    Receiver threads: K = 8 (each polls N×M=64 completions)" style="text;html=1;strokeColor=#555;fillColor=#E8E8FF;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=13;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="100" y="1020" width="1500" height="40" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
