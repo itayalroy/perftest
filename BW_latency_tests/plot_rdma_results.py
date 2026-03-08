@@ -67,28 +67,40 @@ def parse_result_file(path):
         content = f.read()
 
     data = {}
-    # Split by section
-    bw_section = content.split("=== Bandwidth (GB/s) ===")[1].split("=== Latency")[0]
-    lat_section = content.split("=== Latency (ms per iteration) ===")[1].split("All values")[0]
+    # Split by section (support both original === format and Markdown ## format)
+    if "=== Bandwidth (GB/s) ===" in content:
+        bw_section = content.split("=== Bandwidth (GB/s) ===")[1].split("=== Latency")[0]
+        lat_section = content.split("=== Latency (ms per iteration) ===")[1].split("All values")[0]
+    elif "## Bandwidth (GB/s)" in content:
+        bw_section = content.split("## Bandwidth (GB/s)")[1].split("## Latency")[0]
+        lat_section = content.split("## Latency (ms per iteration)")[1].split("*All values")[0]
+    else:
+        raise ValueError(f"Cannot parse {path}: expected '=== Bandwidth (GB/s) ===' or '## Bandwidth (GB/s)'")
 
     def parse_section(section):
         lines = [l.strip() for l in section.strip().split("\n") if l.strip()]
         if not lines:
             return {}
         header = lines[0]
-        # Parse header: source_gpus | col1 | col2 | ...
+        # Parse header: source_gpus | col1 | col2 | ... (or | source_gpus | col1 | ... for Markdown)
         cols = [c.strip() for c in header.split("|")]
         col_names = [re.sub(r"\s+", "_", c) for c in cols]
+        # Markdown tables have leading | so first element is empty; skip it for data column start
+        data_start = 2 if cols and not cols[0] else 1
         result = {}
         for line in lines[1:]:
             if line.startswith("-"):
                 continue
             parts = [p.strip() for p in line.split("|")]
-            if len(parts) < 2:
+            # Skip Markdown table separator rows (e.g. |:---|:---:|)
+            first_cell = next((p for p in parts if p), "")
+            if first_cell.startswith(":") or re.match(r"^-+$", first_cell):
                 continue
-            src_gpus = parts[0].strip().rstrip(",")
+            if len(parts) < data_start + 1:
+                continue
+            src_gpus = parts[data_start - 1].strip().rstrip(",")
             result[src_gpus] = {}
-            for i, name in enumerate(col_names[1:], 1):
+            for i, name in enumerate(col_names[data_start:], data_start):
                 if i >= len(parts):
                     break
                 val_str = parts[i].strip()
