@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Plot RDMA BW and Latency vs transport buffer from merged result files.
-- Figure 1 (PxDx): source=target — direct, allow_nvlink_reassembly
-- Figure 2 (PxDy): source<=target — direct_alltoall, allow_nvlink, allow_nvlink_reassembly_alltoall
+- PxDx (source=target): One figure per P1D1, P2D2, P8D8. Lines: direct, PXN + reassembly.
+- PxDy (source<=target): One figure per P1D4, P1D8, P2D4, P2D8, P8D8. Lines: direct --all-to-all, PXN, PXN + reassembly.
 
 Sources: 1 GPU (0), 2 GPUs (0,1), 8 GPUs (0,1,2,3,4,5,6,7)
 X-axis: transport buffer (8M, 16M, 32M, 64M, 128M, 256M, 1G)
@@ -285,133 +285,145 @@ def extract_pxdy_data(merged_bw, merged_lat):
     return bw, lat
 
 
-def build_pxdx_series(bw, lat):
-    """Build series for PxDx: x = [direct, 8M, 16M, ..., 1G], one series per config."""
+def build_pxdx_series_for_label(bw, lat, label):
+    """Build series for one PxDx config: direct (1 pt) + allow_nvlink_reassembly (per tb)."""
     x_labels = ["direct", "8M", "16M", "32M", "64M", "128M", "1G"]
-
-    series_bw = {}
-    series_lat = {}
-    for label in ["P1D1", "P2D2", "P8D8"]:
-        ys_bw, ys_lat = [], []
-        for x in x_labels:
-            if x == "direct":
-                v_bw = bw.get(label, {}).get("direct")
-                v_lat = lat.get(label, {}).get("direct")
-            else:
-                v_bw = bw.get(label, {}).get(x)
-                v_lat = lat.get(label, {}).get(x)
-            ys_bw.append(v_bw)
-            ys_lat.append(v_lat)
-        series_bw[label] = ys_bw
-        series_lat[label] = ys_lat
-
-    return x_labels, series_bw, series_lat
+    direct_bw = bw.get(label, {}).get("direct")
+    direct_lat = lat.get(label, {}).get("direct")
+    ra_bw = [bw.get(label, {}).get(tb) for tb in x_labels[1:]]
+    ra_lat = [lat.get(label, {}).get(tb) for tb in x_labels[1:]]
+    return x_labels, direct_bw, direct_lat, ra_bw, ra_lat
 
 
 
 
 def main():
     base = Path(__file__).resolve().parent.parent
+    out_dir = base / "BW_latency_tests"
     merged_bw, merged_lat = load_all(base)
 
-    # Debug: print what we loaded
-    # print("BW keys sample:", list(merged_bw.keys())[:10])
-    # print("LAT keys sample:", list(merged_lat.keys())[:10])
+    mode_colors = {"direct": "tab:blue", "PXN": "tab:green", "PXN + reassembly": "tab:orange"}
+    mode_colors_pxdx = {"direct": "tab:blue", "PXN + reassembly": "tab:orange"}
 
-    colors = {"P1D1": "tab:blue", "P2D2": "tab:orange", "P8D8": "tab:green",
-              "P1D4": "tab:blue", "P1D8": "tab:cyan", "P2D4": "tab:orange", "P2D8": "tab:red", "P8D8": "tab:green"}
+    x_labels_pxdx = ["direct", "8M", "16M", "32M", "64M", "128M", "1G"]
+    x_labels_pxdy = ["direct --all-to-all"] + list(TRANSPORT_BUFFERS)
 
-    # --- Figure 1: PxDx ---
+    # --- PxDx: one figure per P1D1, P2D2, P8D8. Lines: direct, PXN + reassembly ---
     bw_pxdx, lat_pxdx = extract_pxdx_data(merged_bw, merged_lat)
-    x_labels, series_bw, series_lat = build_pxdx_series(bw_pxdx, lat_pxdx)
-    x_pos = list(range(len(x_labels)))
-
-    fig1, (ax1_bw, ax1_lat) = plt.subplots(1, 2, figsize=(14, 5))
-    fig1.suptitle("PxDx (source = target) — direct, allow_nvlink_reassembly (full = 1 GB)")
-
     for label in ["P1D1", "P2D2", "P8D8"]:
-        ys = [y for y in series_bw[label] if y is not None]
-        xs = [x_pos[i] for i in range(len(series_bw[label])) if series_bw[label][i] is not None]
-        if xs and ys:
-            ax1_bw.plot(xs, ys, "o-", color=colors[label], label=label)
-    ax1_bw.set_xticks(x_pos)
-    ax1_bw.set_xticklabels(x_labels, rotation=45, ha="right")
-    ax1_bw.set_ylabel("Bandwidth (GB/s)")
-    ax1_bw.set_xlabel("Transport buffer")
-    ax1_bw.legend()
-    ax1_bw.grid(True, alpha=0.3)
+        x_labels, direct_bw, direct_lat, ra_bw, ra_lat = build_pxdx_series_for_label(bw_pxdx, lat_pxdx, label)
+        x_pos = list(range(len(x_labels)))
 
-    for label in ["P1D1", "P2D2", "P8D8"]:
-        ys = [y for y in series_lat[label] if y is not None]
-        xs = [x_pos[i] for i in range(len(series_lat[label])) if series_lat[label][i] is not None]
-        if xs and ys:
-            ax1_lat.plot(xs, ys, "o-", color=colors[label], label=label)
-    ax1_lat.set_xticks(x_pos)
-    ax1_lat.set_xticklabels(x_labels, rotation=45, ha="right")
-    ax1_lat.set_ylabel("Latency (ms/iteration)")
-    ax1_lat.set_xlabel("Transport buffer")
-    ax1_lat.legend()
-    ax1_lat.grid(True, alpha=0.3)
+        fig, (ax_bw, ax_lat) = plt.subplots(1, 2, figsize=(12, 5))
+        fig.suptitle(f"{label} (source = target) — direct, PXN + reassembly (full = 1 GB)")
 
-    fig1.tight_layout()
-    fig1.savefig(base / "BW_latency_tests" / "plot_pxdx.png", dpi=150, bbox_inches="tight")
-    plt.close(fig1)
-    print("Saved plot_pxdx.png")
+        # BW: direct (single point at 0), PXN + reassembly (points 1..6)
+        if direct_bw is not None:
+            ax_bw.plot(0, direct_bw, "o", color=mode_colors_pxdx["direct"], label="direct")
+        ra_x = [i for i, v in enumerate(ra_bw, 1) if v is not None]
+        ra_y = [v for v in ra_bw if v is not None]
+        if ra_x and ra_y:
+            ax_bw.plot(ra_x, ra_y, "o-", color=mode_colors_pxdx["PXN + reassembly"], label="PXN + reassembly")
 
-    # --- Figure 2: PxDy ---
+        ax_bw.set_xticks(x_pos)
+        ax_bw.set_xticklabels(x_labels, rotation=45, ha="right")
+        ax_bw.set_ylabel("Bandwidth (GB/s)")
+        ax_bw.set_xlabel("Transport buffer")
+        ax_bw.legend()
+        ax_bw.grid(True, alpha=0.3)
+
+        # Latency
+        if direct_lat is not None:
+            ax_lat.plot(0, direct_lat, "o", color=mode_colors_pxdx["direct"], label="direct")
+        ra_x = [i for i, v in enumerate(ra_lat, 1) if v is not None]
+        ra_y = [v for v in ra_lat if v is not None]
+        if ra_x and ra_y:
+            ax_lat.plot(ra_x, ra_y, "o-", color=mode_colors_pxdx["PXN + reassembly"], label="PXN + reassembly")
+
+        ax_lat.set_xticks(x_pos)
+        ax_lat.set_xticklabels(x_labels, rotation=45, ha="right")
+        ax_lat.set_ylabel("Latency (ms/iteration)")
+        ax_lat.set_xlabel("Transport buffer")
+        ax_lat.legend()
+        ax_lat.grid(True, alpha=0.3)
+
+        fig.tight_layout()
+        fname = f"plot_{label.lower()}_pxdx.png"
+        fig.savefig(out_dir / fname, dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        print(f"Saved {fname}")
+
+    # --- PxDy: one figure per P1D4, P1D8, P2D4, P2D8, P8D8. Lines: direct --all-to-all, PXN, PXN + reassembly ---
     bw_pxdy, lat_pxdy = extract_pxdy_data(merged_bw, merged_lat)
-    x_labels = ["direct"] + list(TRANSPORT_BUFFERS)
-    x_pos = list(range(len(x_labels)))
+    for label in ["P1D4", "P1D8", "P2D4", "P2D8", "P8D8"]:
+        x_pos = list(range(len(x_labels_pxdy)))
 
-    fig2, (ax2_bw, ax2_lat) = plt.subplots(1, 2, figsize=(14, 5))
-    fig2.suptitle("PxDy (source ≤ target) — direct_alltoall, allow_nvlink, allow_nvlink_ra_alltoall (full = 1 GB)")
+        fig, (ax_bw, ax_lat) = plt.subplots(1, 2, figsize=(14, 5))
+        fig.suptitle(f"{label} (source ≤ target) — direct --all-to-all, PXN, PXN + reassembly (full = 1 GB)")
 
-    for cfg in ["P1D4", "P1D8", "P2D4", "P2D8", "P8D8"]:
-        vals_bw = []
-        v_direct = bw_pxdy.get(cfg, {}).get("direct_alltoall")
-        vals_bw.append(v_direct)
-        for tb in TRANSPORT_BUFFERS:
-            vn = bw_pxdy.get(cfg, {}).get(f"allow_nvlink_{tb}")
-            vr = bw_pxdy.get(cfg, {}).get(f"allow_nvlink_ra_alltoall_{tb}")
-            vs = [x for x in (vn, vr) if x is not None]
-            vals_bw.append(sum(vs) / len(vs) if vs else None)
-        xs = [i for i, v in enumerate(vals_bw) if v is not None]
-        ys = [v for v in vals_bw if v is not None]
-        if xs and ys:
-            ax2_bw.plot(xs, ys, "o-", color=colors.get(cfg, "gray"), label=cfg)
+        d = bw_pxdy.get(label, {})
+        # BW: direct_alltoall at 0, allow_nvlink (PXN) and allow_nvlink_ra_alltoall (PXN + reassembly) per tb
+        v_direct = d.get("direct_alltoall")
+        if v_direct is not None:
+            ax_bw.plot(0, v_direct, "o", color=mode_colors["direct"], label="direct --all-to-all")
 
-    ax2_bw.set_xticks(x_pos)
-    ax2_bw.set_xticklabels(x_labels, rotation=45, ha="right")
-    ax2_bw.set_ylabel("Bandwidth (GB/s)")
-    ax2_bw.set_xlabel("Transport buffer")
-    ax2_bw.legend()
-    ax2_bw.grid(True, alpha=0.3)
+        pxn_x, pxn_y = [], []
+        pra_x, pra_y = [], []
+        for i, tb in enumerate(TRANSPORT_BUFFERS, 1):
+            vn = d.get(f"allow_nvlink_{tb}")
+            vr = d.get(f"allow_nvlink_ra_alltoall_{tb}")
+            if vn is not None:
+                pxn_x.append(i)
+                pxn_y.append(vn)
+            if vr is not None:
+                pra_x.append(i)
+                pra_y.append(vr)
+        if pxn_x and pxn_y:
+            ax_bw.plot(pxn_x, pxn_y, "o-", color=mode_colors["PXN"], label="PXN")
+        if pra_x and pra_y:
+            ax_bw.plot(pra_x, pra_y, "o-", color=mode_colors["PXN + reassembly"], label="PXN + reassembly")
 
-    for cfg in ["P1D4", "P1D8", "P2D4", "P2D8", "P8D8"]:
-        vals_lat = []
-        v_direct = lat_pxdy.get(cfg, {}).get("direct_alltoall")
-        vals_lat.append(v_direct)
-        for tb in TRANSPORT_BUFFERS:
-            vn = lat_pxdy.get(cfg, {}).get(f"allow_nvlink_{tb}")
-            vr = lat_pxdy.get(cfg, {}).get(f"allow_nvlink_ra_alltoall_{tb}")
-            vs = [x for x in (vn, vr) if x is not None]
-            vals_lat.append(sum(vs) / len(vs) if vs else None)
-        xs = [i for i, v in enumerate(vals_lat) if v is not None]
-        ys = [v for v in vals_lat if v is not None]
-        if xs and ys:
-            ax2_lat.plot(xs, ys, "o-", color=colors.get(cfg, "gray"), label=cfg)
+        ax_bw.set_xticks(x_pos)
+        ax_bw.set_xticklabels(x_labels_pxdy, rotation=45, ha="right")
+        ax_bw.set_ylabel("Bandwidth (GB/s)")
+        ax_bw.set_xlabel("Transport buffer")
+        ax_bw.legend()
+        ax_bw.grid(True, alpha=0.3)
 
-    ax2_lat.set_xticks(x_pos)
-    ax2_lat.set_xticklabels(x_labels, rotation=45, ha="right")
-    ax2_lat.set_ylabel("Latency (ms/iteration)")
-    ax2_lat.set_xlabel("Transport buffer")
-    ax2_lat.legend()
-    ax2_lat.grid(True, alpha=0.3)
+        # Latency
+        d = lat_pxdy.get(label, {})
+        v_direct = d.get("direct_alltoall")
+        if v_direct is not None:
+            ax_lat.plot(0, v_direct, "o", color=mode_colors["direct"], label="direct --all-to-all")
 
-    fig2.tight_layout()
-    fig2.savefig(base / "BW_latency_tests" / "plot_pxdy.png", dpi=150, bbox_inches="tight")
-    plt.close(fig2)
-    print("Saved plot_pxdy.png")
+        pxn_x, pxn_y = [], []
+        pra_x, pra_y = [], []
+        for i, tb in enumerate(TRANSPORT_BUFFERS, 1):
+            vn = d.get(f"allow_nvlink_{tb}")
+            vr = d.get(f"allow_nvlink_ra_alltoall_{tb}")
+            if vn is not None:
+                pxn_x.append(i)
+                pxn_y.append(vn)
+            if vr is not None:
+                pra_x.append(i)
+                pra_y.append(vr)
+        if pxn_x and pxn_y:
+            ax_lat.plot(pxn_x, pxn_y, "o-", color=mode_colors["PXN"], label="PXN")
+        if pra_x and pra_y:
+            ax_lat.plot(pra_x, pra_y, "o-", color=mode_colors["PXN + reassembly"], label="PXN + reassembly")
+
+        ax_lat.set_xticks(x_pos)
+        ax_lat.set_xticklabels(x_labels_pxdy, rotation=45, ha="right")
+        ax_lat.set_ylabel("Latency (ms/iteration)")
+        ax_lat.set_xlabel("Transport buffer")
+        ax_lat.legend()
+        ax_lat.grid(True, alpha=0.3)
+
+        fig.tight_layout()
+        fname = f"plot_{label.lower()}_pxdy.png"
+        fig.savefig(out_dir / fname, dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        print(f"Saved {fname}")
 
 
 if __name__ == "__main__":
