@@ -130,14 +130,16 @@ if [[ $ALL_TO_ALL -eq 1 ]]; then
     fi
 fi
 
-# Validate --target-count: requires NVLink reassembly all-to-all, not valid with --direct
+# Validate --target-count: valid with --direct --all-to-all, --allow-nvlink (no reassembly), or --allow-nvlink --reassembly --all-to-all
 if [[ -n "$TARGET_COUNT" ]]; then
-    if [[ $DIRECT_MODE -eq 1 ]]; then
-        echo "Error: --target-count is not supported in direct mode"
-        exit 1
-    fi
-    if [[ $ALL_TO_ALL -eq 0 || $REASSEMBLY -eq 0 || $USE_NVLINK -eq 0 ]]; then
-        echo "Error: --target-count requires --allow-nvlink --reassembly --all-to-all"
+    if [[ $DIRECT_MODE -eq 1 && $ALL_TO_ALL -eq 1 ]]; then
+        : # valid
+    elif [[ $USE_NVLINK -eq 1 && $REASSEMBLY -eq 0 && $ALL_TO_ALL -eq 0 ]]; then
+        : # valid
+    elif [[ $USE_NVLINK -eq 1 && $REASSEMBLY -eq 1 && $ALL_TO_ALL -eq 1 ]]; then
+        : # valid
+    else
+        echo "Error: --target-count requires one of: --direct --all-to-all, --allow-nvlink (no --reassembly), or --allow-nvlink --reassembly --all-to-all"
         exit 1
     fi
 fi

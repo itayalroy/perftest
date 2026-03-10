@@ -1,0 +1,65 @@
+=== RDMA multi-QP test suite (subset) ===
+Configs: src=0 tc=8 | src=0,1 tc=8 | src=0 tc=4 | src=0,1 tc=4 | src=0..7 (default)
+Modes: direct_alltoall | allow_nvlink | allow_nvlink_reassembly_alltoall
+Transport buffers: 8M 16M 32M 64M 128M 256M 1G (each with and without --double-buffer)
+First node (receiver): pool0-00582
+Second node (sender):  pool0-00673
+Receiver IP:           100.126.14.36
+Log file:              /lustre/fsw/portfolios/network/users/eflorentzkon/perftest/BW_latency_tests/9905078_2026-03-10_02-50-45_subset_transport_double_buffer_clc_1GB_pool0-01413_pool0-01436_/rdma_tests_full_9905078_2026-03-10_02-50-45_subset_transport_double_buffer_clc_1GB_pool0-01413_pool0-01436_.log
+Results file:          /lustre/fsw/portfolios/network/users/eflorentzkon/perftest/BW_latency_tests/9905078_2026-03-10_02-50-45_subset_transport_double_buffer_clc_1GB_pool0-01413_pool0-01436_/rdma_tests_results_9905078_2026-03-10_02-50-45_subset_transport_double_buffer_clc_1GB_pool0-01413_pool0-01436_.txt
+Use single srun step:  1
+Sender delay (s):      10
+
+=== RESUME MODE ===
+Resuming into: /lustre/fsw/portfolios/network/users/eflorentzkon/perftest/BW_latency_tests/9905078_2026-03-10_02-50-45_subset_transport_double_buffer_clc_1GB_pool0-01413_pool0-01436_
+Completed configs: src0_tc8 src0_1_tc8 src0_tc8 src0_1_tc8
+Configs to run: 0|4 0,1|4 0,1,2,3,4,5,6,7|
+src0_tc4 partial tests from log: 9
+
+
+========== config: src0_tc4 ==========
+  --- direct_alltoall ---
+  --- allow_nvlink tb=8M (dbl) ---
+  --- allow_nvlink tb=8M (nodbl) ---
+  --- allow_nvlink tb=16M (dbl) ---
+  --- allow_nvlink tb=16M (nodbl) ---
+  --- allow_nvlink tb=32M (dbl) ---
+  --- allow_nvlink tb=32M (nodbl) ---
+  --- allow_nvlink tb=64M (dbl) ---
+  --- allow_nvlink tb=64M (nodbl) ---
+  --- allow_nvlink tb=128M (dbl) ---
+  --- allow_nvlink tb=128M (nodbl) ---
+  --- allow_nvlink tb=256M (dbl) ---
+  --- allow_nvlink tb=256M (nodbl) ---
+  --- allow_nvlink tb=1G (dbl) ---
+  --- allow_nvlink tb=1G (nodbl) ---
+  --- allow_nvlink_reassembly_alltoall tb=8M (dbl) ---
+  --- allow_nvlink_reassembly_alltoall tb=8M (nodbl) ---
+  --- allow_nvlink_reassembly_alltoall tb=16M (dbl) ---
+  --- allow_nvlink_reassembly_alltoall tb=16M (nodbl) ---
+  --- allow_nvlink_reassembly_alltoall tb=32M (dbl) ---
+  --- allow_nvlink_reassembly_alltoall tb=32M (nodbl) ---
+  --- allow_nvlink_reassembly_alltoall tb=64M (dbl) ---
+  --- allow_nvlink_reassembly_alltoall tb=64M (nodbl) ---
+  --- allow_nvlink_reassembly_alltoall tb=128M (dbl) ---
+  --- allow_nvlink_reassembly_alltoall tb=128M (nodbl) ---
+  --- allow_nvlink_reassembly_alltoall tb=256M (dbl) ---
+
+=== Results table ===
+=== Bandwidth (GB/s) ===
+ config            | direct_alltoall |  nvlink_8M_dbl | nvlink_8M_nodbl | nvlink_16M_dbl | nvlink_16M_nodbl | nvlink_32M_dbl | nvlink_32M_nodbl | nvlink_64M_dbl | nvlink_64M_nodbl | nvlink_128M_dbl | nvlink_128M_nodbl | nvlink_256M_dbl | nvlink_256M_nodbl |  nvlink_1G_dbl | nvlink_1G_nodbl | nvlink_ra_8M_dbl | nvlink_ra_8M_nodbl | nvlink_ra_16M_dbl | nvlink_ra_16M_nodbl | nvlink_ra_32M_dbl | nvlink_ra_32M_nodbl | nvlink_ra_64M_dbl | nvlink_ra_64M_nodbl | nvlink_ra_128M_dbl | nvlink_ra_128M_nodbl | nvlink_ra_256M_dbl | nvlink_ra_256M_nodbl | nvlink_ra_1G_dbl | nvlink_ra_1G_nodbl
+------------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------
+ src0_tc8          |          48.54 |         334.83 |         302.29 |         332.48 |         302.80 |         310.99 |         288.01 |         267.13 |         255.81 |         206.54 |         206.51 |         206.59 |         206.58 |         206.53 |         206.55 |          91.09 |          85.88 |         151.39 |         180.60 |         234.69 |         252.50 |         270.93 |         246.30 |         253.25 |         253.11 |         250.36 |         251.61 |         253.03 |         252.49
+ src0_1_tc8        |          96.99 |         329.79 |         330.60 |         345.38 |         350.22 |         352.16 |         353.17 |         342.84 |         342.27 |         317.35 |         318.99 |         276.43 |         271.99 |         272.91 |         275.79 |          75.93 |          65.96 |         126.69 |         117.62 |         225.71 |         261.87 |         281.24 |         279.10 |         309.71 |         282.98 |         281.16 |         281.81 |         280.50 |         282.85
+
+All values in GB/s.
+
+=== Latency (ms per iteration) ===
+ config            | direct_alltoall |  nvlink_8M_dbl | nvlink_8M_nodbl | nvlink_16M_dbl | nvlink_16M_nodbl | nvlink_32M_dbl | nvlink_32M_nodbl | nvlink_64M_dbl | nvlink_64M_nodbl | nvlink_128M_dbl | nvlink_128M_nodbl | nvlink_256M_dbl | nvlink_256M_nodbl |  nvlink_1G_dbl | nvlink_1G_nodbl | nvlink_ra_8M_dbl | nvlink_ra_8M_nodbl | nvlink_ra_16M_dbl | nvlink_ra_16M_nodbl | nvlink_ra_32M_dbl | nvlink_ra_32M_nodbl | nvlink_ra_64M_dbl | nvlink_ra_64M_nodbl | nvlink_ra_128M_dbl | nvlink_ra_128M_nodbl | nvlink_ra_256M_dbl | nvlink_ra_256M_nodbl | nvlink_ra_1G_dbl | nvlink_ra_1G_nodbl
+------------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------
+ src0_tc8          |         22.122 |          3.207 |          3.552 |          3.229 |          3.546 |          3.453 |          3.728 |          4.020 |          4.197 |          5.199 |          5.199 |          5.198 |          5.198 |          5.199 |          5.198 |         11.788 |         12.503 |          7.092 |          5.945 |          4.575 |          4.252 |          3.963 |          4.360 |          4.240 |          4.242 |          4.289 |          4.268 |          4.244 |          4.253
+ src0_1_tc8        |         22.142 |          6.512 |          6.496 |          6.218 |          6.132 |          6.098 |          6.081 |          6.264 |          6.274 |          6.767 |          6.732 |          7.769 |          7.896 |          7.869 |          7.787 |         28.284 |         32.559 |         16.950 |         18.258 |          9.514 |          8.201 |          7.636 |          7.694 |          6.934 |          7.589 |          7.638 |          7.620 |          7.656 |          7.592
+
+All values in ms per iteration.
+
+Done. Full log: /lustre/fsw/portfolios/network/users/eflorentzkon/perftest/BW_latency_tests/9905078_2026-03-10_02-50-45_subset_transport_double_buffer_clc_1GB_pool0-01413_pool0-01436_/rdma_tests_full_9905078_2026-03-10_02-50-45_subset_transport_double_buffer_clc_1GB_pool0-01413_pool0-01436_.log  Results: /lustre/fsw/portfolios/network/users/eflorentzkon/perftest/BW_latency_tests/9905078_2026-03-10_02-50-45_subset_transport_double_buffer_clc_1GB_pool0-01413_pool0-01436_/rdma_tests_results_9905078_2026-03-10_02-50-45_subset_transport_double_buffer_clc_1GB_pool0-01413_pool0-01436_.txt

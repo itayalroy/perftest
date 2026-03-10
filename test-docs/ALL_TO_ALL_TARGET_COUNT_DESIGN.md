@@ -2,12 +2,12 @@
 
 ## Overview
 
-This document describes the desired behavior and implementation plan for decoupling the **number of logical targets** (M) from the **number of intermediate GPUs/NICs** (K) in all-to-all NVLink reassembly mode. Currently both are tied to `-n`/`-g`. The goal is to allow:
+This document describes the desired behavior and implementation plan for decoupling the **number of logical targets** (M) from the **number of transport NICs/QPs** (K) in supported modes. Currently both are tied to `-n`/`-g`. The original goal was to allow M ≠ K in NVLink all-to-all reassembly mode:
 
 - **2 sources, 4 targets, 8 transport NICs** (N=2, M=4, K=8)
 - **4 sources, 2 targets, 8 transport NICs** (N=4, M=2, K=8)
 
-Direct all-to-all mode is **not affected** by this feature (M always equals the number of NICs specified via `-n`).
+This has since been extended (see §Extension below) to two additional modes where M < K means **"use only the first M NICs/GPUs"** (i.e. K is effectively capped to M, not kept independent).
 
 ---
 
@@ -17,7 +17,7 @@ Direct all-to-all mode is **not affected** by this feature (M always equals the 
 |--------|---------|----------------|----------|
 | **N** | Number of source GPUs | `--source-gpus` | `--source-gpus` (unchanged) |
 | **M** | Number of logical targets | `-n` (same as NIC count) | New `--target-count` option |
-| **K** | Number of transport NICs/QPs | `-n`, `-g` | `-n`, `-g` (unchanged) |
+| **K** | Number of transport NICs/QPs | `-n`, `-g` | `-n`, `-g` (unchanged for reassembly; capped to M for other modes) |
 
 When `--target-count` is not specified: **M = K** (current behavior, fully backward compatible).
 
@@ -25,8 +25,15 @@ When `--target-count` is not specified: **M = K** (current behavior, fully backw
 
 ## Scope
 
-Only **NVLink reassembly** mode (`--allow-nvlink --reassembly --all-to-all`) changes.
-Direct mode always has M = K (number of NICs used). No change there.
+Three modes support `--target-count`:
+
+| Mode flags | M ≠ K semantics |
+|------------|-----------------|
+| `--allow-nvlink --reassembly --all-to-all` | M and K are truly independent (original design) |
+| `--direct --all-to-all` | K is capped to M; only first M NICs/GPUs used |
+| `--allow-nvlink` (no `--reassembly`, no `--all-to-all`) | K is capped to M; only first M NICs/GPUs used |
+
+`--allow-nvlink --all-to-all` without `--reassembly` is **not** affected.
 
 ---
 
@@ -373,6 +380,85 @@ for (int j = 0; j < num_qps; j++) { ... }
 size_t sub_slice_sz = DEFAULT_BUFFER_SIZE / ((size_t)M * num_qps);
 for (int m = 0; m < M; m++) { ... }
 ```
+
+---
+
+---
+
+## Extension: `--target-count` for Direct All-to-All and NVLink No-Reassembly
+
+### Motivation
+
+The original design kept K fixed and made M a separate logical concept. For the simpler modes (direct all-to-all, nvlink no-reassembly) there is no reassembly step and no independent K vs M distinction needed. Instead, `--target-count M` simply **caps the number of NICs (and paired GPUs) used to M**, transporting all data through M NICs instead of K. Buffers scale accordingly so no data is lost.
+
+### Direct All-to-All (`--direct --all-to-all --target-count M`)
+
+**Current behavior (M = K):** N source GPUs × K target NICs → N×K QPs. Each source GPU's 1 GB is split into K slices of `1GB/K`; QP buffer = `1GB/K`.
+
+**With `--target-count M` (M < K):**
+- Only the first M NIC/GPU entries from `-n`/`-g` are used.
+- Expansion creates N×M QPs (instead of N×K).
+- Each source GPU's 1 GB is split into M slices: `slice = 1GB/M` (larger).
+- QP buffer = `1GB/M` (larger).
+- Sender threads = N×M. Receiver QPs = M (recycled across N sources as before).
+
+```
+Source GPU n (n=0..N-1): 1 GB → M slices of 1GB/M each
+QP (n*M + m): sends slice m of source n over NIC m
+QP buffer on NIC m: receives slices from all N sources
+```
+
+**Key formula change in `compute_buffer_sizes`:**
+```c
+/* Old: */
+actual_buffer_size = config.buffer_size / num_nics;   /* 1GB / K */
+
+/* New: */
+actual_buffer_size = config.buffer_size / num_targets; /* 1GB / M */
+```
+
+**Expansion change (main, direct all-to-all block):**
+```c
+/* Old: */
+int M = num_nics;   /* always K */
+
+/* New: */
+int M = num_targets; /* M ≤ K; equals num_nics when --target-count not given */
+```
+
+### NVLink No-Reassembly (`--allow-nvlink --target-count M`, no `--reassembly`, no `--all-to-all`)
+
+**Current behavior (M = K):** N source GPUs × K QPs → N×K sender threads. Each source's 1 GB is NVLink-copied as K slices of `1GB/K` to K QP buffers. QP buffer = `N × 1GB/K`.
+
+**With `--target-count M` (M < K):**
+- `num_qps` is capped to M before thread/buffer setup (only first M NICs and M GPUs used).
+- Sender threads = N×M.
+- Each source's 1 GB is split into M slices: `1GB/M` per slice (larger).
+- QP buffer = `N × 1GB/M` (larger; formula `N × buffer_size / num_qps` is unchanged, just `num_qps` is now M).
+- Receiver QPs = M.
+
+**All data is still transported**: the same total N×1 GB per iteration passes through M NICs instead of K, so each NIC carries more per iteration but no data is dropped.
+
+**Implementation:** cap `num_qps = num_targets` in the NVLink no-reassembly thread-count branch before `num_threads = num_source_gpus * num_qps` is computed.
+
+```c
+/* NVLink no-reassembly: cap num_qps to M when --target-count is set */
+if (!config.all_to_all && !config.reassembly) {
+    num_qps = num_targets;   /* M ≤ K; no-op when --target-count not given */
+}
+num_threads = num_source_gpus * num_qps;
+```
+
+### Validation Changes
+
+Old: `--target-count` with `--direct` was always rejected.
+
+New: accepted for these three combinations:
+1. `--direct --all-to-all`
+2. `--allow-nvlink` (no `--reassembly`, no `--all-to-all`)
+3. `--allow-nvlink --reassembly --all-to-all` (original)
+
+Rejected for everything else (e.g. `--direct` without `--all-to-all`, `--nics-only`).
 
 ---
 
