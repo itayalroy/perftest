@@ -184,8 +184,7 @@ def get_value(data, cfg_key, col_patterns):
 
 
 def extract_pxdx_data(merged_bw, merged_lat):
-    """PxDx: source=target. direct + allow_nvlink_reassembly (no alltoall). From markdown files."""
-    # Markdown keys: src0, src0_1, src0_1_2_3_4_5_6_7
+    """PxDx: source=target. direct + allow_nvlink_reassembly (no alltoall). From markdown (no dbl/nodbl)."""
     cfg_keys = {"P1D1": "src0", "P2D2": "src0_1", "P8D8": "src0_1_2_3_4_5_6_7"}
 
     bw = defaultdict(dict)
@@ -193,7 +192,6 @@ def extract_pxdx_data(merged_bw, merged_lat):
 
     for label in ["P1D1", "P2D2", "P8D8"]:
         cfg = cfg_keys[label]
-        # direct (no transport buffer)
         for k, v in merged_bw.items():
             if k[0] == cfg and k[1] == "direct":
                 bw[label]["direct"] = v
@@ -203,7 +201,6 @@ def extract_pxdx_data(merged_bw, merged_lat):
                 lat[label]["direct"] = v
                 break
 
-        # allow_nvlink_reassembly (not alltoall) by transport buffer
         for tb in ["8M", "16M", "32M", "64M", "128M", "1G"]:
             col = f"allow_nvlink_reassembly_{tb}" if tb != "1G" else "allow_nvlink_reassembly_full"
             for k, v in merged_bw.items():
@@ -254,44 +251,74 @@ def extract_pxdy_data(merged_bw, merged_lat):
             lat[label]["direct_alltoall"] = sum(vl) / len(vl)
 
         for tb in TRANSPORT_BUFFERS:
-            # allow_nvlink: subset has nvlink_XM_dbl, nvlink_XM_nodbl; markdown has allow_nvlink_XM
             col_tb = tb if tb != "1G" else "full"
 
-            def match_nvlink(c):
-                if "nvlink_" in c and tb in c and "ra_" not in c:
-                    return True
+            # allow_nvlink: subset has nvlink_XM_dbl, nvlink_XM_nodbl; markdown has allow_nvlink_XM (single)
+            def match_nvlink_dbl(c):
+                return ("nvlink_" in c and tb in c and "ra_" not in c and "_dbl" in c) or False
+            def match_nvlink_nodbl(c):
+                return ("nvlink_" in c and tb in c and "ra_" not in c and "_nodbl" in c) or False
+            def match_nvlink_md(c):
                 return c == f"allow_nvlink_{col_tb}"
 
-            vb = get_vals(merged_bw, cfgs, match_nvlink)
-            vl = get_vals(merged_lat, cfgs, match_nvlink)
-            if vb:
-                bw[label][f"allow_nvlink_{tb}"] = sum(vb) / len(vb)
-            if vl:
-                lat[label][f"allow_nvlink_{tb}"] = sum(vl) / len(vl)
+            vb_dbl = get_vals(merged_bw, cfgs, match_nvlink_dbl)
+            vb_nodbl = get_vals(merged_bw, cfgs, match_nvlink_nodbl)
+            vb_md = get_vals(merged_bw, cfgs, match_nvlink_md)
+            if vb_dbl:
+                bw[label][f"allow_nvlink_{tb}_dbl"] = sum(vb_dbl) / len(vb_dbl)
+            if vb_nodbl:
+                bw[label][f"allow_nvlink_{tb}_nodbl"] = sum(vb_nodbl) / len(vb_nodbl)
+            if vb_md and f"allow_nvlink_{tb}_dbl" not in bw[label] and f"allow_nvlink_{tb}_nodbl" not in bw[label]:
+                bw[label][f"allow_nvlink_{tb}"] = sum(vb_md) / len(vb_md)  # fallback
 
-            # allow_nvlink_reassembly_alltoall
-            def match_ra_alltoall(c):
-                if f"nvlink_ra_" in c and tb in c:
-                    return True
+            vl_dbl = get_vals(merged_lat, cfgs, match_nvlink_dbl)
+            vl_nodbl = get_vals(merged_lat, cfgs, match_nvlink_nodbl)
+            vl_md = get_vals(merged_lat, cfgs, match_nvlink_md)
+            if vl_dbl:
+                lat[label][f"allow_nvlink_{tb}_dbl"] = sum(vl_dbl) / len(vl_dbl)
+            if vl_nodbl:
+                lat[label][f"allow_nvlink_{tb}_nodbl"] = sum(vl_nodbl) / len(vl_nodbl)
+            if vl_md and f"allow_nvlink_{tb}_dbl" not in lat[label] and f"allow_nvlink_{tb}_nodbl" not in lat[label]:
+                lat[label][f"allow_nvlink_{tb}"] = sum(vl_md) / len(vl_md)
+
+            # allow_nvlink_reassembly_alltoall: dbl and nodbl
+            def match_ra_dbl(c):
+                return f"nvlink_ra_" in c and tb in c and "_dbl" in c
+            def match_ra_nodbl(c):
+                return f"nvlink_ra_" in c and tb in c and "_nodbl" in c
+            def match_ra_md(c):
                 return c == f"allow_nvlink_reassembly_alltoall_{col_tb}"
 
-            vb = get_vals(merged_bw, cfgs, match_ra_alltoall)
-            vl = get_vals(merged_lat, cfgs, match_ra_alltoall)
-            if vb:
-                bw[label][f"allow_nvlink_ra_alltoall_{tb}"] = sum(vb) / len(vb)
-            if vl:
-                lat[label][f"allow_nvlink_ra_alltoall_{tb}"] = sum(vl) / len(vl)
+            vb_dbl = get_vals(merged_bw, cfgs, match_ra_dbl)
+            vb_nodbl = get_vals(merged_bw, cfgs, match_ra_nodbl)
+            vb_md = get_vals(merged_bw, cfgs, match_ra_md)
+            if vb_dbl:
+                bw[label][f"allow_nvlink_ra_alltoall_{tb}_dbl"] = sum(vb_dbl) / len(vb_dbl)
+            if vb_nodbl:
+                bw[label][f"allow_nvlink_ra_alltoall_{tb}_nodbl"] = sum(vb_nodbl) / len(vb_nodbl)
+            if vb_md and f"allow_nvlink_ra_alltoall_{tb}_dbl" not in bw[label] and f"allow_nvlink_ra_alltoall_{tb}_nodbl" not in bw[label]:
+                bw[label][f"allow_nvlink_ra_alltoall_{tb}"] = sum(vb_md) / len(vb_md)
+
+            vl_dbl = get_vals(merged_lat, cfgs, match_ra_dbl)
+            vl_nodbl = get_vals(merged_lat, cfgs, match_ra_nodbl)
+            vl_md = get_vals(merged_lat, cfgs, match_ra_md)
+            if vl_dbl:
+                lat[label][f"allow_nvlink_ra_alltoall_{tb}_dbl"] = sum(vl_dbl) / len(vl_dbl)
+            if vl_nodbl:
+                lat[label][f"allow_nvlink_ra_alltoall_{tb}_nodbl"] = sum(vl_nodbl) / len(vl_nodbl)
+            if vl_md and f"allow_nvlink_ra_alltoall_{tb}_dbl" not in lat[label] and f"allow_nvlink_ra_alltoall_{tb}_nodbl" not in lat[label]:
+                lat[label][f"allow_nvlink_ra_alltoall_{tb}"] = sum(vl_md) / len(vl_md)
 
     return bw, lat
 
 
 def build_pxdx_series_for_label(bw, lat, label):
-    """Build series for one PxDx config: direct (1 pt) + allow_nvlink_reassembly (per tb)."""
-    x_labels = ["direct", "8M", "16M", "32M", "64M", "128M", "1G"]
+    """Build series for one PxDx config: direct (horizontal) + allow_nvlink_reassembly (per tb)."""
+    x_labels = ["8M", "16M", "32M", "64M", "128M", "1G"]
     direct_bw = bw.get(label, {}).get("direct")
     direct_lat = lat.get(label, {}).get("direct")
-    ra_bw = [bw.get(label, {}).get(tb) for tb in x_labels[1:]]
-    ra_lat = [lat.get(label, {}).get(tb) for tb in x_labels[1:]]
+    ra_bw = [bw.get(label, {}).get(tb) for tb in x_labels]
+    ra_lat = [lat.get(label, {}).get(tb) for tb in x_labels]
     return x_labels, direct_bw, direct_lat, ra_bw, ra_lat
 
 
@@ -302,13 +329,14 @@ def main():
     out_dir = base / "BW_latency_tests"
     merged_bw, merged_lat = load_all(base)
 
-    mode_colors = {"direct": "tab:blue", "PXN": "tab:green", "PXN + reassembly": "tab:orange"}
+    mode_colors = {"direct": "tab:blue", "PXN dbl": "tab:green", "PXN nodbl": "tab:olive",
+                   "PXN + reassembly dbl": "tab:orange", "PXN + reassembly nodbl": "tab:red"}
     mode_colors_pxdx = {"direct": "tab:blue", "PXN + reassembly": "tab:orange"}
 
-    x_labels_pxdx = ["direct", "8M", "16M", "32M", "64M", "128M", "1G"]
-    x_labels_pxdy = ["direct --all-to-all"] + list(TRANSPORT_BUFFERS)
+    x_labels_pxdx = ["8M", "16M", "32M", "64M", "128M", "1G"]
+    x_labels_pxdy = list(TRANSPORT_BUFFERS)
 
-    # --- PxDx: one figure per P1D1, P2D2, P8D8. Lines: direct, PXN + reassembly ---
+    # --- PxDx: one figure per P1D1, P2D2, P8D8. Lines: direct (horizontal), PXN + reassembly ---
     bw_pxdx, lat_pxdx = extract_pxdx_data(merged_bw, merged_lat)
     for label in ["P1D1", "P2D2", "P8D8"]:
         x_labels, direct_bw, direct_lat, ra_bw, ra_lat = build_pxdx_series_for_label(bw_pxdx, lat_pxdx, label)
@@ -317,10 +345,10 @@ def main():
         fig, (ax_bw, ax_lat) = plt.subplots(1, 2, figsize=(12, 5))
         fig.suptitle(f"{label} (source = target) — direct, PXN + reassembly (full = 1 GB)")
 
-        # BW: direct (single point at 0), PXN + reassembly (points 1..6)
+        # BW: direct as horizontal line (no transport buffer), PXN + reassembly
         if direct_bw is not None:
-            ax_bw.plot(0, direct_bw, "o", color=mode_colors_pxdx["direct"], label="direct")
-        ra_x = [i for i, v in enumerate(ra_bw, 1) if v is not None]
+            ax_bw.axhline(y=direct_bw, color=mode_colors_pxdx["direct"], linestyle="-", label="direct")
+        ra_x = [i for i, v in enumerate(ra_bw) if v is not None]
         ra_y = [v for v in ra_bw if v is not None]
         if ra_x and ra_y:
             ax_bw.plot(ra_x, ra_y, "o-", color=mode_colors_pxdx["PXN + reassembly"], label="PXN + reassembly")
@@ -334,8 +362,8 @@ def main():
 
         # Latency
         if direct_lat is not None:
-            ax_lat.plot(0, direct_lat, "o", color=mode_colors_pxdx["direct"], label="direct")
-        ra_x = [i for i, v in enumerate(ra_lat, 1) if v is not None]
+            ax_lat.axhline(y=direct_lat, color=mode_colors_pxdx["direct"], linestyle="-", label="direct")
+        ra_x = [i for i, v in enumerate(ra_lat) if v is not None]
         ra_y = [v for v in ra_lat if v is not None]
         if ra_x and ra_y:
             ax_lat.plot(ra_x, ra_y, "o-", color=mode_colors_pxdx["PXN + reassembly"], label="PXN + reassembly")
@@ -353,7 +381,7 @@ def main():
         plt.close(fig)
         print(f"Saved {fname}")
 
-    # --- PxDy: one figure per P1D4, P1D8, P2D4, P2D8, P8D8. Lines: direct --all-to-all, PXN, PXN + reassembly ---
+    # --- PxDy: one figure per P1D4, P1D8, P2D4, P2D8, P8D8. Lines: direct (horizontal), PXN dbl/nodbl, PXN+reassembly dbl/nodbl ---
     bw_pxdy, lat_pxdy = extract_pxdy_data(merged_bw, merged_lat)
     for label in ["P1D4", "P1D8", "P2D4", "P2D8", "P8D8"]:
         x_pos = list(range(len(x_labels_pxdy)))
@@ -362,26 +390,37 @@ def main():
         fig.suptitle(f"{label} (source ≤ target) — direct --all-to-all, PXN, PXN + reassembly (full = 1 GB)")
 
         d = bw_pxdy.get(label, {})
-        # BW: direct_alltoall at 0, allow_nvlink (PXN) and allow_nvlink_ra_alltoall (PXN + reassembly) per tb
+        # BW: direct_alltoall as horizontal line (no transport buffer)
         v_direct = d.get("direct_alltoall")
         if v_direct is not None:
-            ax_bw.plot(0, v_direct, "o", color=mode_colors["direct"], label="direct --all-to-all")
+            ax_bw.axhline(y=v_direct, color=mode_colors["direct"], linestyle="-", label="direct --all-to-all")
 
-        pxn_x, pxn_y = [], []
-        pra_x, pra_y = [], []
-        for i, tb in enumerate(TRANSPORT_BUFFERS, 1):
-            vn = d.get(f"allow_nvlink_{tb}")
-            vr = d.get(f"allow_nvlink_ra_alltoall_{tb}")
-            if vn is not None:
-                pxn_x.append(i)
-                pxn_y.append(vn)
-            if vr is not None:
-                pra_x.append(i)
-                pra_y.append(vr)
-        if pxn_x and pxn_y:
-            ax_bw.plot(pxn_x, pxn_y, "o-", color=mode_colors["PXN"], label="PXN")
-        if pra_x and pra_y:
-            ax_bw.plot(pra_x, pra_y, "o-", color=mode_colors["PXN + reassembly"], label="PXN + reassembly")
+        # PXN and PXN+reassembly: dbl and nodbl (fallback to single value from markdown)
+        pxn_dbl_x = [i for i, tb in enumerate(TRANSPORT_BUFFERS) if d.get(f"allow_nvlink_{tb}_dbl") is not None]
+        pxn_dbl_y = [d[f"allow_nvlink_{tb}_dbl"] for tb in TRANSPORT_BUFFERS if d.get(f"allow_nvlink_{tb}_dbl") is not None]
+        pxn_nodbl_x = [i for i, tb in enumerate(TRANSPORT_BUFFERS) if d.get(f"allow_nvlink_{tb}_nodbl") is not None]
+        pxn_nodbl_y = [d[f"allow_nvlink_{tb}_nodbl"] for tb in TRANSPORT_BUFFERS if d.get(f"allow_nvlink_{tb}_nodbl") is not None]
+        pxn_fb_x = [i for i, tb in enumerate(TRANSPORT_BUFFERS) if d.get(f"allow_nvlink_{tb}") is not None and d.get(f"allow_nvlink_{tb}_dbl") is None and d.get(f"allow_nvlink_{tb}_nodbl") is None]
+        pxn_fb_y = [d[f"allow_nvlink_{tb}"] for tb in TRANSPORT_BUFFERS if d.get(f"allow_nvlink_{tb}") is not None and d.get(f"allow_nvlink_{tb}_dbl") is None and d.get(f"allow_nvlink_{tb}_nodbl") is None]
+        if pxn_dbl_x and pxn_dbl_y:
+            ax_bw.plot(pxn_dbl_x, pxn_dbl_y, "o-", color=mode_colors["PXN dbl"], label="PXN dbl")
+        if pxn_nodbl_x and pxn_nodbl_y:
+            ax_bw.plot(pxn_nodbl_x, pxn_nodbl_y, "s-", color=mode_colors["PXN nodbl"], label="PXN nodbl")
+        if pxn_fb_x and pxn_fb_y:
+            ax_bw.plot(pxn_fb_x, pxn_fb_y, "o-", color=mode_colors["PXN dbl"], label="PXN")
+
+        pra_dbl_x = [i for i, tb in enumerate(TRANSPORT_BUFFERS) if d.get(f"allow_nvlink_ra_alltoall_{tb}_dbl") is not None]
+        pra_dbl_y = [d[f"allow_nvlink_ra_alltoall_{tb}_dbl"] for tb in TRANSPORT_BUFFERS if d.get(f"allow_nvlink_ra_alltoall_{tb}_dbl") is not None]
+        pra_nodbl_x = [i for i, tb in enumerate(TRANSPORT_BUFFERS) if d.get(f"allow_nvlink_ra_alltoall_{tb}_nodbl") is not None]
+        pra_nodbl_y = [d[f"allow_nvlink_ra_alltoall_{tb}_nodbl"] for tb in TRANSPORT_BUFFERS if d.get(f"allow_nvlink_ra_alltoall_{tb}_nodbl") is not None]
+        pra_fb_x = [i for i, tb in enumerate(TRANSPORT_BUFFERS) if d.get(f"allow_nvlink_ra_alltoall_{tb}") is not None and d.get(f"allow_nvlink_ra_alltoall_{tb}_dbl") is None and d.get(f"allow_nvlink_ra_alltoall_{tb}_nodbl") is None]
+        pra_fb_y = [d[f"allow_nvlink_ra_alltoall_{tb}"] for tb in TRANSPORT_BUFFERS if d.get(f"allow_nvlink_ra_alltoall_{tb}") is not None and d.get(f"allow_nvlink_ra_alltoall_{tb}_dbl") is None and d.get(f"allow_nvlink_ra_alltoall_{tb}_nodbl") is None]
+        if pra_dbl_x and pra_dbl_y:
+            ax_bw.plot(pra_dbl_x, pra_dbl_y, "o-", color=mode_colors["PXN + reassembly dbl"], label="PXN + reassembly dbl")
+        if pra_nodbl_x and pra_nodbl_y:
+            ax_bw.plot(pra_nodbl_x, pra_nodbl_y, "s-", color=mode_colors["PXN + reassembly nodbl"], label="PXN + reassembly nodbl")
+        if pra_fb_x and pra_fb_y:
+            ax_bw.plot(pra_fb_x, pra_fb_y, "o-", color=mode_colors["PXN + reassembly dbl"], label="PXN + reassembly")
 
         ax_bw.set_xticks(x_pos)
         ax_bw.set_xticklabels(x_labels_pxdy, rotation=45, ha="right")
@@ -394,23 +433,33 @@ def main():
         d = lat_pxdy.get(label, {})
         v_direct = d.get("direct_alltoall")
         if v_direct is not None:
-            ax_lat.plot(0, v_direct, "o", color=mode_colors["direct"], label="direct --all-to-all")
+            ax_lat.axhline(y=v_direct, color=mode_colors["direct"], linestyle="-", label="direct --all-to-all")
 
-        pxn_x, pxn_y = [], []
-        pra_x, pra_y = [], []
-        for i, tb in enumerate(TRANSPORT_BUFFERS, 1):
-            vn = d.get(f"allow_nvlink_{tb}")
-            vr = d.get(f"allow_nvlink_ra_alltoall_{tb}")
-            if vn is not None:
-                pxn_x.append(i)
-                pxn_y.append(vn)
-            if vr is not None:
-                pra_x.append(i)
-                pra_y.append(vr)
-        if pxn_x and pxn_y:
-            ax_lat.plot(pxn_x, pxn_y, "o-", color=mode_colors["PXN"], label="PXN")
-        if pra_x and pra_y:
-            ax_lat.plot(pra_x, pra_y, "o-", color=mode_colors["PXN + reassembly"], label="PXN + reassembly")
+        pxn_dbl_x = [i for i, tb in enumerate(TRANSPORT_BUFFERS) if d.get(f"allow_nvlink_{tb}_dbl") is not None]
+        pxn_dbl_y = [d[f"allow_nvlink_{tb}_dbl"] for tb in TRANSPORT_BUFFERS if d.get(f"allow_nvlink_{tb}_dbl") is not None]
+        pxn_nodbl_x = [i for i, tb in enumerate(TRANSPORT_BUFFERS) if d.get(f"allow_nvlink_{tb}_nodbl") is not None]
+        pxn_nodbl_y = [d[f"allow_nvlink_{tb}_nodbl"] for tb in TRANSPORT_BUFFERS if d.get(f"allow_nvlink_{tb}_nodbl") is not None]
+        pxn_fb_x = [i for i, tb in enumerate(TRANSPORT_BUFFERS) if d.get(f"allow_nvlink_{tb}") is not None and d.get(f"allow_nvlink_{tb}_dbl") is None and d.get(f"allow_nvlink_{tb}_nodbl") is None]
+        pxn_fb_y = [d[f"allow_nvlink_{tb}"] for tb in TRANSPORT_BUFFERS if d.get(f"allow_nvlink_{tb}") is not None and d.get(f"allow_nvlink_{tb}_dbl") is None and d.get(f"allow_nvlink_{tb}_nodbl") is None]
+        if pxn_dbl_x and pxn_dbl_y:
+            ax_lat.plot(pxn_dbl_x, pxn_dbl_y, "o-", color=mode_colors["PXN dbl"], label="PXN dbl")
+        if pxn_nodbl_x and pxn_nodbl_y:
+            ax_lat.plot(pxn_nodbl_x, pxn_nodbl_y, "s-", color=mode_colors["PXN nodbl"], label="PXN nodbl")
+        if pxn_fb_x and pxn_fb_y:
+            ax_lat.plot(pxn_fb_x, pxn_fb_y, "o-", color=mode_colors["PXN dbl"], label="PXN")
+
+        pra_dbl_x = [i for i, tb in enumerate(TRANSPORT_BUFFERS) if d.get(f"allow_nvlink_ra_alltoall_{tb}_dbl") is not None]
+        pra_dbl_y = [d[f"allow_nvlink_ra_alltoall_{tb}_dbl"] for tb in TRANSPORT_BUFFERS if d.get(f"allow_nvlink_ra_alltoall_{tb}_dbl") is not None]
+        pra_nodbl_x = [i for i, tb in enumerate(TRANSPORT_BUFFERS) if d.get(f"allow_nvlink_ra_alltoall_{tb}_nodbl") is not None]
+        pra_nodbl_y = [d[f"allow_nvlink_ra_alltoall_{tb}_nodbl"] for tb in TRANSPORT_BUFFERS if d.get(f"allow_nvlink_ra_alltoall_{tb}_nodbl") is not None]
+        pra_fb_x = [i for i, tb in enumerate(TRANSPORT_BUFFERS) if d.get(f"allow_nvlink_ra_alltoall_{tb}") is not None and d.get(f"allow_nvlink_ra_alltoall_{tb}_dbl") is None and d.get(f"allow_nvlink_ra_alltoall_{tb}_nodbl") is None]
+        pra_fb_y = [d[f"allow_nvlink_ra_alltoall_{tb}"] for tb in TRANSPORT_BUFFERS if d.get(f"allow_nvlink_ra_alltoall_{tb}") is not None and d.get(f"allow_nvlink_ra_alltoall_{tb}_dbl") is None and d.get(f"allow_nvlink_ra_alltoall_{tb}_nodbl") is None]
+        if pra_dbl_x and pra_dbl_y:
+            ax_lat.plot(pra_dbl_x, pra_dbl_y, "o-", color=mode_colors["PXN + reassembly dbl"], label="PXN + reassembly dbl")
+        if pra_nodbl_x and pra_nodbl_y:
+            ax_lat.plot(pra_nodbl_x, pra_nodbl_y, "s-", color=mode_colors["PXN + reassembly nodbl"], label="PXN + reassembly nodbl")
+        if pra_fb_x and pra_fb_y:
+            ax_lat.plot(pra_fb_x, pra_fb_y, "o-", color=mode_colors["PXN + reassembly dbl"], label="PXN + reassembly")
 
         ax_lat.set_xticks(x_pos)
         ax_lat.set_xticklabels(x_labels_pxdy, rotation=45, ha="right")
