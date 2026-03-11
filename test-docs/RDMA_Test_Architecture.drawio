@@ -65,21 +65,24 @@
                 </mxCell>
 
                 <!-- NETWORK -->
-                <mxCell id="d-net" value="&lt;b&gt;Network&lt;/b&gt;&lt;br&gt;(RDMA fabric)" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#C0C0C0;strokeColor=#333;fontSize=14;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
-                    <mxGeometry x="570" y="310" width="220" height="130" as="geometry"/>
+                <mxCell id="d-net" value="IB Switch" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e4d78;strokeColor=#0d2b4a;fontSize=10;fontStyle=1;strokeWidth=3;fontColor=#ffffff;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="690" y="120" width="30" height="395" as="geometry"/>
                 </mxCell>
-                <!-- RDMA arrows to network -->
-                <mxCell id="d-r0" value="RDMA write" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.15;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="d-n0" target="d-net" edge="1">
+                <!-- Direct RDMA connections: NIC K → QP Buffer K -->
+                <mxCell id="d-r0" value="RDMA write — mlx5_0 → QP 0" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="d-n0" target="d-rb0" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="d-r1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="d-n1" target="d-net" edge="1">
+                <mxCell id="d-r1" value="mlx5_1 → QP 1" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="d-n1" target="d-rb1" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="d-r2" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="d-n2" target="d-net" edge="1">
+                <mxCell id="d-r2" value="mlx5_2 → QP 2" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="d-n2" target="d-rb2" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="d-r7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.85;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="d-n7" target="d-net" edge="1">
+                <mxCell id="d-r7" value="mlx5_7 → QP 7" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="d-n7" target="d-rb7" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-dots-rdma" value="mlx5_3→QP3, mlx5_4→QP4, mlx5_5→QP5, mlx5_6→QP6 (same pattern)" style="text;html=1;strokeColor=#CC0000;fillColor=#FFF0F0;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="555" y="390" width="305" height="30" as="geometry"/>
                 </mxCell>
 
                 <!-- RECEIVER NODE -->
@@ -101,19 +104,6 @@
                 </mxCell>
                 <mxCell id="d-rb7" value="&lt;b&gt;GPU 7 — QP Buffer&lt;/b&gt;&lt;br&gt;1 GB  ← RDMA target&lt;br&gt;Holds: data from sender GPU 7" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
                     <mxGeometry x="920" y="450" width="250" height="60" as="geometry"/>
-                </mxCell>
-                <!-- recv arrows -->
-                <mxCell id="d-ra0" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.15;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="d-net" target="d-rb0" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="d-ra1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.3;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="d-net" target="d-rb1" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="d-ra2" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="d-net" target="d-rb2" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="d-ra7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.85;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="d-net" target="d-rb7" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
 
                 <!-- Stats banner -->
@@ -197,21 +187,24 @@
                 </mxCell>
 
                 <!-- Network -->
-                <mxCell id="no-net" value="&lt;b&gt;Network&lt;/b&gt;&lt;br&gt;(RDMA fabric)" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#C0C0C0;strokeColor=#333;fontSize=14;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
-                    <mxGeometry x="570" y="360" width="220" height="120" as="geometry"/>
+                <mxCell id="no-net" value="IB Switch" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e4d78;strokeColor=#0d2b4a;fontSize=10;fontStyle=1;strokeWidth=3;fontColor=#ffffff;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="690" y="120" width="30" height="400" as="geometry"/>
                 </mxCell>
-                <!-- RDMA arrows -->
-                <mxCell id="no-r0" value="RDMA" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.2;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="no-n0" target="no-net" edge="1">
+                <!-- Direct RDMA connections: NIC K → QP Buffer K -->
+                <mxCell id="no-r0" value="RDMA — mlx5_0 → QP Buffer 0" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="no-n0" target="no-rb0" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="no-r1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.35;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="no-n1" target="no-net" edge="1">
+                <mxCell id="no-r1" value="mlx5_1 → QP Buffer 1" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="no-n1" target="no-rb1" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="no-r2" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="no-n2" target="no-net" edge="1">
+                <mxCell id="no-r2" value="mlx5_2 → QP Buffer 2" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="no-n2" target="no-rb2" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="no-r7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="no-n7" target="no-net" edge="1">
+                <mxCell id="no-r7" value="mlx5_7 → QP Buffer 7" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="no-n7" target="no-rb7" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-dots-rdma" value="mlx5_3→QP3, mlx5_4→QP4, mlx5_5→QP5, mlx5_6→QP6" style="text;html=1;strokeColor=#CC0000;fillColor=#FFF0F0;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="555" y="455" width="305" height="28" as="geometry"/>
                 </mxCell>
 
                 <!-- RECEIVER NODE -->
@@ -232,19 +225,6 @@
                 </mxCell>
                 <mxCell id="no-rb7" value="&lt;b&gt;QP Buffer 7 — 128 MB&lt;/b&gt;&lt;br&gt;Receives slice 7 from sender GPU 0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A78BFA;strokeColor=#3700B3;fontSize=12;strokeWidth=2;align=center;fontColor=#000000" parent="1" vertex="1">
                     <mxGeometry x="920" y="400" width="280" height="50" as="geometry"/>
-                </mxCell>
-                <!-- recv arrows -->
-                <mxCell id="no-ra0" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.2;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="no-net" target="no-rb0" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="no-ra1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.35;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="no-net" target="no-rb1" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="no-ra2" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="no-net" target="no-rb2" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="no-ra7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.8;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="no-net" target="no-rb7" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
 
                 <mxCell id="no-stats" value="Total data / iteration: 1 GB    |    Threads: 8 (all from GPU 0)    |    No NVLink" style="text;html=1;strokeColor=#555;fillColor=#E8E8FF;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=13;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
@@ -336,21 +316,24 @@
                 </mxCell>
 
                 <!-- Network -->
-                <mxCell id="nv-net" value="&lt;b&gt;Network&lt;/b&gt;&lt;br&gt;(RDMA fabric)" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#C0C0C0;strokeColor=#333;fontSize=14;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
-                    <mxGeometry x="810" y="330" width="210" height="120" as="geometry"/>
+                <mxCell id="nv-net" value="IB Switch" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e4d78;strokeColor=#0d2b4a;fontSize=10;fontStyle=1;strokeWidth=3;fontColor=#ffffff;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="985" y="115" width="30" height="380" as="geometry"/>
                 </mxCell>
-                <!-- RDMA arrows from QP bufs -->
-                <mxCell id="nv-r0" value="RDMA write&#10;(1 GB)" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.1;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="nv-qp0" target="nv-net" edge="1">
+                <!-- Direct RDMA connections: NIC K → QP Buffer K -->
+                <mxCell id="nv-r0" value="NIC mlx5_0 RDMA write → QP 0 Buffer" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="nv-qp0" target="nv-rb0" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="nv-r1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="nv-qp1" target="nv-net" edge="1">
+                <mxCell id="nv-r1" value="mlx5_1 → QP 1 Buffer" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="nv-qp1" target="nv-rb1" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="nv-r2" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="nv-qp2" target="nv-net" edge="1">
+                <mxCell id="nv-r2" value="mlx5_2 → QP 2 Buffer" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="nv-qp2" target="nv-rb2" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="nv-r7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.9;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="nv-qp7" target="nv-net" edge="1">
+                <mxCell id="nv-r7" value="mlx5_7 → QP 7 Buffer" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="nv-qp7" target="nv-rb7" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nv-dots-rdma" value="mlx5_3→QP3, mlx5_4→QP4, mlx5_5→QP5, mlx5_6→QP6 (same)" style="text;html=1;strokeColor=#CC0000;fillColor=#FFF0F0;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="755" y="393" width="300" height="28" as="geometry"/>
                 </mxCell>
 
                 <!-- RECEIVER NODE -->
@@ -380,19 +363,6 @@
                     <mxGeometry x="1100" y="470" width="460" height="90" as="geometry"/>
                 </mxCell>
 
-                <!-- recv arrows from network -->
-                <mxCell id="nv-ra0" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="nv-net" target="nv-rb0" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="nv-ra1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.3;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="nv-net" target="nv-rb1" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="nv-ra2" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="nv-net" target="nv-rb2" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="nv-ra7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.9;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="nv-net" target="nv-rb7" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
 
                 <mxCell id="nv-stats" value="Total data / iteration: 8 × 1 GB = 8 GB    |    Threads (each side): N×K = 64    |    Receiver: passive (no reassembly)" style="text;html=1;strokeColor=#555;fillColor=#E8E8FF;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=13;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
                     <mxGeometry x="100" y="920" width="1400" height="40" as="geometry"/>
@@ -476,17 +446,21 @@
                 </mxCell>
 
                 <!-- Network -->
-                <mxCell id="ra-net" value="&lt;b&gt;Network&lt;/b&gt;&lt;br&gt;(RDMA fabric)" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#C0C0C0;strokeColor=#333;fontSize=14;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
-                    <mxGeometry x="820" y="260" width="210" height="120" as="geometry"/>
+                <mxCell id="ra-net" value="IB Switch" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e4d78;strokeColor=#0d2b4a;fontSize=10;fontStyle=1;strokeWidth=3;fontColor=#ffffff;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="990" y="130" width="30" height="260" as="geometry"/>
                 </mxCell>
-                <mxCell id="ra-r0" value="RDMA write&#10;(32MB/pipe)" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.1;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="ra-qp0" target="ra-net" edge="1">
+                <!-- Direct RDMA connections: NIC K → QP Buffer K -->
+                <mxCell id="ra-r0" value="NIC mlx5_0 RDMA write → QP 0 Buffer (32MB/pipe)" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="ra-qp0" target="ra-rb0" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="ra-r1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.35;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="ra-qp1" target="ra-net" edge="1">
+                <mxCell id="ra-r1" value="mlx5_1 → QP 1 Buffer" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="ra-qp1" target="ra-rb1" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="ra-r7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.85;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="ra-qp7" target="ra-net" edge="1">
+                <mxCell id="ra-r7" value="mlx5_7 → QP 7 Buffer" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="ra-qp7" target="ra-rb7" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra-dots-rdma" value="mlx5_2→QP2, ···, mlx5_6→QP6 (same)" style="text;html=1;strokeColor=#CC0000;fillColor=#FFF0F0;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="760" y="293" width="300" height="28" as="geometry"/>
                 </mxCell>
 
                 <!-- RECEIVER NODE -->
@@ -537,16 +511,6 @@
                     </mxGeometry>
                 </mxCell>
 
-                <!-- Recv network arrows -->
-                <mxCell id="ra-ra0" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="ra-net" target="ra-rb0" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="ra-ra1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.35;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="ra-net" target="ra-rb1" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="ra-ra7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.85;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="ra-net" target="ra-rb7" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
 
                 <!-- Receiver key -->
                 <mxCell id="ra-rcv-key" value="&lt;b&gt;Receiver buffer layout:&lt;/b&gt;&lt;br&gt;• 8 small QP buffers (32 MB each = 256 MB total)&lt;br&gt;• Each pipe: RDMA lands in QP buf; thread NVLink-copies&lt;br&gt;  each source's 4MB chunk into its reassembly buffer&lt;br&gt;• 8 reassembly buffers (1 GB each = 8 GB total)&lt;br&gt;• Reassembly buf N: [ QP0_data | QP1_data | ··· | QP7_data ]&lt;br&gt;  = complete 1 GB of source GPU N&apos;s original data" style="text;html=1;strokeColor=#333;fillColor=#FFFDE7;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=12;strokeWidth=2;spacingLeft=10;spacingTop=8;fontColor=#000000" parent="1" vertex="1">
@@ -635,17 +599,21 @@
                 </mxCell>
 
                 <!-- Network -->
-                <mxCell id="aa-net" value="&lt;b&gt;Network&lt;/b&gt;&lt;br&gt;(RDMA fabric)" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#C0C0C0;strokeColor=#333;fontSize=14;fontStyle=1;strokeWidth=2;fontColor=#000000" parent="1" vertex="1">
-                    <mxGeometry x="820" y="270" width="210" height="120" as="geometry"/>
+                <mxCell id="aa-net" value="IB Switch" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e4d78;strokeColor=#0d2b4a;fontSize=10;fontStyle=1;strokeWidth=3;fontColor=#ffffff;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="990" y="175" width="30" height="260" as="geometry"/>
                 </mxCell>
-                <mxCell id="aa-r0" value="RDMA write&#10;(1 GB per QP)" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.1;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="aa-qp0" target="aa-net" edge="1">
+                <!-- Direct RDMA connections: NIC K → QP Buffer K -->
+                <mxCell id="aa-r0" value="NIC mlx5_0 RDMA write → QP 0 Buffer (1 GB)" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="aa-qp0" target="aa-rb0" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="aa-r1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.35;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="aa-qp1" target="aa-net" edge="1">
+                <mxCell id="aa-r1" value="mlx5_1 → QP 1 Buffer" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="aa-qp1" target="aa-rb1" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="aa-r7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.9;entryDx=0;entryDy=0;entryPerimeter=0;fontColor=#000000" parent="1" source="aa-qp7" target="aa-net" edge="1">
+                <mxCell id="aa-r7" value="mlx5_7 → QP 7 Buffer" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="aa-qp7" target="aa-rb7" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="aa-dots-rdma" value="mlx5_2→QP2, ···, mlx5_6→QP6 (same)" style="text;html=1;strokeColor=#CC0000;fillColor=#FFF0F0;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;fontStyle=2;strokeWidth=1;fontColor=#000000" parent="1" vertex="1">
+                    <mxGeometry x="760" y="345" width="300" height="28" as="geometry"/>
                 </mxCell>
 
                 <!-- RECEIVER NODE -->
@@ -716,16 +684,6 @@
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
 
-                <!-- recv from network -->
-                <mxCell id="aa-ra0" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="aa-net" target="aa-rb0" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="aa-ra1" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.35;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="aa-net" target="aa-rb1" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="aa-ra7" value="" style="endArrow=classic;html=1;strokeWidth=4;strokeColor=#CC0000;exitX=1;exitY=0.9;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000" parent="1" source="aa-net" target="aa-rb7" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
 
                 <!-- Receiver key -->
                 <mxCell id="aa-rcv-key" value="&lt;b&gt;Result after reassembly:&lt;/b&gt;&lt;br&gt;M=8 logical targets, each with N=8 contribution buffers&lt;br&gt;reassembly_2d[n×M+m] on GPU m: contribution from source n to target m&lt;br&gt;= 128 MB, assembled from K=8 QP sub-slices (16 MB each)&lt;br&gt;&lt;br&gt;Total reassembly memory: N×M × 128MB = 64 × 128MB = 8 GB" style="text;html=1;strokeColor=#333;fillColor=#FFFDE7;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=12;strokeWidth=2;spacingLeft=10;spacingTop=8;fontColor=#000000" parent="1" vertex="1">

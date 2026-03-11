@@ -153,14 +153,14 @@ echo "Sender delay (s):      $RDMA_SENDER_DELAY" | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
 # Source-gpus options: 0 | 0,1 | 0,1,2 | ... | 0,1,2,3,4,5,6,7
-SOURCE_GPUS_LIST=("0" "0,1" "0,1,2" "0,1,2,3" "0,1,2,3,4" "0,1,2,3,4,5" "0,1,2,3,4,5,6" "0,1,2,3,4,5,6,7")
+SOURCE_GPUS_LIST=( "0,1,2,3,4" "0,1,2,3,4,5" "0,1,2,3,4,5,6" "0,1,2,3,4,5,6,7")
 
 # Mode names (for table columns)
 MODES=("direct" "direct_alltoall" "allow_nvlink" "allow_nvlink_reassembly" "allow_nvlink_reassembly_alltoall")
 
 # Transport buffer sizes for non-direct modes (8, 16, 32, 64, 128 MB and default full buffer)
 # Empty string = default (no --transport-buffer, full buffer). Not used for direct modes.
-TRANSPORT_BUFFER_SIZES=("8M" "16M" "32M" "64M" "128M" "")
+TRANSPORT_BUFFER_SIZES=("8M" "16M" "32M" "64M" "128M" "1GB")
 
 # Temp dir for per-test output only (staged here then appended to LOG_FILE; deleted at exit)
 RESULTS_DIR=$(mktemp -d)
@@ -196,10 +196,10 @@ run_one_test() {
     *) echo "Unknown mode: $mode"; return 1 ;;
   esac
 
-  # Add transport-buffer for non-direct modes when specified
+  # Add transport-buffer and --double-buffer for non-direct modes when specified (double-buffer only applies with transport buffer)
   if [[ -n "$transport_buf" ]] && [[ "$mode" != "direct" ]] && [[ "$mode" != "direct_alltoall" ]]; then
-    recv_args="${recv_args} --transport-buffer ${transport_buf}"
-    send_args="${send_args} --transport-buffer ${transport_buf}"
+    recv_args="${recv_args} --transport-buffer ${transport_buf} --double-buffer"
+    send_args="${send_args} --transport-buffer ${transport_buf} --double-buffer"
   fi
 
   local tb_suffix=""
@@ -210,10 +210,13 @@ run_one_test() {
 
   if [[ "${USE_SINGLE_SRUN_STEP:-0}" = "1" ]]; then
     # One srun with two tasks so only one job step (avoids receiver step being killed when second srun starts)
+    # Use OUTPUT_DIR for step file so it's on shared fs and visible after container writes (BINDIR mount can be node-local)
     local step_suffix=$(echo "${src_gpus}_${mode}${tb_suffix}" | tr ',' '_' | tr -c '[:alnum:]_.-' '_')
-    local step_outfile_host="$BINDIR/.rdma_out_$$_${step_suffix}.out"
-    local step_outfile_inside="${CONTAINER_WORKDIR:-$BINDIR}/.rdma_out_$$_${step_suffix}.out"
+    local step_outfile_host="$OUTPUT_DIR/.rdma_out_$$_${step_suffix}.out"
+    local step_outfile_inside
     if [[ -n "$CONTAINER_IMAGE" ]]; then
+      # Path inside container: OUTPUT_DIR is under BINDIR, container mounts BINDIR at CONTAINER_WORKDIR
+      step_outfile_inside="${CONTAINER_WORKDIR}${OUTPUT_DIR#$BINDIR}/.rdma_out_$$_${step_suffix}.out"
       export RDMA_STEP_OUTFILE="$step_outfile_inside"
     else
       export RDMA_STEP_OUTFILE="$step_outfile_host"
@@ -304,7 +307,34 @@ done
 # Table header for results (tab-separated; we format to a bordered table below)
 RESULTS_TAB=$(mktemp)
 RESULTS_TAB_LAT=$(mktemp)
-trap 'rm -rf "$RESULTS_DIR" ${RESULTS_TAB:+"$RESULTS_TAB"} ${RESULTS_TAB_LAT:+"$RESULTS_TAB_LAT"}' EXIT
+RESULTS_OUTPUT_DONE=""
+output_results_on_exit() {
+  [[ -n "$RESULTS_OUTPUT_DONE" ]] && return 0
+  # Format and write results table (runs on normal exit or timeout/kill so partial results are saved)
+  if [[ -f "$RESULTS_TAB" ]] && [[ -f "$RESULTS_TAB_LAT" ]]; then
+    {
+      echo "=== Bandwidth (GB/s) ==="
+      format_results_table "$RESULTS_TAB" "GB/s"
+      echo ""
+      echo "=== Latency (ms per iteration) ==="
+      format_results_table "$RESULTS_TAB_LAT" "ms per iteration"
+    } > "$RESULTS_FILE" 2>/dev/null || true
+  fi
+  # Fallback: if no data rows were captured (RESULTS_TAB has only header), parse from log (e.g. when step_outfile wasn't found in container)
+  if [[ -f "$RESULTS_TAB" ]] && [[ $(wc -l < "$RESULTS_TAB" 2>/dev/null || echo 0) -le 1 ]]; then
+    parse_script="$BINDIR/BW_latency_tests/parse_rdma_log_to_results.sh"
+    if [[ -f "$parse_script" ]] && [[ -f "$LOG_FILE" ]]; then
+      bash "$parse_script" "$LOG_FILE" "$RESULTS_FILE" 2>/dev/null || true
+    fi
+  fi
+  echo "" | tee -a "$LOG_FILE"
+  echo "=== Results table (source_gpus x mode -> BW in GB/s, latency in ms per iteration) ===" | tee -a "$LOG_FILE"
+  cat "$RESULTS_FILE" 2>/dev/null | tee -a "$LOG_FILE" || true
+  echo "" | tee -a "$LOG_FILE"
+  echo "Done. Full log: $LOG_FILE  Results: $RESULTS_FILE" | tee -a "$LOG_FILE"
+  RESULTS_OUTPUT_DONE=1
+}
+trap 'output_results_on_exit; rm -rf "$RESULTS_DIR" ${RESULTS_TAB:+"$RESULTS_TAB"} ${RESULTS_TAB_LAT:+"$RESULTS_TAB_LAT"}' EXIT
 echo "$COL_HEADERS" > "$RESULTS_TAB"
 echo "$COL_HEADERS" > "$RESULTS_TAB_LAT"
 
@@ -375,16 +405,4 @@ format_results_table() {
     echo "All values in $unit."
   } < "$f"
 }
-{
-  echo "=== Bandwidth (GB/s) ==="
-  format_results_table "$RESULTS_TAB" "GB/s"
-  echo ""
-  echo "=== Latency (ms per iteration) ==="
-  format_results_table "$RESULTS_TAB_LAT" "ms per iteration"
-} > "$RESULTS_FILE"
-
-echo "" | tee -a "$LOG_FILE"
-echo "=== Results table (source_gpus x mode -> BW in GB/s, latency in ms per iteration) ===" | tee -a "$LOG_FILE"
-cat "$RESULTS_FILE" | tee -a "$LOG_FILE"
-echo "" | tee -a "$LOG_FILE"
-echo "Done. Full log: $LOG_FILE  Results: $RESULTS_FILE" | tee -a "$LOG_FILE"
+# Results table is written by output_results_on_exit (EXIT trap) so it runs even on timeout/kill
