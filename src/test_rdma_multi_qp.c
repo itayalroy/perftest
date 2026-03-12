@@ -1565,17 +1565,57 @@ static void *write_thread(void *arg)
 
             } else {
             /* ------------------------------------------------------------------ */
-            /* SINGLE-BUFFER path (original) */
+            /* SINGLE-BUFFER path */
+            /* Reassembly piping: overlap design — poll at start, RDMA, then NVLink for next
+             * (NVLink overlaps with receiver reassembly). No-reassembly: NVLink then RDMA. */
             /* ------------------------------------------------------------------ */
             int pipe;
+            int is_leader_ra = 0;
+            if (args->reassembly && args->num_pipe_iterations > 1) {
+                is_leader_ra = args->all_to_all_reassembly
+                    ? (args->source_gpu_index == 0 && args->slice_index_j == 0)
+                    : ((args->num_source_gpus == 1) || (args->source_gpu_index == 0));
+            }
+
+            if (args->reassembly && args->num_pipe_iterations > 1) {
+                /* Overlap design: pre-fetch chunk[0], then poll→post_receive→RDMA→NVLink_next per pipe */
+                size_t pipe0_size = args->section_size;
+                void *src_chunk0 = (char *)src_part + 0 * part_size;
+                if (args->source_gpu_id != args->target_gpu_id && args->nvlink_ctx) {
+                    if (nvlink_copy_gpu_to_gpu_async(args->nvlink_ctx, dst_part, src_chunk0, pipe0_size) != 0) {
+                        fprintf(stderr, "NVLink pre-fetch chunk[0] failed (iter %d) qp=%d\n", i, qp_index);
+                        *args->status = -1; return NULL;
+                    }
+                    if (nvlink_synchronize(args->nvlink_ctx) != 0) {
+                        fprintf(stderr, "NVLink pre-fetch sync failed (iter %d)\n", i);
+                        *args->status = -1; return NULL;
+                    }
+                } else if (args->source_gpu_id == args->target_gpu_id) {
+                    cudaError_t err = cudaSetDevice(args->source_gpu_id);
+                    if (err != cudaSuccess) {
+                        fprintf(stderr, "cudaSetDevice failed: %s (iter %d pre-fetch)\n", cudaGetErrorString(err), i);
+                        *args->status = -1; return NULL;
+                    }
+                    err = cudaMemcpyAsync(dst_part, src_chunk0, pipe0_size, cudaMemcpyDeviceToDevice, 0);
+                    if (err != cudaSuccess) {
+                        fprintf(stderr, "cudaMemcpyAsync pre-fetch failed: %s (iter %d)\n", cudaGetErrorString(err), i);
+                        *args->status = -1; return NULL;
+                    }
+                    err = cudaStreamSynchronize(0);
+                    if (err != cudaSuccess) {
+                        fprintf(stderr, "cudaStreamSync pre-fetch failed: %s (iter %d)\n", cudaGetErrorString(err), i);
+                        *args->status = -1; return NULL;
+                    }
+                }
+            }
+
             for (pipe = 0; pipe < args->num_pipe_iterations; pipe++) {
-                /* Last pipe may be partial when pipe_slice_size not evenly divisible by section_size */
                 size_t this_pipe_size = (pipe == args->num_pipe_iterations - 1)
                     ? args->last_pipe_size : args->section_size;
-                /* Advance source pointer by one chunk per pipe.
-                 * dst_part (QP buffer slot) is reused each pipe — receiver overwrites per pipe.
-                 * part_size == section_size when piping is active (buffer_size was overridden). */
                 void *src_chunk = (char *)src_part + (size_t)pipe * part_size;
+                void *src_chunk_nxt = (char *)src_part + (size_t)(pipe + 1) * part_size;
+                size_t nxt_pipe_size = ((pipe + 1) == args->num_pipe_iterations - 1)
+                    ? args->last_pipe_size : args->section_size;
 
                 if (args->debug && args->num_pipe_iterations > 1) {
                     size_t _remote_preview = args->reassembly ? dst_offset :
@@ -1587,72 +1627,81 @@ static void *write_thread(void *arg)
                             this_pipe_size, _remote_preview);
                 }
 
-                /* Step 1: Copy this pipe's chunk from source buffer to QP buffer */
-                if (args->source_gpu_id != args->target_gpu_id && args->nvlink_ctx) {
-                    /* Cross-GPU: use NVLink async */
-                    if (nvlink_copy_gpu_to_gpu_async(args->nvlink_ctx, dst_part,
-                                                      src_chunk, this_pipe_size) != 0) {
-                        fprintf(stderr, "NVLink copy failed (iter %d pipe %d) qp=%d\n", i, pipe, qp_index);
-                        *args->status = -1;
-                        return NULL;
+                /* Reassembly piping overlap: wait for signal (pipe-1 done) at start, then post receive */
+                if (args->reassembly && args->num_pipe_iterations > 1) {
+                    if (pipe > 0) {
+                        if (is_leader_ra) {
+                            uint32_t dummy_imm = 0;
+                            if (rdma_poll_completion_with_imm(ctx, qp_index, -1, &dummy_imm, NULL) != 0) {
+                                fprintf(stderr, "QP %d: pipe signal-back poll failed (iter %d pipe %d)\n",
+                                        qp_index, i, pipe);
+                                *args->status = -1; return NULL;
+                            }
+                            if (args->debug)
+                                fprintf(stderr, "[QP %d src %d] iter %d pipe %d: got signal-back\n",
+                                        qp_index, args->source_gpu_index, i, pipe);
+                            if (args->qp_signal_mutex) {
+                                pthread_mutex_lock(args->qp_signal_mutex);
+                                (*args->qp_pipe_ready)++;
+                                pthread_cond_broadcast(args->qp_signal_cond);
+                                pthread_mutex_unlock(args->qp_signal_mutex);
+                            }
+                        } else if (args->qp_signal_mutex) {
+                            int expected = pipe;
+                            pthread_mutex_lock(args->qp_signal_mutex);
+                            while (*args->qp_pipe_ready < expected)
+                                pthread_cond_wait(args->qp_signal_cond, args->qp_signal_mutex);
+                            pthread_mutex_unlock(args->qp_signal_mutex);
+                        }
                     }
-                    if (nvlink_synchronize(args->nvlink_ctx) != 0) {
-                        fprintf(stderr, "NVLink sync failed (iter %d pipe %d)\n", i, pipe);
-                        *args->status = -1;
-                        return NULL;
+                    if (is_leader_ra) {
+                        if (rdma_post_receive(ctx, qp_index, 0, 1, 0) != 0) {
+                            fprintf(stderr, "QP %d: pre-post for pipe signal failed (iter %d pipe %d)\n",
+                                    qp_index, i, pipe);
+                            *args->status = -1; return NULL;
+                        }
                     }
-                } else if (args->source_gpu_id == args->target_gpu_id) {
-                    /* Same GPU: async copy + sync to ensure visibility to RDMA NIC */
-                    cudaError_t err = cudaSetDevice(args->source_gpu_id);
-                    if (err != cudaSuccess) {
-                        fprintf(stderr, "Failed to set device %d: %s (iter %d pipe %d)\n",
-                                args->source_gpu_id, cudaGetErrorString(err), i, pipe);
-                        *args->status = -1;
-                        return NULL;
-                    }
-                    err = cudaMemcpyAsync(dst_part, src_chunk, this_pipe_size, cudaMemcpyDeviceToDevice, 0);
-                    if (err != cudaSuccess) {
-                        fprintf(stderr, "Local GPU copy failed: %s (iter %d pipe %d) qp=%d\n",
-                                cudaGetErrorString(err), i, pipe, qp_index);
-                        *args->status = -1;
-                        return NULL;
-                    }
-                    err = cudaStreamSynchronize(0);
-                    if (err != cudaSuccess) {
-                        fprintf(stderr, "Local GPU sync failed: %s (iter %d pipe %d)\n",
-                                cudaGetErrorString(err), i, pipe);
-                        *args->status = -1;
-                        return NULL;
+                } else {
+                    /* No-reassembly or no piping: NVLink current chunk first */
+                    if (args->source_gpu_id != args->target_gpu_id && args->nvlink_ctx) {
+                        if (nvlink_copy_gpu_to_gpu_async(args->nvlink_ctx, dst_part,
+                                                          src_chunk, this_pipe_size) != 0) {
+                            fprintf(stderr, "NVLink copy failed (iter %d pipe %d) qp=%d\n", i, pipe, qp_index);
+                            *args->status = -1; return NULL;
+                        }
+                        if (nvlink_synchronize(args->nvlink_ctx) != 0) {
+                            fprintf(stderr, "NVLink sync failed (iter %d pipe %d)\n", i, pipe);
+                            *args->status = -1; return NULL;
+                        }
+                    } else if (args->source_gpu_id == args->target_gpu_id) {
+                        cudaError_t err = cudaSetDevice(args->source_gpu_id);
+                        if (err != cudaSuccess) {
+                            fprintf(stderr, "Failed to set device %d: %s (iter %d pipe %d)\n",
+                                    args->source_gpu_id, cudaGetErrorString(err), i, pipe);
+                            *args->status = -1; return NULL;
+                        }
+                        err = cudaMemcpyAsync(dst_part, src_chunk, this_pipe_size, cudaMemcpyDeviceToDevice, 0);
+                        if (err != cudaSuccess) {
+                            fprintf(stderr, "Local GPU copy failed: %s (iter %d pipe %d) qp=%d\n",
+                                    cudaGetErrorString(err), i, pipe, qp_index);
+                            *args->status = -1; return NULL;
+                        }
+                        err = cudaStreamSynchronize(0);
+                        if (err != cudaSuccess) {
+                            fprintf(stderr, "Local GPU sync failed: %s (iter %d pipe %d)\n",
+                                    cudaGetErrorString(err), i, pipe);
+                            *args->status = -1; return NULL;
+                        }
                     }
                 }
 
-                /* Step 2: RDMA write (serialize QP access in multi-source mode).
-                 * Reassembly: receiver small buffer reuses same slot each pipe (dst_offset).
-                 * No-reassembly: receiver has full buffer; each pipe must land at the correct
-                 * offset: source_n * full_slice + pipe * section_size. */
+                /* RDMA write (chunk[pipe] already in dst_part: from pre-fetch or prev iter's NVLink) */
                 size_t remote_off;
                 if (args->reassembly || args->all_to_all_reassembly) {
                     remote_off = dst_offset;
                 } else {
                     remote_off = (size_t)args->source_gpu_index * args->pipe_slice_size
                                  + (size_t)pipe * args->section_size;
-                }
-                /* Reassembly piping: leader pre-posts receive WQE for this pipe's signal-back.
-                 * Multi-source (N>1): only source_gpu_index==0 is the leader per QP.
-                 * All-to-all: leader is source_gpu_index==0 && slice_index_j==0 (one per QP).
-                 * Single-source non-all-to-all (N==1): always the leader. */
-                if (args->reassembly && args->num_pipe_iterations > 1) {
-                    int is_leader = args->all_to_all_reassembly
-                        ? (args->source_gpu_index == 0 && args->slice_index_j == 0)
-                        : ((args->num_source_gpus == 1) || (args->source_gpu_index == 0));
-                    if (is_leader) {
-                        if (rdma_post_receive(ctx, qp_index, 0, 1, 0) != 0) {
-                            fprintf(stderr, "QP %d: pre-post for pipe signal failed (iter %d pipe %d)\n",
-                                    qp_index, i, pipe);
-                            *args->status = -1;
-                            return NULL;
-                        }
-                    }
                 }
                 if (args->qp_mutex) pthread_mutex_lock(args->qp_mutex);
                 if (args->reassembly) {
@@ -1683,41 +1732,63 @@ static void *write_thread(void *arg)
                 }
                 if (args->qp_mutex) pthread_mutex_unlock(args->qp_mutex);
 
-                /* Reassembly piping: wait for receiver's per-pipe signal-back.
-                 * Leader polls recv_cq, increments qp_pipe_ready, broadcasts.
-                 * Non-leaders wait on cond var (predicate: qp_pipe_ready >= pipe+1).
-                 * When qp_signal_mutex is NULL (N==1, no all-to-all): leader polls, no broadcast needed. */
-                if (args->reassembly && args->num_pipe_iterations > 1) {
-                    int is_leader = args->all_to_all_reassembly
-                        ? (args->source_gpu_index == 0 && args->slice_index_j == 0)
-                        : ((args->num_source_gpus == 1) || (args->source_gpu_index == 0));
-                    if (is_leader) {
-                        uint32_t dummy_imm = 0;
-                        if (rdma_poll_completion_with_imm(ctx, qp_index, -1, &dummy_imm, NULL) != 0) {
-                            fprintf(stderr, "QP %d: pipe signal-back poll failed (iter %d pipe %d)\n",
-                                    qp_index, i, pipe);
-                            *args->status = -1;
-                            return NULL;
+                /* Reassembly piping overlap: NVLink for next chunk (overlaps with receiver reassembly of this pipe) */
+                if (args->reassembly && args->num_pipe_iterations > 1 && pipe + 1 < args->num_pipe_iterations) {
+                    if (args->source_gpu_id != args->target_gpu_id && args->nvlink_ctx) {
+                        if (nvlink_copy_gpu_to_gpu_async(args->nvlink_ctx, dst_part,
+                                                          src_chunk_nxt, nxt_pipe_size) != 0) {
+                            fprintf(stderr, "NVLink copy next failed (iter %d pipe %d) qp=%d\n", i, pipe, qp_index);
+                            *args->status = -1; return NULL;
                         }
-                        if (args->debug)
-                            fprintf(stderr, "[QP %d src %d] iter %d pipe %d: got signal-back\n",
-                                    qp_index, args->source_gpu_index, i, pipe);
-                        if (args->qp_signal_mutex) {
-                            pthread_mutex_lock(args->qp_signal_mutex);
-                            (*args->qp_pipe_ready)++;
-                            pthread_cond_broadcast(args->qp_signal_cond);
-                            pthread_mutex_unlock(args->qp_signal_mutex);
+                        if (nvlink_synchronize(args->nvlink_ctx) != 0) {
+                            fprintf(stderr, "NVLink sync next failed (iter %d pipe %d)\n", i, pipe);
+                            *args->status = -1; return NULL;
                         }
-                    } else {
-                        /* Non-leader: wait for leader to increment qp_pipe_ready past this pipe */
-                        int expected = pipe + 1;
-                        pthread_mutex_lock(args->qp_signal_mutex);
-                        while (*args->qp_pipe_ready < expected)
-                            pthread_cond_wait(args->qp_signal_cond, args->qp_signal_mutex);
-                        pthread_mutex_unlock(args->qp_signal_mutex);
+                    } else if (args->source_gpu_id == args->target_gpu_id) {
+                        cudaError_t err = cudaSetDevice(args->source_gpu_id);
+                        if (err != cudaSuccess) {
+                            fprintf(stderr, "cudaSetDevice failed: %s (iter %d pipe %d nxt)\n",
+                                    cudaGetErrorString(err), i, pipe);
+                            *args->status = -1; return NULL;
+                        }
+                        err = cudaMemcpyAsync(dst_part, src_chunk_nxt, nxt_pipe_size, cudaMemcpyDeviceToDevice, 0);
+                        if (err != cudaSuccess) {
+                            fprintf(stderr, "cudaMemcpyAsync next failed: %s (iter %d pipe %d)\n",
+                                    cudaGetErrorString(err), i, pipe);
+                            *args->status = -1; return NULL;
+                        }
+                        err = cudaStreamSynchronize(0);
+                        if (err != cudaSuccess) {
+                            fprintf(stderr, "cudaStreamSync next failed: %s (iter %d pipe %d)\n",
+                                    cudaGetErrorString(err), i, pipe);
+                            *args->status = -1; return NULL;
+                        }
                     }
                 }
             } /* end single-buffer pipe loop */
+
+            /* Reassembly piping: drain last pipe's signal (receive was pre-posted at start of last iter) */
+            if (args->reassembly && args->num_pipe_iterations > 1) {
+                if (is_leader_ra) {
+                    uint32_t dummy_imm = 0;
+                    if (rdma_poll_completion_with_imm(ctx, qp_index, -1, &dummy_imm, NULL) != 0) {
+                        fprintf(stderr, "QP %d: drain last pipe signal failed (iter %d)\n", qp_index, i);
+                        *args->status = -1; return NULL;
+                    }
+                    if (args->qp_signal_mutex) {
+                        pthread_mutex_lock(args->qp_signal_mutex);
+                        (*args->qp_pipe_ready)++;
+                        pthread_cond_broadcast(args->qp_signal_cond);
+                        pthread_mutex_unlock(args->qp_signal_mutex);
+                    }
+                } else if (args->qp_signal_mutex) {
+                    int expected = args->num_pipe_iterations;
+                    pthread_mutex_lock(args->qp_signal_mutex);
+                    while (*args->qp_pipe_ready < expected)
+                        pthread_cond_wait(args->qp_signal_cond, args->qp_signal_mutex);
+                    pthread_mutex_unlock(args->qp_signal_mutex);
+                }
+            }
             } /* end single-buffer else */
 
             /* Wait at completion barrier (signal we finished work for this iteration).

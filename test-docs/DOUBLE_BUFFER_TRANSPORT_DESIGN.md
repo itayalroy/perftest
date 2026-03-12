@@ -38,15 +38,16 @@ Per-pipe latency ≈ max(T_nvlink, T_rdma) instead of T_nvlink + T_rdma.
 
 ### With reassembly (larger benefit)
 
-In single-buffer piping with reassembly, the sender is fully stalled after each pipe
-waiting for the receiver to finish reassembly before it can reuse the buffer:
+In single-buffer piping with reassembly, the sender can start NVLink[1] after
+RDMA[0] completes (reuse local buffer), but RDMA[1] can only start after the
+receiver finishes reassemble[0] and signals that the remote buffer is ready:
 
 ```
-Sender:   NVLink[0] → RDMA[0] → wait for reassembly signal → NVLink[1] → RDMA[1] → ...
+Sender:   NVLink[0] → RDMA[0] → NVLink[1] → wait for reassemble[0] signal → RDMA[1] → ...
 Receiver:                        reassemble[0] → signal
 ```
 
-The sender is idle for the entire duration of the receiver's NVLink reassembly.
+The sender is stalled waiting for reassemble[0] before it can issue RDMA[1].
 
 With double-buffer, the receiver has two QP buffers. The sender sends pipe p+1 to
 `remote_buf[1]` immediately after sending pipe p to `remote_buf[0]`, without waiting
@@ -489,21 +490,3 @@ always for the reassembly case).
 - Sender transport: 8 QPs × 2 × 32 MB = **512 MB**
 - Receiver QP buffer: 8 QPs × 2 × 32 MB = **512 MB** (vs. 256 MB single-buffer)
 - Reassembly buffers: 8 × 1 GB = 8 GB (unchanged)
-
----
-
-## Open Questions
-
-1. **NICs-only mode:** NICs-only has no NVLink step (data stays on GPU 0). With no
-   NVLink to overlap, double-buffer provides no benefit. Should `--double-buffer` be
-   silently ignored for NICs-only, or return a warning?
-
-2. **All-to-all reassembly:** The all-to-all mode is more complex (N×M sources per QP).
-   The double-buffer pattern applies in the same way, but the 2-pipe window interacts
-   with the N×M leader election. Implement after multi-source reassembly is validated.
-
-3. **NVLink vs RDMA bandwidth ratio:** The benefit of double-buffer depends on the
-   relative speeds. If NVLink is much faster than RDMA (or vice versa), the overlap
-   only hides the faster of the two and the slower still dominates. Benchmarking with
-   `--transport-buffer` at different sizes will show at what chunk size double-buffer
-   improves throughput.

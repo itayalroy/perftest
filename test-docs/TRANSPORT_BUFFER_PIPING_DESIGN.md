@@ -526,13 +526,3 @@ The pipe iterations are internal to each timing iteration; we still measure tota
 | `src/rdma_multi_qp.c` | **Split send/receive CQ per QP** to eliminate a CQ race (see "Resolved Design Questions" #2). Handshake already exchanges MR addresses bidirectionally, so per-QP back-channel signals work out of the box. |
 | `multi_nic_send_buffer` | Added `--transport-buffer` passthrough (done). |
 | `multi_nic_receive_buffer` | Added `--transport-buffer` passthrough (done). Note: receiver without reassembly allocates full-size QP buffer regardless of `--transport-buffer`; the flag only affects sender staging and reassembly receiver sizing. |
-
----
-
-## Resolved Design Questions
-
-1. **Immediate data (reassembly):** Each pipe chunk carries the same imm value (source GPU index). The receiver uses it to route each chunk to the correct section of the reassembly buffer (`source_gpu_idx * section_size`) and advances within that section by `pipe * section_size`. Imm is required on every pipe iteration, not just the last. No change to the imm encoding.
-
-2. **CQ race between concurrent send and signal-back polls:** In multi-source piping, N sender threads share one QP (and its CQ) per target. `rdma_poll_completion` (send completion, called inside `qp_mutex`) and `rdma_poll_completion_with_imm` (signal-back receive completion, called outside `qp_mutex` by the leader) both called `ibv_poll_cq` on the same CQ. This caused the leader to steal a send completion from another sender thread and falsely report a signal-back.
-
-   **Fix:** Each QP now has two separate CQs: `send_cq` (`qp->cq`, polled by `rdma_poll_completion`) and `recv_cq` (`qp->recv_cq`, polled by `rdma_poll_completion_with_imm`). Send completions and receive completions go to separate kernel objects and can never interfere. The QP is created with `qp_attr.send_cq = qp->cq; qp_attr.recv_cq = qp->recv_cq`.

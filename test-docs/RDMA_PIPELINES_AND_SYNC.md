@@ -174,7 +174,7 @@ For each pipe p:
 | Point | Sender | Receiver |
 |-------|--------|----------|
 | start_barrier | Main + N×K workers | — |
-| completion_barrier | Main + N×K workers | — |
+| completion_barrier | Main + N×K workers (baseline only; skipped when piping active) | — |
 | iteration_barrier | Main + N×K workers | — |
 | end_barrier | Main + N×K workers | — |
 | qp_mutex | Only when N>1 | No |
@@ -191,7 +191,7 @@ For each pipe p:
 ### Sender Pipeline — Baseline (no piping, per iteration)
 
 ```
-0. (Main, once before loop) Post num_iterations receive WQEs for signal-back on each QP
+0. (Main, once before loop) Post num_iterations receive WQEs for signal-back on QP 0
 1. start_barrier
 2. For each iteration:
    a. NVLink copy: source slice → QP buffer
@@ -210,15 +210,13 @@ For each pipe p:
 ```
 1. start_barrier
 2. For each iteration:
-   a. Post N receives (one per source, at offset src_n * section_size)
-   b. Poll N completions; record source_gpu_idx from imm for each
-   c. For each completion: NVLink async: QP buffer slot → reassembly_buffer[source_gpu_idx]
-   d. NVLink sync (once, after all N async copies launched)
-   e. reassembly_barrier
-   f. completion_barrier
-   g. (Main) rdma_write_with_imm signal-back → sender
-   h. (Main) rdma_poll_completion
-   i. iteration_barrier
+   a. Post N receive WQEs (1-byte each; slot offsets not used in baseline — write-with-imm data lands at RDMA-specified offset)
+   b. For each source: poll completion (imm = source_gpu_idx); NVLink copy + sync to reassembly_buffer[source_gpu_idx] (reassembly_copy_and_sync per completion)
+   c. reassembly_barrier
+   d. completion_barrier
+   e. (Main) rdma_write_with_imm signal-back → sender (QP 0)
+   f. (Main) rdma_poll_completion
+   g. iteration_barrier
 3. end_barrier
 ```
 
@@ -226,26 +224,33 @@ For each pipe p:
 
 Per-pipe signal-back replaces the per-iteration global barrier. No `completion_barrier` or `reassembly_barrier` per pipe — all coordination is per-QP.
 
+**Overlap:** NVLink for chunk[p+1] runs right after RDMA for pipe p, overlapping with receiver reassembly of pipe p. The signal is polled at the *start* of the next pipe (before RDMA), not after RDMA.
+
 **Sender pipe loop** (leader = source_gpu_index 0; non-leaders wait on cond):
 ```
+Pre-fetch chunk[0] → transport buffer; NVLink sync
+
 For each pipe p:
-  leader: post receive WQE for signal-back
-  NVLink copy chunk[p] → QP_buf at dst_offset
-  NVLink sync
+  if p > 0:
+    leader: poll recv CQ for signal-back (receiver finished pipe p-1); increment qp_pipe_ready; broadcast
+    non-leader: wait on cond until qp_pipe_ready >= p
+  leader: post receive WQE for this pipe's signal-back
   [qp_mutex lock]
-  RDMA write_with_imm (imm = source_gpu_idx)
+  RDMA write_with_imm chunk[p] (imm = source_gpu_idx)  /* chunk[p] already in buffer */
   RDMA poll
   [qp_mutex unlock]
-  leader: poll recv CQ for signal-back; increment qp_pipe_ready; broadcast
-  non-leader: wait on cond until qp_pipe_ready >= pipe + 1
+  if p+1 < num_pipes:
+    NVLink copy chunk[p+1] → transport buffer   ← overlaps with receiver reassembly of pipe p
+    NVLink sync
+
+Drain last pipe's signal (receive was pre-posted at start of last iteration)
 ```
 
 **Receiver pipe loop**:
 ```
 For each pipe p:
   Post N receives at fixed slot offsets (reused each pipe; reassembly mode uses small QP buf)
-  Poll N completions; for each: NVLink async reassembly
-  NVLink sync
+  Poll N completions; for each: NVLink async reassembly + sync (reassembly_copy_and_sync)
   rdma_write_with_imm signal-back (0xDEADBEEF)
   rdma_poll_completion (signal send complete)
 ```
@@ -265,7 +270,7 @@ For each pipe p:
   cur = p % 2;  nxt = 1 - cur
   if p >= 2:
     leader: poll signal confirming remote_buf[cur] is free (i.e., pipe p-2 reassembled)
-    leader: if p+2 < num_pipes: post receive WQE for future signal
+    leader: post receive WQE for pipe p's signal (always; receiver sends one per pipe including last two)
     leader: increment qp_pipe_ready; broadcast
     non-leader: wait until qp_pipe_ready >= p - 1
   if p+1 < num_pipes:
@@ -366,16 +371,12 @@ Slot index: `nj = n*M + m`. Slot offset in QP buffer: `nj * sub_slice_size`.
 ```
 1. start_barrier
 2. For each iteration:
-   a. Post N×M receives per QP (slot nj at offset nj * sub_slice)
-   b. Poll N×M completions (wr_id = slot nj)
-   c. For each slot nj:
-      n = nj / M;  m = nj % M
-      NVLink async: QP buf[nj * sub_slice] → reassembly_buffers_2d[nj] at k * sub_slice
-   d. NVLink sync (once)
-   e. reassembly_barrier
-   f. completion_barrier
-   g. (Main) signal-back
-   h. iteration_barrier
+   a. Post N×M receive WQEs per QP (slot nj at offset nj * section_size)
+   b. For each slot nj: poll completion (wr_id = nj); NVLink copy + sync to reassembly_buffers_2d[nj] at k * sub_slice (NVLink async + sync per completion)
+   c. reassembly_barrier
+   d. completion_barrier
+   e. (Main) signal-back (QP 0)
+   f. iteration_barrier
 3. end_barrier
 ```
 
@@ -437,6 +438,23 @@ Same as Mode 5. qp_mutex: N×M sender threads per QP serialize.
 
 ## Piping (`--transport-buffer SIZE`)
 
+### Pipeline Overview (Diagram)
+
+The following diagram illustrates the four transport-buffer pipeline configurations: single vs. double buffer, each with and without reassembly.
+
+![Transport buffer pipelines: single/double buffer, with/without reassembly](transport_buffer_pipelines.png)
+
+| Configuration | Sender flow | Overlap | Code location |
+|---------------|-------------|---------|---------------|
+| **Single buffer, no reassembly** | NVLink → RDMA → (loop) | None | `test_rdma_multi_qp.c` ~1286–1360 (single-buffer path, `!reassembly`) |
+| **Single buffer, with reassembly** | Poll signal → post receive → RDMA → NVLink next | NVLink for chunk[p+1] overlaps with receiver reassembly of chunk[p] | `test_rdma_multi_qp.c` ~1566–1770 |
+| **Double buffer, no reassembly** | NVLink[nxt] async → RDMA[cur] → sync | NVLink for buf[nxt] runs concurrently with RDMA for buf[cur] | `test_rdma_multi_qp.c` ~1243–1360 |
+| **Double buffer, with reassembly** | Poll signal (p≥2) → NVLink[nxt] async → RDMA[cur] → sync | Same as above; signal gates reuse of remote_buf[cur] | `test_rdma_multi_qp.c` ~1363–1560 |
+
+**Code verification:** The implementation matches the diagram. Single-buffer reassembly uses the overlap design (RDMA first, then NVLink for next chunk). Double-buffer paths overlap NVLink fill with RDMA send. The "send finish to leader" in the diagram corresponds to `rdma_write_with_imm(0xDEADBEEF)` signal-back from receiver to sender.
+
+---
+
 When `transport_buffer_size < slice_size`, the transfer is split into `num_pipes = ceil(slice_size / section_size)` chunks. `section_size = transport_buffer_size / N_per_qp` where:
 
 - Mode 4 (no reassembly): `N_per_qp = N` (number of sources per QP)
@@ -452,7 +470,7 @@ When `transport_buffer_size < slice_size`, the transfer is split into `num_pipes
 
 **Per-mode behaviour**:
 - **No reassembly (Mode 4):** Pipe loop on sender only; receiver is fully passive. Each pipe writes to a distinct remote offset `source_gpu_idx * pipe_slice_size + p * section_size`. No per-pipe sync.
-- **Reassembly (Modes 5, 6):** Receiver signals sender per pipe via `rdma_write_with_imm` on each QP (per-QP back-channel). Single-buffer: sender waits for signal before starting pipe p+1. Double-buffer: sender waits before starting pipe p+2 (2 pipes in flight).
+- **Reassembly (Modes 5, 6):** Receiver signals sender per pipe via `rdma_write_with_imm` on each QP (per-QP back-channel). Single-buffer: sender polls signal at start of pipe p (p>0), then RDMA, then NVLink for chunk[p+1] (overlaps with receiver reassembly). Double-buffer: sender waits before pipe p+2 (2 pipes in flight).
 - **CQ isolation:** Each QP uses separate send and receive CQs (`send_cq` / `recv_cq`). `rdma_poll_completion` polls `send_cq`; `rdma_poll_completion_with_imm` polls `recv_cq`. Prevents leader's signal poll from stealing send completions from other threads.
 
 ---
@@ -474,7 +492,7 @@ Requires `--transport-buffer`. Allocates two local staging buffers per source pe
 | Remote offset formula | `nj * section_size` | `(p%2) * tb + nj * section_size` |
 
 **`qp_pipe_ready` predicate** (non-leader wait):
-- Single-buffer: `qp_pipe_ready >= pipe + 1`
+- Single-buffer: `qp_pipe_ready >= pipe`
 - Double-buffer: `qp_pipe_ready >= pipe - 1`
 
 Reset to 0 after `iteration_barrier` by the leader.

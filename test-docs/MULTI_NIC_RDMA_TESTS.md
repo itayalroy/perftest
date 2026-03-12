@@ -274,7 +274,7 @@ See [`DOUBLE_BUFFER_TRANSPORT_DESIGN.md`](DOUBLE_BUFFER_TRANSPORT_DESIGN.md) for
 
 Decouples the number of **logical target GPUs** (M) from the number of **transport NICs** (K). By default M=K; this option sets M independently.
 
-**Applies to**: `--allow-nvlink --reassembly --all-to-all` only. Not valid with `--direct`.
+**Applies to**: `--direct --all-to-all`, `--allow-nvlink`, and `--allow-nvlink --reassembly --all-to-all`.
 
 **Constraint**: M ≤ K. The first M entries of `-g` / `--gpus` are used as the target GPU list.
 
@@ -537,7 +537,7 @@ Order matters: GPU index i must map to NIC index i.
 | `--source-gpus LIST` | `-S` | Source GPU IDs | — |
 | `--transport-buffer SIZE` | `-T` | QP staging buffer size; enables piping | Not valid with `--direct` or `--nics-only` |
 | `--double-buffer` | `-B` | Allocate 2 transport bufs; overlap NVLink+RDMA | Requires `--transport-buffer`; not valid with `--direct` or `--nics-only` |
-| `--target-count M` | `-C` | Logical target count (default M=K) | Only with `--allow-nvlink --reassembly --all-to-all`; M ≤ K |
+| `--target-count M` | `-C` | Logical target count (default M=K) | With `--direct --all-to-all`, `--allow-nvlink`, or `--allow-nvlink --reassembly --all-to-all`; M ≤ K |
 | `--utilize-nic NIC` | `-U` | Background load thread on specified NIC | NIC must be in `-n` list |
 | `--debug` | | Verbose per-pipe/per-iteration output | — |
 
