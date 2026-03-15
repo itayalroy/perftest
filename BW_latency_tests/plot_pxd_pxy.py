@@ -27,8 +27,11 @@ RESULT_FILES_1GB = [
 ]
 
 # Default result file paths (128MB — no 256M, 1G transport buffers)
-RESULT_FILES_128MB = [
+# PxDx and PxDy use different runs: PxDx=direct+reassembly (no all-to-all), PxDy=all-to-all
+RESULT_FILES_PXDX_128MB = [
     "BW_latency_tests/9995792_2026-03-15_03-11-07_pxdx_subset_transport_double_buffer_clc_128MB_pxdx_pool0-01862_pool0-01867_/rdma_tests_results_9995792_2026-03-15_03-11-07_pxdx_subset_transport_double_buffer_clc_128MB_pxdx_pool0-01862_pool0-01867_.txt",
+]
+RESULT_FILES_PXDY_128MB = [
     "BW_latency_tests/9987673_2026-03-14_12-07-31_subset_transport_double_buffer_clc_128MB_pool0-01343_pool0-01417_/rdma_tests_results_9987673_2026-03-14_12-07-31_subset_transport_double_buffer_clc_128MB_pool0-01343_pool0-01417_.txt",
 ]
 
@@ -393,10 +396,14 @@ def main():
 
     if args.result_files:
         result_files = args.result_files
+        files_pxdx = files_pxdy = result_files
     elif args.message_size == "128MB":
-        result_files = RESULT_FILES_128MB
+        files_pxdx = RESULT_FILES_PXDX_128MB
+        files_pxdy = RESULT_FILES_PXDY_128MB
+        result_files = files_pxdx + files_pxdy
     else:
         result_files = RESULT_FILES_1GB
+        files_pxdx = files_pxdy = result_files
 
     msg_size = args.message_size
     if not msg_size:
@@ -409,7 +416,8 @@ def main():
                 break
         msg_size = msg_size or "1GB"
 
-    merged_bw, merged_lat, transport_buffers = load_all(base, result_files)
+    merged_bw_pxdx, merged_lat_pxdx, transport_buffers = load_all(base, files_pxdx)
+    merged_bw_pxdy, merged_lat_pxdy, _ = load_all(base, files_pxdy)
     print(f"Transport buffers (from data): {transport_buffers}")
     print(f"Message size: {msg_size}")
 
@@ -420,7 +428,7 @@ def main():
     x_labels_pxdy = list(transport_buffers)
 
     # --- PxDx: one figure per P1D1, P2D2, P8D8. Lines: direct (horizontal), PXN + reassembly dbl/nodbl ---
-    bw_pxdx, lat_pxdx = extract_pxdx_data(merged_bw, merged_lat, transport_buffers)
+    bw_pxdx, lat_pxdx = extract_pxdx_data(merged_bw_pxdx, merged_lat_pxdx, transport_buffers)
     for label in ["P1D1", "P2D2", "P8D8"]:
         x_labels, direct_bw, direct_lat, ra_dbl_bw, ra_dbl_lat, ra_nodbl_bw, ra_nodbl_lat, ra_fb_bw, ra_fb_lat, has_split = build_pxdx_series_for_label(bw_pxdx, lat_pxdx, label, transport_buffers)
         x_pos = list(range(len(x_labels)))
@@ -486,7 +494,7 @@ def main():
         print(f"Saved {fname}")
 
     # --- PxDy: one figure per P1D4, P1D8, P2D4, P2D8, P8D8. Lines: direct (horizontal), PXN dbl/nodbl, PXN+reassembly dbl/nodbl ---
-    bw_pxdy, lat_pxdy = extract_pxdy_data(merged_bw, merged_lat, transport_buffers)
+    bw_pxdy, lat_pxdy = extract_pxdy_data(merged_bw_pxdy, merged_lat_pxdy, transport_buffers)
     for label in ["P1D4", "P1D8", "P2D4", "P2D8", "P8D8"]:
         x_pos = list(range(len(x_labels_pxdy)))
 
