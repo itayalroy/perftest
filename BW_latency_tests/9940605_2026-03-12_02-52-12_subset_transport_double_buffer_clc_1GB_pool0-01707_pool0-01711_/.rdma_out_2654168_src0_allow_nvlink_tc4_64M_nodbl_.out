@@ -1,0 +1,76 @@
+DEBUG [mlx5_0]: Port 1 - LID=16806, State=4, MTU=5, GID index=0
+DEBUG [mlx5_1]: Port 1 - LID=16626, State=4, MTU=5, GID index=0
+DEBUG [mlx5_2]: Port 1 - LID=16750, State=4, MTU=5, GID index=0
+DEBUG [mlx5_4]: Port 1 - LID=16609, State=4, MTU=5, GID index=0
+DEBUG [QP 0 CLIENT]: Connecting to 100.126.54.76:48515...
+DEBUG [QP 0 CLIENT]: Connected
+DEBUG [QP 1 CLIENT]: Connecting to 100.126.54.76:48516...
+DEBUG [QP 1 CLIENT]: Connected
+DEBUG [QP 2 CLIENT]: Connecting to 100.126.54.76:48517...
+DEBUG [QP 2 CLIENT]: Connected
+DEBUG [QP 3 CLIENT]: Connecting to 100.126.54.76:48518...
+DEBUG [QP 3 CLIENT]: Connected
+DEBUG [QP 0 CLIENT]: Sending - QPN=75484, VADDR=23446562013184, LID=16806, PSN=10881356, RKEY=820089, GID=fe80000000000000946dae03008945fc
+DEBUG [QP 0 CLIENT]: Received raw: 100119 23446360686592 16648 12896135 805541 fe80000000000000946dae030091cd3a
+DEBUG [QP 0 CLIENT]: Parsed 6 values - Remote QPN=100119, VADDR=23446360686592, LID=16648, PSN=12896135, RKEY=805541, GID=fe80000000000000946dae030091cd3a
+DEBUG: Using LID-based addressing - Remote LID=16648
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=100119, Remote PSN=12896135, MTU=5
+DEBUG [QP 1 CLIENT]: Sending - QPN=61433, VADDR=23445823815680, LID=16626, PSN=7532248, RKEY=816435, GID=fe80000000000000946dae030089461c
+DEBUG [QP 1 CLIENT]: Received raw: 98686 23445421162496 16641 6270428 809946 fe80000000000000946dae030091cd32
+DEBUG [QP 1 CLIENT]: Parsed 6 values - Remote QPN=98686, VADDR=23445421162496, LID=16641, PSN=6270428, RKEY=809946, GID=fe80000000000000946dae030091cd32
+DEBUG: Using LID-based addressing - Remote LID=16641
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=98686, Remote PSN=6270428, MTU=5
+DEBUG [QP 2 CLIENT]: Sending - QPN=61571, VADDR=23445152727040, LID=16750, PSN=6322402, RKEY=808809, GID=fe80000000000000946dae03008946bc
+DEBUG [QP 2 CLIENT]: Received raw: 94311 23444548747264 16645 94025 811101 fe80000000000000946dae030091613a
+DEBUG [QP 2 CLIENT]: Parsed 6 values - Remote QPN=94311, VADDR=23444548747264, LID=16645, PSN=94025, RKEY=811101, GID=fe80000000000000946dae030091613a
+DEBUG: Using LID-based addressing - Remote LID=16645
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=94311, Remote PSN=94025, MTU=5
+DEBUG [QP 3 CLIENT]: Sending - QPN=62317, VADDR=23444414529536, LID=16609, PSN=2095049, RKEY=812005, GID=fe80000000000000946dae0300894604
+DEBUG [QP 3 CLIENT]: Received raw: 86821 23443609223168 16622 7064647 816976 fe80000000000000946dae030091c91a
+DEBUG [QP 3 CLIENT]: Parsed 6 values - Remote QPN=86821, VADDR=23443609223168, LID=16622, PSN=7064647, RKEY=816976, GID=fe80000000000000946dae030091c91a
+DEBUG: Using LID-based addressing - Remote LID=16622
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=86821, Remote PSN=7064647, MTU=5
+QP 0 buffer on target GPU 0 (for RDMA)
+QP 1 buffer on target GPU 1 (for RDMA)
+QP 2 buffer on target GPU 2 (for RDMA)
+QP 3 buffer on target GPU 3 (for RDMA)
+Multi-source NVLink mode: 1 source GPUs × 4 QPs = 4 threads
+Allocating buffer on GPU 0
+Allocating buffer on GPU 1
+Allocating buffer on GPU 2
+Allocating buffer on GPU 3
+Creating NVLink contexts for 1 source GPUs and 4 target GPUs
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 1
+NVLink: Context initialized successfully
+Successfully initialized NVLink context thread 1 (GPU0->GPU1)
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 2
+NVLink: Context initialized successfully
+Successfully initialized NVLink context thread 2 (GPU0->GPU2)
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 3
+NVLink: Context initialized successfully
+Successfully initialized NVLink context thread 3 (GPU0->GPU3)
+Paths:
+  Source GPU 0:
+    Thread 0: GPU0 -> mlx5_0 -> RDMA
+    Thread 1: GPU0 -> NVLink -> GPU1 -> mlx5_1 -> RDMA
+    Thread 2: GPU0 -> NVLink -> GPU2 -> mlx5_2 -> RDMA
+    Thread 3: GPU0 -> NVLink -> GPU3 -> mlx5_4 -> RDMA
+
+Total elapsed time: 0.663002 seconds
+total_buffer_size: 67108864 and num_qps: 4 and num_source_gpus: 1
+total_data: 1.00 GB (1073741824 bytes)
+Average per iteration: 161.95 GB/s (0.006630 seconds)
+[0;32mTotal bandwidth: 161.95 GB/s[0m
+Latency (per iteration): 0.006630 s (6.630 ms)
+
+=== Verifying transferred data on QP buffers ===
+=== Sender source buffer content (what was sent) ===
+  Source GPU_0 slice 0 (QP 0): buffer number 0 on source gpu_0
+  Source GPU_0 slice 1 (QP 1): buffer number 1 on source gpu_0
+  Source GPU_0 slice 2 (QP 2): buffer number 2 on source gpu_0
+  Source GPU_0 slice 3 (QP 3): buffer number 3 on source gpu_0
+=== Data verification complete ===
+

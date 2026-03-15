@@ -11,8 +11,8 @@
 
 # RDMA test suite:
 #   1. Direct all-to-all:          5 configs, no transport buffer
-#   2. Allow-nvlink:               5 configs × 7 transport buffers × {dbl, nodbl}
-#   3. Allow-nvlink reassembly a2a: 5 configs × 7 transport buffers × {dbl, nodbl}
+#   2. Allow-nvlink:               5 configs × 5 transport buffers (8M 16M 32M 64M 128M) × {dbl, nodbl}
+#   3. Allow-nvlink reassembly a2a: 5 configs × 5 transport buffers × {dbl, nodbl}
 #
 # Configs (src_gpus | target_count):
 #   0|8,  0,1|8,  0|4,  0,1|4,  0,1,2,3,4,5,6,7|(default 8)
@@ -112,7 +112,7 @@ fi
 echo "=== RDMA multi-QP test suite (subset) ===" | tee -a "$LOG_FILE"
 echo "Configs: src=0 tc=8 | src=0,1 tc=8 | src=0 tc=4 | src=0,1 tc=4 | src=0..7 (default)" | tee -a "$LOG_FILE"
 echo "Modes: direct_alltoall | allow_nvlink | allow_nvlink_reassembly_alltoall" | tee -a "$LOG_FILE"
-echo "Transport buffers: 8M 16M 32M 64M 128M 256M 1G (each with and without --double-buffer)" | tee -a "$LOG_FILE"
+echo "Transport buffers: 8M 16M 32M 64M 128M (each with and without --double-buffer)" | tee -a "$LOG_FILE"
 echo "First node (receiver): $FIRST_NODE" | tee -a "$LOG_FILE"
 echo "Second node (sender):  $SECOND_NODE" | tee -a "$LOG_FILE"
 echo "Receiver IP:           $RECEIVER_IP" | tee -a "$LOG_FILE"
@@ -133,7 +133,8 @@ ALL_CONFIGS=(
   "0,1,2,3,4,5,6,7|"
 )
 
-TRANSPORT_BUFFERS=("8M" "16M" "32M" "64M" "128M" "256M" "1G")
+# For 128M slice: 8M 16M 32M 64M 128M (omit 256M and 1G)
+TRANSPORT_BUFFERS=("8M" "16M" "32M" "64M" "128M")
 
 # Resume: determine which configs to run and pre-populate results from existing data
 COMPLETED_CONFIGS=()

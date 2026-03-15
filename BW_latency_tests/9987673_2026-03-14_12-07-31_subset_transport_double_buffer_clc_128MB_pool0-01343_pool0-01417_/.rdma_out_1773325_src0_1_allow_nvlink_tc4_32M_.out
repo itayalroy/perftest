@@ -1,0 +1,98 @@
+DEBUG [mlx5_0]: Port 1 - LID=17383, State=4, MTU=5, GID index=0
+DEBUG [mlx5_1]: Port 1 - LID=17255, State=4, MTU=5, GID index=0
+DEBUG [mlx5_2]: Port 1 - LID=17394, State=4, MTU=5, GID index=0
+DEBUG [mlx5_4]: Port 1 - LID=17371, State=4, MTU=5, GID index=0
+DEBUG [QP 0 CLIENT]: Connecting to 100.126.9.252:48515...
+DEBUG [QP 0 CLIENT]: Connected
+DEBUG [QP 1 CLIENT]: Connecting to 100.126.9.252:48516...
+DEBUG [QP 1 CLIENT]: Connected
+DEBUG [QP 2 CLIENT]: Connecting to 100.126.9.252:48517...
+DEBUG [QP 2 CLIENT]: Connected
+DEBUG [QP 3 CLIENT]: Connecting to 100.126.9.252:48518...
+DEBUG [QP 3 CLIENT]: Connected
+DEBUG [QP 0 CLIENT]: Sending - QPN=93490, VADDR=23446562013184, LID=17383, PSN=815917, RKEY=241375, GID=fe80000000000000946dae030090aee2
+DEBUG [QP 0 CLIENT]: Received raw: 12076 23446562013184 1096 13134930 803295 fe80000000000000946dae0300852292
+DEBUG [QP 0 CLIENT]: Parsed 6 values - Remote QPN=12076, VADDR=23446562013184, LID=1096, PSN=13134930, RKEY=803295, GID=fe80000000000000946dae0300852292
+DEBUG: Using LID-based addressing - Remote LID=1096
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=12076, Remote PSN=13134930, MTU=5
+DEBUG [QP 1 CLIENT]: Sending - QPN=84606, VADDR=23445823815680, LID=17255, PSN=1474744, RKEY=242410, GID=fe80000000000000946dae030090b652
+DEBUG [QP 1 CLIENT]: Received raw: 115080 23445823815680 1098 16442774 806355 fe80000000000000946dae03008478f6
+DEBUG [QP 1 CLIENT]: Parsed 6 values - Remote QPN=115080, VADDR=23445823815680, LID=1098, PSN=16442774, RKEY=806355, GID=fe80000000000000946dae03008478f6
+DEBUG: Using LID-based addressing - Remote LID=1098
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=115080, Remote PSN=16442774, MTU=5
+DEBUG [QP 2 CLIENT]: Sending - QPN=85602, VADDR=23445152727040, LID=17394, PSN=7584722, RKEY=235013, GID=fe80000000000000946dae030090b2ea
+DEBUG [QP 2 CLIENT]: Received raw: 115837 23445152727040 1103 13547277 813544 fe80000000000000946dae03008478de
+DEBUG [QP 2 CLIENT]: Parsed 6 values - Remote QPN=115837, VADDR=23445152727040, LID=1103, PSN=13547277, RKEY=813544, GID=fe80000000000000946dae03008478de
+DEBUG: Using LID-based addressing - Remote LID=1103
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=115837, Remote PSN=13547277, MTU=5
+DEBUG [QP 3 CLIENT]: Sending - QPN=82308, VADDR=23444414529536, LID=17371, PSN=9043560, RKEY=244644, GID=fe80000000000000946dae030090c4d2
+DEBUG [QP 3 CLIENT]: Received raw: 115048 23444414529536 1110 6020103 809251 fe80000000000000946dae030084734e
+DEBUG [QP 3 CLIENT]: Parsed 6 values - Remote QPN=115048, VADDR=23444414529536, LID=1110, PSN=6020103, RKEY=809251, GID=fe80000000000000946dae030084734e
+DEBUG: Using LID-based addressing - Remote LID=1110
+DEBUG: Modifying QP to RTR - Port=1, Remote QPN=115048, Remote PSN=6020103, MTU=5
+QP 0 buffer on target GPU 0 (for RDMA)
+QP 1 buffer on target GPU 1 (for RDMA)
+QP 2 buffer on target GPU 2 (for RDMA)
+QP 3 buffer on target GPU 3 (for RDMA)
+Multi-source NVLink mode: 2 source GPUs × 4 QPs = 8 threads
+Allocating buffer on GPU 0
+Allocating buffer on GPU 1
+Allocating buffer on GPU 2
+Allocating buffer on GPU 3
+Initialized 4 QP mutexes for serialized RDMA access
+Creating NVLink contexts for 2 source GPUs and 4 target GPUs
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 1 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 1
+NVLink: Context initialized successfully
+Successfully initialized NVLink context thread 1 (GPU0->GPU1)
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 2
+NVLink: Context initialized successfully
+Successfully initialized NVLink context thread 2 (GPU0->GPU2)
+NVLink: Initializing context for GPU 0 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 0 to GPU 3
+NVLink: Context initialized successfully
+Successfully initialized NVLink context thread 3 (GPU0->GPU3)
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 0 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 0
+NVLink: Context initialized successfully
+Successfully initialized NVLink context thread 4 (GPU1->GPU0)
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 2 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 2
+NVLink: Context initialized successfully
+Successfully initialized NVLink context thread 6 (GPU1->GPU2)
+NVLink: Initializing context for GPU 1 (NVIDIA H100 80GB HBM3) and GPU 3 (NVIDIA H100 80GB HBM3)
+NVLink: Peer access enabled from GPU 1 to GPU 3
+NVLink: Context initialized successfully
+Successfully initialized NVLink context thread 7 (GPU1->GPU3)
+Paths:
+  Source GPU 0:
+    Thread 0: GPU0 -> mlx5_0 -> RDMA
+    Thread 1: GPU0 -> NVLink -> GPU1 -> mlx5_1 -> RDMA
+    Thread 2: GPU0 -> NVLink -> GPU2 -> mlx5_2 -> RDMA
+    Thread 3: GPU0 -> NVLink -> GPU3 -> mlx5_4 -> RDMA
+  Source GPU 1:
+    Thread 4: GPU1 -> NVLink -> GPU0 -> mlx5_0 -> RDMA
+    Thread 5: GPU1 -> mlx5_1 -> RDMA
+    Thread 6: GPU1 -> NVLink -> GPU2 -> mlx5_2 -> RDMA
+    Thread 7: GPU1 -> NVLink -> GPU3 -> mlx5_4 -> RDMA
+
+Total elapsed time: 0.184098 seconds
+total_buffer_size: 67108864 and num_qps: 4 and num_source_gpus: 2
+total_data: 256.00 MB (268435456 bytes)
+Average per iteration: 145.81 GB/s (0.001841 seconds)
+[0;32mTotal bandwidth: 145.81 GB/s[0m
+Latency (per iteration): 0.001841 s (1.841 ms)
+
+=== Verifying transferred data on QP buffers ===
+=== Sender source buffer content (what was sent) ===
+  Source GPU_0 slice 0 (QP 0): buffer number 0 on source gpu_0
+  Source GPU_0 slice 1 (QP 1): buffer number 1 on source gpu_0
+  Source GPU_0 slice 2 (QP 2): buffer number 2 on source gpu_0
+  Source GPU_0 slice 3 (QP 3): buffer number 3 on source gpu_0
+  Source GPU_1 slice 0 (QP 0): buffer number 0 on source gpu_1
+  Source GPU_1 slice 1 (QP 1): buffer number 1 on source gpu_1
+  Source GPU_1 slice 2 (QP 2): buffer number 2 on source gpu_1
+  Source GPU_1 slice 3 (QP 3): buffer number 3 on source gpu_1
+=== Data verification complete ===
+
