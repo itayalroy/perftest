@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Plot RDMA BW and Latency vs transport buffer from merged result files.
-- PxDx (source=target): One figure per P1D1, P2D2, P8D8. Lines: direct, PXN + reassembly.
+- PxDx (source=target): One figure per P1D1, P2D2, P8D8. Lines: direct, PXN + reassembly (dbl/nodbl when available, else single).
 - PxDy (source<=target): One figure per P1D4, P1D8, P2D4, P2D8, P8D8. Lines: direct --all-to-all, PXN, PXN + reassembly.
 
 Sources: 1 GPU (0), 2 GPUs (0,1), 8 GPUs (0,1,2,3,4,5,6,7)
@@ -28,15 +28,14 @@ RESULT_FILES_1GB = [
 
 # Default result file paths (128MB — no 256M, 1G transport buffers)
 RESULT_FILES_128MB = [
+    "BW_latency_tests/9995792_2026-03-15_03-11-07_pxdx_subset_transport_double_buffer_clc_128MB_pxdx_pool0-01862_pool0-01867_/rdma_tests_results_9995792_2026-03-15_03-11-07_pxdx_subset_transport_double_buffer_clc_128MB_pxdx_pool0-01862_pool0-01867_.txt",
     "BW_latency_tests/9987673_2026-03-14_12-07-31_subset_transport_double_buffer_clc_128MB_pool0-01343_pool0-01417_/rdma_tests_results_9987673_2026-03-14_12-07-31_subset_transport_double_buffer_clc_128MB_pool0-01343_pool0-01417_.txt",
-    "BW_latency_tests/9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_/rdma_tests_results_9810640_2026-03-04_22-06-55_transport_buffer_clc_128MB_pool0-00286_pool0-00638_.txt",
-    "BW_latency_tests/9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_/rdma_tests_results_9814282_2026-03-05_01-20-25_transport_buffer_clc_128MB_pool0-01902_pool0-01926_.txt",
 ]
 
 TB_TO_MB = {"8M": 8, "16M": 16, "32M": 32, "64M": 64, "128M": 128, "256M": 256, "1G": 1024}
 
 # Speed-of-light reference bandwidth (GB/s) for InfiniBand HDR
-SPEED_OF_LIGHT_BW = 380.0
+SPEED_OF_LIGHT_BW = 400.0
 
 
 def parse_float(s):
@@ -128,7 +127,7 @@ def parse_markdown_format(path):
                 cells = [c.strip() for c in line.split("|")[1:-1]]
                 if len(cells) < 2:
                     continue
-                src = cells[0]
+                src = cells[0].strip().rstrip(",")  # normalize trailing commas (e.g. "0," -> "0")
                 n_src = len(src.split(","))
                 for j, col in enumerate(hdr[1:], 1):
                     if j >= len(cells):
@@ -236,16 +235,31 @@ def extract_pxdx_data(merged_bw, merged_lat, transport_buffers):
                 break
 
         for tb in transport_buffers:
-            # PxDx: use only markdown allow_nvlink_reassembly (no alltoall), NOT subset nvlink_ra_* (alltoall)
-            col_md = f"allow_nvlink_reassembly_{tb}" if tb != "1G" else "allow_nvlink_reassembly_full"
-            for k, v in merged_bw.items():
-                if k[0] == cfg and k[1] == col_md:
-                    bw[label][tb] = v
-                    break
-            for k, v in merged_lat.items():
-                if k[0] == cfg and k[1] == col_md:
-                    lat[label][tb] = v
-                    break
+            # PxDx run format: nvlink_ra_{tb}_dbl, nvlink_ra_{tb}_nodbl (both as separate lines)
+            for suffix in ("_dbl", "_nodbl"):
+                col_ra = f"nvlink_ra_{tb}{suffix}"
+                key = f"ra_{tb}{suffix}"
+                for k, v in merged_bw.items():
+                    if k[0] == cfg and k[1] == col_ra:
+                        bw[label][key] = v
+                        break
+                for k, v in merged_lat.items():
+                    if k[0] == cfg and k[1] == col_ra:
+                        lat[label][key] = v
+                        break
+            # Fallback: markdown allow_nvlink_reassembly (1GB has no dbl/nodbl split)
+            if f"ra_{tb}_dbl" not in bw[label] and f"ra_{tb}_nodbl" not in bw[label]:
+                col_md = f"allow_nvlink_reassembly_{tb}" if tb != "1G" else "allow_nvlink_reassembly_full"
+                for k, v in merged_bw.items():
+                    if k[0] == cfg and k[1] == col_md:
+                        bw[label][f"ra_{tb}"] = v
+                        break
+            if f"ra_{tb}_dbl" not in lat[label] and f"ra_{tb}_nodbl" not in lat[label]:
+                col_md = f"allow_nvlink_reassembly_{tb}" if tb != "1G" else "allow_nvlink_reassembly_full"
+                for k, v in merged_lat.items():
+                    if k[0] == cfg and k[1] == col_md:
+                        lat[label][f"ra_{tb}"] = v
+                        break
 
     return bw, lat
 
@@ -348,13 +362,20 @@ def extract_pxdy_data(merged_bw, merged_lat, transport_buffers):
 
 
 def build_pxdx_series_for_label(bw, lat, label, transport_buffers):
-    """Build series for one PxDx config: direct (horizontal) + allow_nvlink_reassembly (per tb)."""
+    """Build series for one PxDx config: direct (horizontal) + PXN+reassembly dbl/nodbl when available, else single."""
     x_labels = list(transport_buffers)
-    direct_bw = bw.get(label, {}).get("direct")
-    direct_lat = lat.get(label, {}).get("direct")
-    ra_bw = [bw.get(label, {}).get(tb) for tb in x_labels]
-    ra_lat = [lat.get(label, {}).get(tb) for tb in x_labels]
-    return x_labels, direct_bw, direct_lat, ra_bw, ra_lat
+    d = bw.get(label, {})
+    dl = lat.get(label, {})
+    direct_bw = d.get("direct")
+    direct_lat = dl.get("direct")
+    ra_dbl_bw = [d.get(f"ra_{tb}_dbl") for tb in x_labels]
+    ra_dbl_lat = [dl.get(f"ra_{tb}_dbl") for tb in x_labels]
+    ra_nodbl_bw = [d.get(f"ra_{tb}_nodbl") for tb in x_labels]
+    ra_nodbl_lat = [dl.get(f"ra_{tb}_nodbl") for tb in x_labels]
+    ra_fb_bw = [d.get(f"ra_{tb}") for tb in x_labels]
+    ra_fb_lat = [dl.get(f"ra_{tb}") for tb in x_labels]
+    has_split = any(ra_dbl_bw) or any(ra_nodbl_bw)
+    return x_labels, direct_bw, direct_lat, ra_dbl_bw, ra_dbl_lat, ra_nodbl_bw, ra_nodbl_lat, ra_fb_bw, ra_fb_lat, has_split
 
 
 
@@ -394,27 +415,37 @@ def main():
 
     mode_colors = {"direct": "tab:blue", "PXN dbl": "tab:green", "PXN nodbl": "tab:olive",
                    "PXN + reassembly dbl": "tab:orange", "PXN + reassembly nodbl": "tab:red"}
-    mode_colors_pxdx = {"direct": "tab:blue", "PXN + reassembly": "tab:orange"}
+    mode_colors_pxdx = {"direct": "tab:blue", "PXN + reassembly dbl": "tab:orange", "PXN + reassembly nodbl": "tab:red"}
 
     x_labels_pxdy = list(transport_buffers)
 
-    # --- PxDx: one figure per P1D1, P2D2, P8D8. Lines: direct (horizontal), PXN + reassembly ---
+    # --- PxDx: one figure per P1D1, P2D2, P8D8. Lines: direct (horizontal), PXN + reassembly dbl/nodbl ---
     bw_pxdx, lat_pxdx = extract_pxdx_data(merged_bw, merged_lat, transport_buffers)
     for label in ["P1D1", "P2D2", "P8D8"]:
-        x_labels, direct_bw, direct_lat, ra_bw, ra_lat = build_pxdx_series_for_label(bw_pxdx, lat_pxdx, label, transport_buffers)
+        x_labels, direct_bw, direct_lat, ra_dbl_bw, ra_dbl_lat, ra_nodbl_bw, ra_nodbl_lat, ra_fb_bw, ra_fb_lat, has_split = build_pxdx_series_for_label(bw_pxdx, lat_pxdx, label, transport_buffers)
         x_pos = list(range(len(x_labels)))
 
         fig, (ax_bw, ax_lat) = plt.subplots(1, 2, figsize=(12, 5))
         fig.suptitle(f"{label} (source = target) — direct, PXN + reassembly (full = {msg_size})")
 
-        # BW: speed-of-light reference, direct, PXN + reassembly
+        # BW: speed-of-light reference, direct, PXN + reassembly (dbl/nodbl when available, else single)
         ax_bw.axhline(y=SPEED_OF_LIGHT_BW, color="gray", linestyle="--", alpha=0.7, label=f"speed of light (~{SPEED_OF_LIGHT_BW:.0f} GB/s)")
         if direct_bw is not None:
             ax_bw.axhline(y=direct_bw, color=mode_colors_pxdx["direct"], linestyle="-", label="direct")
-        ra_x = [i for i, v in enumerate(ra_bw) if v is not None]
-        ra_y = [v for v in ra_bw if v is not None]
-        if ra_x and ra_y:
-            ax_bw.plot(ra_x, ra_y, "o-", color=mode_colors_pxdx["PXN + reassembly"], label="PXN + reassembly")
+        if has_split:
+            ra_dbl_x = [i for i, v in enumerate(ra_dbl_bw) if v is not None]
+            ra_dbl_y = [v for v in ra_dbl_bw if v is not None]
+            if ra_dbl_x and ra_dbl_y:
+                ax_bw.plot(ra_dbl_x, ra_dbl_y, "o-", color=mode_colors_pxdx["PXN + reassembly dbl"], label="PXN + reassembly dbl")
+            ra_nodbl_x = [i for i, v in enumerate(ra_nodbl_bw) if v is not None]
+            ra_nodbl_y = [v for v in ra_nodbl_bw if v is not None]
+            if ra_nodbl_x and ra_nodbl_y:
+                ax_bw.plot(ra_nodbl_x, ra_nodbl_y, "s-", color=mode_colors_pxdx["PXN + reassembly nodbl"], label="PXN + reassembly nodbl")
+        else:
+            ra_fb_x = [i for i, v in enumerate(ra_fb_bw) if v is not None]
+            ra_fb_y = [v for v in ra_fb_bw if v is not None]
+            if ra_fb_x and ra_fb_y:
+                ax_bw.plot(ra_fb_x, ra_fb_y, "o-", color=mode_colors_pxdx["PXN + reassembly dbl"], label="PXN + reassembly")
 
         ax_bw.set_xticks(x_pos)
         ax_bw.set_xticklabels(x_labels, rotation=45, ha="right")
@@ -426,10 +457,20 @@ def main():
         # Latency
         if direct_lat is not None:
             ax_lat.axhline(y=direct_lat, color=mode_colors_pxdx["direct"], linestyle="-", label="direct")
-        ra_x = [i for i, v in enumerate(ra_lat) if v is not None]
-        ra_y = [v for v in ra_lat if v is not None]
-        if ra_x and ra_y:
-            ax_lat.plot(ra_x, ra_y, "o-", color=mode_colors_pxdx["PXN + reassembly"], label="PXN + reassembly")
+        if has_split:
+            ra_dbl_x = [i for i, v in enumerate(ra_dbl_lat) if v is not None]
+            ra_dbl_y = [v for v in ra_dbl_lat if v is not None]
+            if ra_dbl_x and ra_dbl_y:
+                ax_lat.plot(ra_dbl_x, ra_dbl_y, "o-", color=mode_colors_pxdx["PXN + reassembly dbl"], label="PXN + reassembly dbl")
+            ra_nodbl_x = [i for i, v in enumerate(ra_nodbl_lat) if v is not None]
+            ra_nodbl_y = [v for v in ra_nodbl_lat if v is not None]
+            if ra_nodbl_x and ra_nodbl_y:
+                ax_lat.plot(ra_nodbl_x, ra_nodbl_y, "s-", color=mode_colors_pxdx["PXN + reassembly nodbl"], label="PXN + reassembly nodbl")
+        else:
+            ra_fb_x = [i for i, v in enumerate(ra_fb_lat) if v is not None]
+            ra_fb_y = [v for v in ra_fb_lat if v is not None]
+            if ra_fb_x and ra_fb_y:
+                ax_lat.plot(ra_fb_x, ra_fb_y, "o-", color=mode_colors_pxdx["PXN + reassembly dbl"], label="PXN + reassembly")
 
         ax_lat.set_xticks(x_pos)
         ax_lat.set_xticklabels(x_labels, rotation=45, ha="right")

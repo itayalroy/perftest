@@ -1,0 +1,71 @@
+=== RDMA PxDx test suite (source = target) ===
+Configs: P1D1 (0), P2D2 (0,1), P8D8 (0..7)
+Modes: direct | allow_nvlink_reassembly (8M 16M 32M 64M 128M × dbl/nodbl)
+First node (receiver): pool0-01862
+Second node (sender):  pool0-01867
+Receiver IP:           100.126.36.36
+Log file:              /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9995792_2026-03-15_03-11-07_pxdx_subset_transport_double_buffer_clc_128MB_pxdx_pool0-01862_pool0-01867_/rdma_tests_full_9995792_2026-03-15_03-11-07_pxdx_subset_transport_double_buffer_clc_128MB_pxdx_pool0-01862_pool0-01867_.log
+Results file:          /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9995792_2026-03-15_03-11-07_pxdx_subset_transport_double_buffer_clc_128MB_pxdx_pool0-01862_pool0-01867_/rdma_tests_results_9995792_2026-03-15_03-11-07_pxdx_subset_transport_double_buffer_clc_128MB_pxdx_pool0-01862_pool0-01867_.txt
+Use single srun step:  1
+Sender delay (s):      10
+
+
+========== config: src0 (PxDx) ==========
+  --- direct ---
+  --- allow_nvlink_reassembly tb=8M (dbl) ---
+  --- allow_nvlink_reassembly tb=8M (nodbl) ---
+  --- allow_nvlink_reassembly tb=16M (dbl) ---
+  --- allow_nvlink_reassembly tb=16M (nodbl) ---
+  --- allow_nvlink_reassembly tb=32M (dbl) ---
+  --- allow_nvlink_reassembly tb=32M (nodbl) ---
+  --- allow_nvlink_reassembly tb=64M (dbl) ---
+  --- allow_nvlink_reassembly tb=64M (nodbl) ---
+  --- allow_nvlink_reassembly tb=128M (dbl) ---
+  --- allow_nvlink_reassembly tb=128M (nodbl) ---
+
+========== config: src0_1 (PxDx) ==========
+  --- direct ---
+  --- allow_nvlink_reassembly tb=8M (dbl) ---
+  --- allow_nvlink_reassembly tb=8M (nodbl) ---
+  --- allow_nvlink_reassembly tb=16M (dbl) ---
+  --- allow_nvlink_reassembly tb=16M (nodbl) ---
+  --- allow_nvlink_reassembly tb=32M (dbl) ---
+  --- allow_nvlink_reassembly tb=32M (nodbl) ---
+  --- allow_nvlink_reassembly tb=64M (dbl) ---
+  --- allow_nvlink_reassembly tb=64M (nodbl) ---
+  --- allow_nvlink_reassembly tb=128M (dbl) ---
+  --- allow_nvlink_reassembly tb=128M (nodbl) ---
+
+========== config: src0_1_2_3_4_5_6_7 (PxDx) ==========
+  --- direct ---
+  --- allow_nvlink_reassembly tb=8M (dbl) ---
+  --- allow_nvlink_reassembly tb=8M (nodbl) ---
+  --- allow_nvlink_reassembly tb=16M (dbl) ---
+  --- allow_nvlink_reassembly tb=16M (nodbl) ---
+  --- allow_nvlink_reassembly tb=32M (dbl) ---
+  --- allow_nvlink_reassembly tb=32M (nodbl) ---
+  --- allow_nvlink_reassembly tb=64M (dbl) ---
+  --- allow_nvlink_reassembly tb=64M (nodbl) ---
+  --- allow_nvlink_reassembly tb=128M (dbl) ---
+  --- allow_nvlink_reassembly tb=128M (nodbl) ---
+
+=== Results table ===
+=== Bandwidth (GB/s) ===
+ config            |         direct | nvlink_ra_8M_dbl | nvlink_ra_8M_nodbl | nvlink_ra_16M_dbl | nvlink_ra_16M_nodbl | nvlink_ra_32M_dbl | nvlink_ra_32M_nodbl | nvlink_ra_64M_dbl | nvlink_ra_64M_nodbl | nvlink_ra_128M_dbl | nvlink_ra_128M_nodbl
+------------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------
+ src0              |          48.20 |         206.01 |         207.58 |         170.92 |         171.28 |         170.08 |         171.11 |         171.51 |         171.95 |         170.35 |         170.86
+ src0_1            |          96.43 |         273.66 |         264.09 |         266.66 |         259.50 |         241.59 |         247.10 |         250.35 |         244.90 |         244.96 |         246.72
+ src0_1_2_3_4_5_6_7 |         384.70 |         246.13 |         226.30 |         286.98 |         279.32 |         314.16 |         313.47 |         328.98 |         325.21 |         341.23 |         342.16
+
+All values in GB/s.
+
+=== Latency (ms per iteration) ===
+ config            |         direct | nvlink_ra_8M_dbl | nvlink_ra_8M_nodbl | nvlink_ra_16M_dbl | nvlink_ra_16M_nodbl | nvlink_ra_32M_dbl | nvlink_ra_32M_nodbl | nvlink_ra_64M_dbl | nvlink_ra_64M_nodbl | nvlink_ra_128M_dbl | nvlink_ra_128M_nodbl
+------------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------
+ src0              |          2.785 |          0.652 |          0.647 |          0.785 |          0.784 |          0.789 |          0.784 |          0.783 |          0.781 |          0.788 |          0.786
+ src0_1            |          2.784 |          0.981 |          1.016 |          1.007 |          1.034 |          1.111 |          1.086 |          1.072 |          1.096 |          1.096 |          1.088
+ src0_1_2_3_4_5_6_7 |          2.791 |          4.363 |          4.745 |          3.741 |          3.844 |          3.418 |          3.425 |          3.264 |          3.302 |          3.147 |          3.138
+
+All values in ms per iteration.
+
+Done. Full log: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9995792_2026-03-15_03-11-07_pxdx_subset_transport_double_buffer_clc_128MB_pxdx_pool0-01862_pool0-01867_/rdma_tests_full_9995792_2026-03-15_03-11-07_pxdx_subset_transport_double_buffer_clc_128MB_pxdx_pool0-01862_pool0-01867_.log  Results: /lustre/fsw/portfolios/network/projects/network_research_advdev/users/eflorentzkon/perftest/BW_latency_tests/9995792_2026-03-15_03-11-07_pxdx_subset_transport_double_buffer_clc_128MB_pxdx_pool0-01862_pool0-01867_/rdma_tests_results_9995792_2026-03-15_03-11-07_pxdx_subset_transport_double_buffer_clc_128MB_pxdx_pool0-01862_pool0-01867_.txt
