@@ -234,18 +234,16 @@ def extract_pxdx_data(merged_bw, merged_lat, transport_buffers):
                 break
 
         for tb in transport_buffers:
+            # PxDx: use only markdown allow_nvlink_reassembly (no alltoall), NOT subset nvlink_ra_* (alltoall)
             col_md = f"allow_nvlink_reassembly_{tb}" if tb != "1G" else "allow_nvlink_reassembly_full"
-            vals_bw, vals_lat = [], []
             for k, v in merged_bw.items():
-                if k[0] == cfg and (k[1] == col_md or (f"nvlink_ra_{tb}" in k[1] and ("_dbl" in k[1] or "_nodbl" in k[1]))):
-                    vals_bw.append(v)
+                if k[0] == cfg and k[1] == col_md:
+                    bw[label][tb] = v
+                    break
             for k, v in merged_lat.items():
-                if k[0] == cfg and (k[1] == col_md or (f"nvlink_ra_{tb}" in k[1] and ("_dbl" in k[1] or "_nodbl" in k[1]))):
-                    vals_lat.append(v)
-            if vals_bw:
-                bw[label][tb] = sum(vals_bw) / len(vals_bw)
-            if vals_lat:
-                lat[label][tb] = sum(vals_lat) / len(vals_lat)
+                if k[0] == cfg and k[1] == col_md:
+                    lat[label][tb] = v
+                    break
 
     return bw, lat
 
